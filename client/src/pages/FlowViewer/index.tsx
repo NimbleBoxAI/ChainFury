@@ -10,21 +10,12 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-const initialNodes = [
-  {
-    id: "1",
-    type: "input",
-    data: { label: "input node" },
-    position: { x: 250, y: 5 },
-  },
-];
-
 let id = 0;
 const getId = () => `dndnode_${id++}`;
 
 const FlowViewer = () => {
   const reactFlowWrapper = useRef(null) as any;
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [reactFlowInstance, setReactFlowInstance] = useState(
     null as null | {
@@ -84,10 +75,11 @@ const FlowViewer = () => {
   );
 
   return (
-    <div className="dndflow">
+    <div className=" w-full">
       <ReactFlowProvider>
-        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
+        <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
           <ReactFlow
+            proOptions={{ hideAttribution: true }}
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
