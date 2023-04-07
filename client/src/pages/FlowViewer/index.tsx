@@ -12,9 +12,6 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-let id = 0;
-const getId = () => `dndnode_${id++}`;
-
 export const ChainFuryNode = (props: { data: { label: string } }) => {
   return (
     <div
@@ -30,9 +27,15 @@ export const ChainFuryNode = (props: { data: { label: string } }) => {
       </div>
       <Handle
         className="border-0"
-        type="source"
-        position={Position.Right}
-        id="a"
+        type={
+          Number(props.data.label?.split(" ")?.[1]) % 2 ? "target" : "source"
+        }
+        position={
+          Number(props.data.label?.split(" ")?.[1]) % 2
+            ? Position.Right
+            : Position.Left
+        }
+        id={props.data.label}
       />
     </div>
   );
@@ -89,10 +92,10 @@ const FlowViewer = () => {
           y: event.clientY - reactFlowBounds.top,
         });
         const newNode = {
-          id: getId(),
+          id: type,
           position,
           type: "ChainFuryNode",
-          data: { label: `${type} node` },
+          data: { label: `${type}` },
         };
 
         setNodes((nds) => nds.concat(newNode));
@@ -116,7 +119,11 @@ const FlowViewer = () => {
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
-            fitView
+            defaultViewport={{
+              zoom: 1,
+              y: 0,
+              x: 0,
+            }}
           >
             <Controls />
           </ReactFlow>
