@@ -1,26 +1,20 @@
-import { useAuthStates } from "./redux/hooks/dispatchHooks";
-import { useAppDispatch } from "./redux/hooks/store";
-import { setCount } from "./redux/slices/authSlice";
 import "./App.css";
+import { Routes, Route } from "react-router-dom";
 
 function App() {
-  const { auth } = useAuthStates();
-  const dispatch = useAppDispatch();
+  const Home = () => {
+    return <div>Home</div>;
+  };
 
-  const handleCount = () => {
-    return dispatch(
-      setCount({
-        count: auth?.count + 1,
-      })
-    );
+  const AboutUs = () => {
+    return <div>AboutUs</div>;
   };
 
   return (
-    <div className="flex justify-center items-center h-full">
-      <h1 onClick={handleCount} className="text-3xl font-bold underline">
-        Chain Fury {auth?.count}
-      </h1>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/about-us" element={<AboutUs />} />
+    </Routes>
   );
 }
 
