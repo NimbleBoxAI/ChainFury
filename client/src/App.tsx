@@ -2,6 +2,7 @@ import { Routes, Route, useLocation } from "react-router-dom";
 import ChatComp from "./components/ChatComp";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
+import FlowViewer from "./pages/FlowViewer";
 import Login from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 
@@ -26,6 +27,11 @@ const AppRoutes = [
     element: <ChatComp />,
     isPrivate: false,
   },
+  {
+    path: "/dashboard/:flow_id",
+    element: <FlowViewer />,
+    isPrivate: true,
+  },
 ];
 
 function App() {
@@ -34,8 +40,9 @@ function App() {
   return (
     <>
       <Routes>
-        {AppRoutes.map((route) => (
+        {AppRoutes.map((route, key) => (
           <Route
+            key={key}
             path={route.path}
             element={
               route?.isPrivate ? (
