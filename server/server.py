@@ -4,7 +4,7 @@ from starlette.responses import Response
 import requests
 
 import commons.config as c
-
+from commons.utils import add_default_user
 # Routers
 # from api.initialize import X
 # from api.environment import Environment
@@ -18,7 +18,7 @@ app = FastAPI(
     description="Transform LLM development with LangChain DB - monitor I/O, evaluate models, and track performance with precision and efficiency using this open-source tool",
     version="0.0.1",
 )
-
+add_default_user()
 
 ####################################################
 ################ INITIALIZE ########################
@@ -34,3 +34,4 @@ app = FastAPI(
 @app.get("/test", status_code=200)
 def test(response: Response):
     return {"msg": "success"}
+
