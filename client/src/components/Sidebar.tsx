@@ -1,13 +1,19 @@
 import { Button } from "@mui/material";
+import { useState } from "react";
 import ChatBotCard from "./ChatBotCard";
+import NewBotModel from "./NewBotModel";
 
 const dummyBots = ["Bot 1", "Bot 2", "Bot 3"];
 const dummyTemplates = ["Template 1", "Template 2", "Template 3"];
 
 const Sidebar = () => {
+  const [newBotModel, setNewBotModel] = useState(false);
+
   return (
     <div className="w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
+      {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ""}
       <Button
+        onClick={() => setNewBotModel(true)}
         variant="contained"
         className="my-[8px!important]"
         color="primary"
