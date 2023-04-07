@@ -6,12 +6,7 @@ import requests
 import commons.config as c
 from commons.utils import add_default_user
 # Routers
-# from api.initialize import X
-# from api.environment import Environment
-# from api.monitoring import Monitoring
-# from commons import google_drive
-# from api.initialize import run_servers
-# from commons import unix_system as system
+from api.user import user_router
 
 app = FastAPI(
     title="ChainFury",
@@ -24,7 +19,7 @@ add_default_user()
 ################ INITIALIZE ########################
 ####################################################
 # Registering apis.
-# app.include_router(initialize_router)
+app.include_router(user_router)
 
 ####################################################
 ################ APIs ##############################
