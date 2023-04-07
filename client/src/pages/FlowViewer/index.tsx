@@ -7,11 +7,38 @@ import ReactFlow, {
   Controls,
   Connection,
   Edge,
+  Handle,
+  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
 
 let id = 0;
 const getId = () => `dndnode_${id++}`;
+
+export const ChainFuryNode = (props: { data: { label: string } }) => {
+  return (
+    <div
+      className={`min-w-[100px] border border-light-neutral-grey-200 rounded-[4px] shadow-sm bg-light-system-bg-primary`}
+    >
+      <div className="flex flex-col">
+        <div className="p-[8px] bg-light-primary-blue-400 medium350">
+          <span className="semiBold250 text-white">{props.data.label}</span>
+        </div>
+        <input className="h-[24px] m-[8px]" placeholder="something" />
+        <input className="h-[24px] m-[8px]" placeholder="something" />
+        <input className="h-[24px] m-[8px]" placeholder="something" />
+      </div>
+      <Handle
+        className="border-0"
+        type="source"
+        position={Position.Right}
+        id="a"
+      />
+    </div>
+  );
+};
+
+export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
 const FlowViewer = () => {
   const reactFlowWrapper = useRef(null) as any;
@@ -63,8 +90,8 @@ const FlowViewer = () => {
         });
         const newNode = {
           id: getId(),
-          type,
           position,
+          type: "ChainFuryNode",
           data: { label: `${type} node` },
         };
 
@@ -79,6 +106,7 @@ const FlowViewer = () => {
       <ReactFlowProvider>
         <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
           <ReactFlow
+            nodeTypes={nodeTypes}
             proOptions={{ hideAttribution: true }}
             nodes={nodes}
             edges={edges}

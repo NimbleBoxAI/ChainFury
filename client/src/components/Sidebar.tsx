@@ -6,6 +6,7 @@ import NewBotModel from "./NewBotModel";
 
 const dummyBots = ["Bot 1", "Bot 2", "Bot 3"];
 const dummyTemplates = ["Template 1", "Template 2", "Template 3"];
+const dummyChain = ["Chain 1", "Chain 2", "Chain 3"];
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
@@ -56,32 +57,23 @@ const Sidebar = () => {
           </div>
         </>
       ) : (
-        <aside>
-          <div className="description">
-            You can drag these nodes to the pane on the right.
-          </div>
-          <div
-            className="dndnode input"
-            onDragStart={(event) => onDragStart(event, "input")}
-            draggable
-          >
-            Input Node
-          </div>
-          <div
-            className="dndnode"
-            onDragStart={(event) => onDragStart(event, "default")}
-            draggable
-          >
-            Default Node
-          </div>
-          <div
-            className="dndnode output"
-            onDragStart={(event) => onDragStart(event, "output")}
-            draggable
-          >
-            Output Node
-          </div>
-        </aside>
+        <div className="flex flex-col gap-[8px]">
+          <span className="semiBold250 text-light-neutral-grey-900">
+            Chains
+          </span>
+          {dummyChain.map((bot, key) => {
+            return (
+              <div
+                className="p-[8px] cursor-pointer medium400 border border-light-neutral-grey-200 rounded-md bg-light-system-bg-primary"
+                key={key}
+                onDragStart={(event) => onDragStart(event, bot)}
+                draggable
+              >
+                {bot}
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );
