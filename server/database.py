@@ -39,7 +39,7 @@ class User(Base):
 
 
 class ChatBot(Base):
-    __tablename__ = "user"
+    __tablename__ = "chatbot"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
