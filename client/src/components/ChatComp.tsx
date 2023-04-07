@@ -70,7 +70,11 @@ const ChatComp = () => {
 
   return (
     <div className="absolute bg-light-system-bg-primary z-[100000] right-0 bottom-0 ">
-      <div className="flex flex-col max-h-[450px] border border-light-neutral-grey-200 shadow-sm rounded-md max-w-[350px] regular250 overflow-hidden">
+      <div
+        className={`flex flex-col ${
+          isChatOpen ? "w-screen" : ""
+        } max-h-screen border border-light-neutral-grey-200 shadow-sm rounded-md  regular250 overflow-hidden`}
+      >
         <div
           onClick={() => {
             if (!isChatOpen) setIsChatOpen(true);
@@ -122,3 +126,22 @@ const ChatComp = () => {
 };
 
 export default ChatComp;
+
+/***
+ * 
+ * 
+ *   <script>
+      window.onload = function () {
+        const iframe = document.createElement("iframe");
+        iframe.src = "http://localhost:5173/chat/client_id_1";
+        iframe.style.position = "absolute";
+        iframe.style.zIndex = "10000";
+        iframe.style.bottom = "0";
+        iframe.style.right = "0";
+        iframe.style.width = "350px";
+        iframe.style.height = "450px";
+        document.body.appendChild(iframe);
+      };
+    </script>
+
+ */
