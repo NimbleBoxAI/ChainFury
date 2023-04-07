@@ -32,7 +32,7 @@ class User(Base):
         return f"User(id={self.id}, username={self.username}, password={self.password}, meta={self.meta})"
     
 class ChatBot(Base):
-    __tablename__ = "user"
+    __tablename__ = "chatbot"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True)
