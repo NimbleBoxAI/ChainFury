@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
-user_router = APIRouter("/user")
+user_router = APIRouter(prefix="/user", tags=["user"])
 
 class ChangePasswordModel(BaseModel):
     username: str

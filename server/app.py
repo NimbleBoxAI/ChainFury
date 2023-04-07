@@ -1,12 +1,15 @@
+import database
 from typing import Dict, List
 from fastapi import FastAPI
 from starlette.responses import Response
 import requests
-
-import commons.config as c
+from commons import config as c
+from commons.config import engine
 from commons.utils import add_default_user
 # Routers
 from api.user import user_router
+
+c.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="ChainFury",

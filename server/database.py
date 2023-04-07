@@ -1,7 +1,19 @@
-from commons.config import Base, SessionLocal
+from sqlalchemy.orm import Session
+from sqlalchemy.orm import scoped_session
+from sqlalchemy.orm import sessionmaker
+from commons.config import Base, SessionLocal, engine
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 
-def db_session():
+def db_session() -> Session:  # type: ignore
+    session_factory = sessionmaker(bind=engine)
+    session_class = scoped_session(session_factory)
+    # now all calls to session_class() will create a thread-local session_class
+    try:
+        return session_class()
+    finally:
+        session_class.remove()
+
+def fastapi_db_session():
     db = SessionLocal()
     try:
         yield db
