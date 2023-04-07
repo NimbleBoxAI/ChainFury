@@ -22,3 +22,39 @@
 input {
   @apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-0 focus:border-gray-300 p-[8px];
 }
+
+.nbx-chat-start {
+  place-items: start;
+  grid-template-columns: auto 1fr;
+}
+.chat {
+  display: grid;
+  grid-template-columns: repeat(2);
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  color: #ffffff;
+}
+.nbx-chat-end {
+  place-items: end;
+  grid-template-columns: 1fr auto;
+}
+.nbx-chat-end .chat-bubble {
+  grid-column-start: 2;
+  border-bottom-right-radius: 0;
+  background-color: #1fb2a5;
+}
+.chat-bubble {
+  position: relative;
+  display: block;
+  max-width: fit-content;
+  width: 90%;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  overflow-wrap: break-word;
+  overflow: hidden;
+}
+.nbx-chat-start .chat-bubble {
+  grid-column-start: 1;
+  border-bottom-left-radius: 0;
+  background-color: #45b1ff;
+}
