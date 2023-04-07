@@ -1,29 +1,28 @@
-import sqlite3
-from commons.config import database
+from commons.config import Base, SessionLocal
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 
-def initialize_sqlite():
-    con = sqlite3.connect(database)
-    print("Database opened successfully")
-    cur = con.cursor()
-    cur.execute(
-        "CREATE TABLE IF NOT EXISTS User (id INTEGER PRIMARY KEY AUTOINCREMENT, username VARCHAR(80) UNIQUE NOT NULL, password VARCHAR(80), meta VARCHAR(300));"
-    )
-    con.commit()
-    con.close()
+def get_db_session():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+class User(Base):
+    __tablename__ = "user"
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True)
+    password = Column(String)
+    meta = Column(String)
+
+    def __repr__(self):
+        return f"User(id={self.id}, username={self.username}, password={self.password}, meta={self.meta})"
 
 
 def add_default_user():
-    con = None
-    try:
-        with sqlite3.connect(database) as con:
-            cur = con.cursor()
-            cur.execute(
-                "INSERT into User (username, password, meta) values (?,?,?);",
-                ("admin", "admin", ""),
-            )
-            con.commit()
-    except:
-        con.rollback()
-    finally:
-        con.close()
+    new_user = User("admin", "admin", "")
+    db = get_db_session()
+    db.session.add(new_user)
+    db.session.commit()
 
