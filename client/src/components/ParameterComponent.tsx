@@ -102,9 +102,8 @@ export default function ParameterComponent({
                     : data.node.template[name].value
                 }
                 onChange={(t: string[]) => {
-                  if (data?.node?.template?.[name]?.value)
+                  if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
-                  //////alert("save");
                 }}
               />
             ) : data?.node?.template[name].multiline ? (
@@ -112,7 +111,7 @@ export default function ParameterComponent({
                 disabled={false}
                 value={data?.node.template[name].value ?? ""}
                 onChange={(t: string) => {
-                  if (data?.node?.template?.[name]?.value)
+                  if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
                   //////alert("save");
                 }}
@@ -123,7 +122,7 @@ export default function ParameterComponent({
                 password={data?.node?.template[name].password ?? false}
                 value={data?.node?.template[name].value ?? ""}
                 onChange={(t) => {
-                  if (data?.node?.template?.[name]?.value)
+                  if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
                   //////alert("save");
                 }}
@@ -136,7 +135,7 @@ export default function ParameterComponent({
               disabled={false}
               enabled={enabled}
               setEnabled={(t) => {
-                if (data?.node?.template?.[name]?.value)
+                if (data?.node?.template?.[name])
                   data.node.template[name].value = t;
                 setEnabled(t);
                 //////alert("save");
@@ -148,9 +147,8 @@ export default function ParameterComponent({
             disabled={false}
             value={data?.node?.template[name].value ?? ""}
             onChange={(t) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 data.node.template[name].value = t;
-              ////alert("save");
             }}
           />
         ) : left === true &&
@@ -159,7 +157,7 @@ export default function ParameterComponent({
           <Dropdown
             options={data.node.template[name].options}
             onSelect={(newValue) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 return (data.node.template[name].value = newValue);
             }}
             value={data.node.template[name].value ?? "Choose an option"}
@@ -169,9 +167,8 @@ export default function ParameterComponent({
             disabled={false}
             value={data?.node?.template[name].value ?? ""}
             onChange={(t: string) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 data.node.template[name].value = t;
-              ////alert("save");
             }}
           />
         ) : left === true && type === "file" ? (
@@ -179,15 +176,14 @@ export default function ParameterComponent({
             disabled={false}
             value={data?.node?.template[name].value ?? ""}
             onChange={(t: string) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 data.node.template[name].value = t;
             }}
             fileTypes={data?.node?.template[name].fileTypes}
             suffixes={data?.node?.template[name].suffixes}
             onFileChange={(t: string) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 data.node.template[name].content = t;
-              ////alert("save");
             }}
           ></InputFileComponent>
         ) : left === true && type === "int" ? (
@@ -195,9 +191,8 @@ export default function ParameterComponent({
             disabled={false}
             value={data?.node?.template[name].value ?? ""}
             onChange={(t) => {
-              if (data?.node?.template?.[name]?.value)
+              if (data?.node?.template?.[name])
                 data.node.template[name].value = t;
-              ////alert("save");
             }}
           />
         ) : left === true && type === "prompt" ? (
@@ -205,9 +200,8 @@ export default function ParameterComponent({
             disabled={false}
             value={data?.node?.template[name].value ?? ""}
             onChange={(t: string) => {
-              if (data?.node?.template?.[name]?.value) {
+              if (data?.node?.template?.[name]) {
                 data.node.template[name].value = t;
-                ////alert("save");
               }
             }}
           />
