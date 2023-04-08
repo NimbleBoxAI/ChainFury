@@ -88,8 +88,10 @@ const FlowViewer = () => {
       if (reactFlowInstance?.project && reactFlowWrapper?.current) {
         const reactFlowBounds =
           reactFlowWrapper?.current?.getBoundingClientRect();
-        const type = event.dataTransfer.getData("application/reactflow");
-
+        let type = event.dataTransfer.getData("application/reactflow");
+        const nodeData = JSON.parse(type);
+        type = nodeData?.displayName;
+        console.log({ nodeData, type });
         // check if the dropped element is valid
         if (typeof type === "undefined" || !type) {
           return;
@@ -104,9 +106,12 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
-            node: JSON.parse(type),
-            id: "newId",
+            node: nodeData,
+            id: type,
             value: null,
+            deleteMe: () => {
+              setNodes((nds) => nds.filter((node) => node.id !== type));
+            },
           },
         };
 

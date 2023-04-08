@@ -35,7 +35,14 @@ const CollapsibleComponents = ({
         className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
         draggable
         onDragStart={(event) =>
-          onDragStart(event, JSON.stringify(values[displayName]))
+          onDragStart(
+            event,
+            JSON.stringify({
+              ...values[displayName],
+              chain: label,
+              displayName,
+            })
+          )
         }
       >
         {displayName}

@@ -82,7 +82,7 @@ export default function ParameterComponent({
               }
               style={{
                 borderColor: color,
-                top: position,
+                // top: position,
               }}
             ></Handle>
           </Tooltip>

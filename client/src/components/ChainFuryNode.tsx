@@ -4,7 +4,6 @@ import ParameterComponent from "./ParameterComponent";
 import SvgTrash from "./SvgComps/Trash";
 
 export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
-  console.log(data);
   return (
     <div
       className={`w-[350px] overflow-hidden border border-light-neutral-grey-200 rounded-[4px] shadow-sm bg-light-system-bg-primary prose-nbx`}
@@ -14,7 +13,15 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           <span className="semiBold250 text-light-neutral-grey-500 ">
             {data?.node?.template?._type ?? ""}
           </span>
-          <SvgTrash className="stroke-light-neutral-grey-500  cursor-pointer" />
+          <div
+            className="cursor-pointer"
+            onClick={() => {
+              console.log("delete", data);
+              data?.deleteMe?.();
+            }}
+          >
+            <SvgTrash className="stroke-light-neutral-grey-500" />
+          </div>
         </div>
 
         <div className="w-full h-full p-[8px]">
@@ -50,10 +57,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                   {data?.node?.template[t].show ? (
                     <ParameterComponent
                       data={data}
-                      color={
-                        // nodeColors[data?.node?.template?[t].type ?? ''] ??
-                        nodeColors.unknown
-                      }
+                      color={nodeColors[data?.node?.chain ?? ""]}
                       title={
                         data?.node?.template[t].display_name
                           ? data.node.template[t].display_name
@@ -83,7 +87,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           </span>
           <ParameterComponent
             data={data}
-            color={nodeColors.unknown}
+            color={nodeColors[data?.node?.chain ?? ""]}
             title={data?.node?.template?._type ?? ""}
             tooltipTitle={`Type: ${data?.node?.base_classes.join(" | ")}`}
             id={[data.type, data.id, ...(data?.node?.base_classes ?? [])]?.join(

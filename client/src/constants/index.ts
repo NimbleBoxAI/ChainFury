@@ -20,6 +20,7 @@ type APIClassType = {
   base_classes: Array<string>;
   description: string;
   template: APITemplateType;
+  chain: string;
   [key: string]: Array<string> | string | APITemplateType;
 };
 type NodeDataType = {
@@ -27,6 +28,7 @@ type NodeDataType = {
   node?: APIClassType;
   id: string;
   value: any;
+  deleteMe: () => void;
 };
 
 type TextAreaComponentType = {
