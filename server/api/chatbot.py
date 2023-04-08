@@ -28,16 +28,16 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
 
 # @chatbot_router.get("/", status_code=200)
 
-# @chatbot_router.put("/", status_code=200)
-# def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.db_session)):
-    # user: User = db.query(User).filter((User.username == inputs.username) & (User.password == inputs.old_password)).first()
-    # if user is not None:
-    #     user.password = inputs.new_password
-    #     db.commit()
-    #     response = {"msg": "success"}
-    # else:
-    #     response = {"msg": "failed"}
-    # return response
+@chatbot_router.put("/{id}", status_code=200)
+def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.db_session)):
+    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first()
+    if chatbot is not None:
+        # chatbot.
+        db.commit()
+        response = {"msg": "success"}
+    else:
+        response = {"msg": "failed"}
+    return response
 
 # @chatbot_router.delete("/", status_code=200)
 # def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.db_session)):
