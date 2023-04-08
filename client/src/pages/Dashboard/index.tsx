@@ -1,4 +1,5 @@
 import { Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import ChatComp from "../../components/ChatComp";
 import SvgCopy from "../../components/SvgComps/Copy";
 import { Table } from "../../components/Table";
@@ -6,6 +7,7 @@ import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 
 const Dashboard = () => {
   const { auth } = useAuthStates();
+  const navigate = useNavigate();
 
   return (
     <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
@@ -13,7 +15,14 @@ const Dashboard = () => {
         <>
           <div className="flex justify-between items-center w-full">
             <span className="semiBold600">{auth?.selectedChatBot?.name}</span>
-            <Button variant="outlined" className="h-[24px]" color="primary">
+            <Button
+              variant="outlined"
+              className="h-[24px]"
+              color="primary"
+              onClick={() => {
+                navigate(`/dashboard/${auth?.selectedChatBot?.id}`);
+              }}
+            >
               Edit
             </Button>
           </div>

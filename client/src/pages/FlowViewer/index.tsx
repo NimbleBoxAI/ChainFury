@@ -52,6 +52,13 @@ const FlowViewer = () => {
     fetchComponents();
   }, []);
 
+  useEffect(() => {
+    if (auth?.chatBots?.[flow_id]) {
+      setNodes(auth?.chatBots?.[flow_id]?.dag?.nodes);
+      setEdges(auth?.chatBots?.[flow_id]?.dag?.edges);
+    }
+  }, [auth.chatBots]);
+
   const fetchComponents = async () => {
     getComponents()
       .unwrap()
