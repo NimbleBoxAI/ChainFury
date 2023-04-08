@@ -1,7 +1,7 @@
 from http.client import HTTPException
 import database
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from sqlalchemy import DateTime
 from datetime import datetime
@@ -13,6 +13,8 @@ from commons.utils import (
     get_latency_metrics,
 )
 import database_constants as constants
+from typing import Annotated
+from commons.utils import get_user_from_jwt, verify_user
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
 
@@ -20,6 +22,7 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 @metrics_router.get("/chatbot/{id}/prompts", status_code=200)
 def get_chatbot_metrics(
     id: int,
+    token: Annotated[str, Header()],
     db: Session = Depends(database.db_session),
     from_date: str = None,
     to_date: str = None,
@@ -28,6 +31,8 @@ def get_chatbot_metrics(
     sort_by: str = constants.SORT_BY_CREATED_AT,
     sort_order: str = constants.SORT_ORDER_DESC,
 ):
+    username = get_user_from_jwt(token)
+    verify_user(username)
     if from_date is None:
         parsed_from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     else:
@@ -62,8 +67,11 @@ def get_chatbot_metrics(
 def get_chatbot_metrics(
     id: int,
     metric_type: str,
+    token: Annotated[str, Header()],
     db: Session = Depends(database.db_session),
 ):
+    username = get_user_from_jwt(token)
+    verify_user(username)
     metrics = None
     if metric_type == constants.LATENCY_METRIC:
         metrics = get_latency_metrics(id)
