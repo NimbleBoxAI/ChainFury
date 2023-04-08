@@ -1,5 +1,6 @@
 import { Button } from "@mui/material";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useLocation, useParams } from "react-router-dom";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -8,11 +9,10 @@ import ReactFlow, {
   Controls,
   Connection,
   Edge,
-  Handle,
-  Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import { useComponentsMutation } from "../../redux/services/auth";
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -25,6 +25,32 @@ const FlowViewer = () => {
       project: (arg0: { x: number; y: number }) => { x: number; y: number };
     }
   );
+  const [variant, setVariant] = useState("" as "new" | "edit");
+  const { flow_id } = useParams() as {
+    flow_id: string;
+  };
+  const [getComponents] = useComponentsMutation();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.pathname.includes("?bot=") && flow_id === "new") {
+      setVariant("new");
+    } else {
+      setVariant("edit");
+    }
+    fetchComponents();
+  }, []);
+
+  const fetchComponents = async () => {
+    getComponents()
+      .unwrap()
+      .then((res) => {
+        console.log(res);
+      })
+      ?.catch((err) => {
+        console.log(err);
+      });
+  };
 
   const onConnect = useCallback(
     (params: Edge<any> | Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -112,7 +138,20 @@ const FlowViewer = () => {
   );
 
   return (
-    <div className=" w-full">
+    <div className=" w-full max-h-screen flex flex-col overflow-hidden prose-nbx">
+      <div className="p-[16px] border-b border-light-neutral-grey-200 semiBold350">
+        {variant === "new"
+          ? "Start building your flow by dragging and dropping nodes from the left panel"
+          : "Edit your flow by dragging and dropping nodes from the left panel"}
+        <Button
+          className="h-[28px]"
+          variant="outlined"
+          color="primary"
+          sx={{ float: "right" }}
+        >
+          {variant === "new" ? "Create" : "Save"}
+        </Button>
+      </div>
       <ReactFlowProvider>
         <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
           <ReactFlow
