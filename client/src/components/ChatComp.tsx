@@ -65,15 +65,15 @@ const dummyChat = [
   },
 ];
 
-const ChatComp = () => {
+const ChatComp = ({ chatId }: { chatId?: string }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   return (
     <div className="absolute bg-light-system-bg-primary z-[100000] right-0 bottom-0 ">
       <div
-        className={`flex flex-col ${
-          isChatOpen ? "w-screen" : ""
-        } max-h-screen border border-light-neutral-grey-200 shadow-sm rounded-md  regular250 overflow-hidden`}
+        className={`flex flex-col ${isChatOpen && !chatId ? "w-screen" : ""} ${
+          chatId ? "max-h-[450px]" : "max-h-screen"
+        } border border-light-neutral-grey-200 shadow-sm rounded-md  regular250 overflow-hidden`}
       >
         <div
           onClick={() => {
