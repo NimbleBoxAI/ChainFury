@@ -15,8 +15,8 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 def get_chatbot_metrics(
     id: int,
     db: Session = Depends(database.db_session),
-    from_date: str | None = None,
-    to_date: str | None = None,
+    from_date: str = None,
+    to_date: str = None,
     page: int = 1,
     page_size: int = 10,
     sort_by: str = constants.SORT_BY_CREATED_AT,
