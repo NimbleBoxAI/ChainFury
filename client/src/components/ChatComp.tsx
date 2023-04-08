@@ -126,22 +126,3 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
 };
 
 export default ChatComp;
-
-/***
- * 
- * 
- *   <script>
-      window.onload = function () {
-        const iframe = document.createElement("iframe");
-        iframe.src = "http://localhost:5173/chat/client_id_1";
-        iframe.style.position = "absolute";
-        iframe.style.zIndex = "10000";
-        iframe.style.bottom = "0";
-        iframe.style.right = "0";
-        iframe.style.width = "350px";
-        iframe.style.height = "450px";
-        document.body.appendChild(iframe);
-      };
-    </script>
-
- */
