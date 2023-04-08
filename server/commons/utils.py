@@ -82,3 +82,12 @@ def get_prompt_intermediate_data(prompt_id: int):
         return intermediate_prompts
     else:
         return None
+
+
+def get_prompt_from_prompt_id(prompt_id: int):
+    db = db_session()
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+    if prompt is not None:
+        return prompt
+    else:
+        return None
