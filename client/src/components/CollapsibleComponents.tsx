@@ -1,6 +1,7 @@
 import { Collapse } from "@mui/material";
 import { useState } from "react";
 import { APIClassType } from "../constants";
+import { nodeColors } from "../utils";
 import SvgChevronDown from "./SvgComps/ChevronDown";
 
 const CollapsibleComponents = ({
@@ -25,14 +26,17 @@ const CollapsibleComponents = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const ComponentCard = ({ label }: { label: string }) => {
+  const ComponentCard = ({ displayName }: { displayName: string }) => {
     return (
       <div
-        className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] border-lime-600 medium300"
+        style={{
+          borderLeftColor: nodeColors[label],
+        }}
+        className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
         draggable
-        onDragStart={(event) => onDragStart(event, label)}
+        onDragStart={(event) => onDragStart(event, displayName + "-+-" + label)}
       >
-        {label}
+        {displayName}
       </div>
     );
   };
@@ -56,7 +60,7 @@ const CollapsibleComponents = ({
         </div>
         <div className="flex flex-col gap-[16px] p-[8px] bg-light-neutral-grey-100">
           {Object.keys(values).map((bot, key) => {
-            return <ComponentCard key={key} label={bot} />;
+            return <ComponentCard key={key} displayName={bot} />;
           })}
         </div>
       </div>

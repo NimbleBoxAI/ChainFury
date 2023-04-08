@@ -46,7 +46,7 @@ const Sidebar = () => {
       >
         New Bot
       </Button>
-      <div className="overflow-scroll max-h-full">
+      <div className="overflow-scroll max-h-[calc(100%-60px)]">
         {!flow_id ? (
           <>
             <div className="flex flex-col gap-[8px]">
