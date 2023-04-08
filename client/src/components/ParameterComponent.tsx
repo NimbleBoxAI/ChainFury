@@ -127,7 +127,6 @@ export default function ParameterComponent({
                 onChange={(t: string) => {
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
-                  //////alert("save");
                 }}
               />
             ) : (
@@ -138,7 +137,6 @@ export default function ParameterComponent({
                 onChange={(t) => {
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
-                  //////alert("save");
                 }}
               />
             )}
@@ -152,7 +150,6 @@ export default function ParameterComponent({
                 if (data?.node?.template?.[name])
                   data.node.template[name].value = t;
                 setEnabled(t);
-                //////alert("save");
               }}
             />
           </div>

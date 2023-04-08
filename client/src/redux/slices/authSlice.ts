@@ -2,10 +2,21 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { APIClassType } from "../../constants";
 import { RootState } from "../store";
 
+interface ChatBots {
+  created_by: string;
+  id: string;
+  name: string;
+  dag: {
+    edges: any;
+    nodes: any;
+  };
+}
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
   typesMap: Record<string, string[]>;
+  chatBots: Record<string, ChatBots>;
+  selectedChatBot: ChatBots;
 };
 
 interface ComponentsInterface {
@@ -18,6 +29,8 @@ const slice = createSlice({
     accessToken: localStorage.getItem("accessToken") ?? "",
     components: {},
     typesMap: {},
+    chatBots: {},
+    selectedChatBot: {} as ChatBots,
   } as AuthState,
   reducers: {
     setAccessToken: (
@@ -49,10 +62,31 @@ const slice = createSlice({
       });
       state.typesMap = typesMap;
     },
+    setChatBots: (
+      state,
+      { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>
+    ) => {
+      const tempChatBots = {} as Record<string, ChatBots>;
+      chatBots.forEach((chatBot) => {
+        tempChatBots[chatBot.id] = chatBot;
+      });
+      state.chatBots = tempChatBots;
+    },
+    setSelectedChatBot: (
+      state,
+      { payload: { chatBot } }: PayloadAction<{ chatBot: ChatBots }>
+    ) => {
+      state.selectedChatBot = chatBot;
+    },
   },
 });
 
-export const { setAccessToken, setComponents } = slice.actions;
+export const {
+  setAccessToken,
+  setComponents,
+  setChatBots,
+  setSelectedChatBot,
+} = slice.actions;
 
 export default slice.reducer;
 

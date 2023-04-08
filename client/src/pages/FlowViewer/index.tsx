@@ -17,6 +17,7 @@ import { useAppDispatch } from "../../redux/hooks/store";
 import {
   useComponentsMutation,
   useCreateBotMutation,
+  useEditBotMutation,
 } from "../../redux/services/auth";
 import { setComponents } from "../../redux/slices/authSlice";
 
@@ -40,6 +41,7 @@ const FlowViewer = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [createBot] = useCreateBotMutation();
+  const [editBot] = useEditBotMutation();
   const { auth } = useAuthStates();
 
   useEffect(() => {
@@ -51,6 +53,13 @@ const FlowViewer = () => {
     }
     fetchComponents();
   }, []);
+
+  useEffect(() => {
+    if (auth?.chatBots?.[flow_id]) {
+      setNodes(auth?.chatBots?.[flow_id]?.dag?.nodes);
+      setEdges(auth?.chatBots?.[flow_id]?.dag?.edges);
+    }
+  }, [auth.chatBots]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -112,7 +121,7 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
-            node: nodeData,
+            node: JSON.parse(JSON.stringify(nodeData)),
             id: type,
             value: null,
             deleteMe: () => {
@@ -140,6 +149,25 @@ const FlowViewer = () => {
       });
   };
 
+  const editChatBot = () => {
+    editBot({
+      id: flow_id,
+      name: botName,
+      nodes,
+      edges,
+      token: auth?.accessToken,
+    })
+      .unwrap()
+      ?.then((res) => {
+        console.log(res);
+        alert("Bot edited successfully");
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("Error editing bot");
+      });
+  };
+
   return (
     <div className=" w-full max-h-screen flex flex-col overflow-hidden prose-nbx">
       <div className="p-[16px] border-b border-light-neutral-grey-200 semiBold350">
@@ -153,6 +181,8 @@ const FlowViewer = () => {
           onClick={() => {
             if (variant === "new") {
               createChatBot();
+            } else {
+              editChatBot();
             }
           }}
           sx={{ float: "right" }}

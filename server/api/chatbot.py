@@ -53,6 +53,7 @@ def update_chatbot(id: int, token: Annotated[str, Header()], inputs: ChatBotMode
 def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
     verify_user(get_user_from_jwt(token))
     chatbots = db.query(ChatBot).all()
+    print(chatbots)
     response = {"msg": "success", "chatbots": [chatbot.to_dict() for chatbot in chatbots]}
     return response
 
