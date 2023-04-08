@@ -36,7 +36,29 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    createBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: "/chatbot/?token=" + token,
+        method: "POST",
+        body: {
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes,
+            edges: credentials.edges,
+          },
+        },
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation, useComponentsMutation } = authApi;
+export const { useLoginMutation, useComponentsMutation, useCreateBotMutation } =
+  authApi;

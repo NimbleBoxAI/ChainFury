@@ -12,8 +12,12 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
-import { useComponentsMutation } from "../../redux/services/auth";
+import {
+  useComponentsMutation,
+  useCreateBotMutation,
+} from "../../redux/services/auth";
 import { setComponents } from "../../redux/slices/authSlice";
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
@@ -31,12 +35,16 @@ const FlowViewer = () => {
   const { flow_id } = useParams() as {
     flow_id: string;
   };
+  const [botName, setBotName] = useState("" as string);
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const [createBot] = useCreateBotMutation();
+  const { auth } = useAuthStates();
 
   useEffect(() => {
-    if (location.pathname.includes("?bot=") && flow_id === "new") {
+    if (location.search?.includes("?bot=") && flow_id === "new") {
+      setBotName(location.search.split("?bot=")[1]);
       setVariant("new");
     } else {
       setVariant("edit");
@@ -119,6 +127,19 @@ const FlowViewer = () => {
     [reactFlowInstance]
   );
 
+  const createChatBot = () => {
+    createBot({ name: botName, nodes, edges, token: auth?.accessToken })
+      .unwrap()
+      ?.then((res) => {
+        console.log(res);
+        alert("Bot created successfully");
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("Error creating bot");
+      });
+  };
+
   return (
     <div className=" w-full max-h-screen flex flex-col overflow-hidden prose-nbx">
       <div className="p-[16px] border-b border-light-neutral-grey-200 semiBold350">
@@ -129,6 +150,11 @@ const FlowViewer = () => {
           className="h-[28px]"
           variant="outlined"
           color="primary"
+          onClick={() => {
+            if (variant === "new") {
+              createChatBot();
+            }
+          }}
           sx={{ float: "right" }}
         >
           {variant === "new" ? "Create" : "Save"}
