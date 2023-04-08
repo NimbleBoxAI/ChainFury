@@ -12,7 +12,6 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
-import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
 import { useComponentsMutation } from "../../redux/services/auth";
 import { setComponents } from "../../redux/slices/authSlice";
@@ -32,7 +31,6 @@ const FlowViewer = () => {
   const { flow_id } = useParams() as {
     flow_id: string;
   };
-  const { auth } = useAuthStates();
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();

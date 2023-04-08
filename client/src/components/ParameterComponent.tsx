@@ -74,7 +74,21 @@ export default function ParameterComponent({
               position={left ? Position.Left : Position.Right}
               id={id}
               isValidConnection={(connection) => {
-                return true;
+                const sourceArr =
+                  connection?.sourceHandle
+                    ?.split("|")
+                    ?.filter((t) => t !== "") ?? [];
+                const targetArr =
+                  connection?.targetHandle
+                    ?.split("|")
+                    ?.filter((t) => t !== "") ?? [];
+                const hasCommonElement = sourceArr.some((item) =>
+                  targetArr.includes(item)
+                );
+                if (hasCommonElement) {
+                  return true;
+                }
+                return false;
               }}
               className={
                 (left ? "-ml-0.5 " : "-mr-0.5 ") +
@@ -82,7 +96,7 @@ export default function ParameterComponent({
               }
               style={{
                 borderColor: color,
-                // top: position,
+                top: position,
               }}
             ></Handle>
           </Tooltip>

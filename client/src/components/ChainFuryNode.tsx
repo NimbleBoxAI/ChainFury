@@ -1,9 +1,12 @@
 import { NodeDataType } from "../constants";
+import { useAuthStates } from "../redux/hooks/dispatchHooks";
 import { nodeColors } from "../utils";
 import ParameterComponent from "./ParameterComponent";
 import SvgTrash from "./SvgComps/Trash";
 
 export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
+  const { auth } = useAuthStates();
+
   return (
     <div
       className={`w-[350px] overflow-hidden border border-light-neutral-grey-200 rounded-[4px] shadow-sm bg-light-system-bg-primary prose-nbx`}
@@ -16,7 +19,6 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           <div
             className="cursor-pointer"
             onClick={() => {
-              console.log("delete", data);
               data?.deleteMe?.();
             }}
           >
@@ -57,7 +59,15 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                   {data?.node?.template[t].show ? (
                     <ParameterComponent
                       data={data}
-                      color={nodeColors[data?.node?.chain ?? ""]}
+                      color={
+                        nodeColors[
+                          Object?.keys(auth?.typesMap)?.filter((key) =>
+                            auth?.typesMap?.[key]?.includes(
+                              data?.node?.template[t]?.type ?? ""
+                            )
+                          )?.[0] ?? ""
+                        ]
+                      }
                       title={
                         data?.node?.template[t].display_name
                           ? data.node.template[t].display_name

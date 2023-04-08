@@ -5,6 +5,7 @@ import { RootState } from "../store";
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
+  typesMap: Record<string, string[]>;
 };
 
 interface ComponentsInterface {
@@ -16,6 +17,7 @@ const slice = createSlice({
   initialState: {
     accessToken: localStorage.getItem("accessToken") ?? "",
     components: {},
+    typesMap: {},
   } as AuthState,
   reducers: {
     setAccessToken: (
@@ -32,6 +34,20 @@ const slice = createSlice({
       }: PayloadAction<{ components: ComponentsInterface }>
     ) => {
       state.components = components;
+      const typesMap = {} as Record<string, string[]>;
+      Object.keys(components)?.forEach((componentKey) => {
+        const component = components[componentKey];
+        const baseClasses = [] as string[];
+        Object.values(component).forEach((value) => {
+          value?.base_classes?.forEach((baseClass) => {
+            if (!baseClasses.includes(baseClass)) {
+              baseClasses.push(baseClass);
+            }
+          });
+        });
+        typesMap[componentKey] = baseClasses;
+      });
+      state.typesMap = typesMap;
     },
   },
 });
