@@ -17,8 +17,8 @@ def test(db: Session = Depends(database.db_session)):
     return response
 
 @user_router.post("/change_password", status_code=200)
-def test(inputs: ChangePasswordModel, db: Session = Depends(database.db_session)):
-    user: User = User.query.filter((User.username == inputs.username) & (User.password == inputs.old_password)).first()
+def change_password(inputs: ChangePasswordModel, db: Session = Depends(database.db_session)):
+    user: User = db.query(User).filter((User.username == inputs.username) & (User.password == inputs.old_password)).first()
     if user is not None:
         user.password = inputs.new_password
         db.commit()
