@@ -11,35 +11,7 @@ import ReactFlow, {
   Position,
 } from "reactflow";
 import "reactflow/dist/style.css";
-
-export const ChainFuryNode = (props: { data: { label: string } }) => {
-  return (
-    <div
-      className={`min-w-[100px] border border-light-neutral-grey-200 rounded-[4px] shadow-sm bg-light-system-bg-primary`}
-    >
-      <div className="flex flex-col">
-        <div className="p-[8px] bg-light-primary-blue-400 medium350">
-          <span className="semiBold250 text-white">{props.data.label}</span>
-        </div>
-        <input className="h-[24px] m-[8px]" placeholder="something" />
-        <input className="h-[24px] m-[8px]" placeholder="something" />
-        <input className="h-[24px] m-[8px]" placeholder="something" />
-      </div>
-      <Handle
-        className="border-0"
-        type={
-          Number(props.data.label?.split(" ")?.[1]) % 2 ? "target" : "source"
-        }
-        position={
-          Number(props.data.label?.split(" ")?.[1]) % 2
-            ? Position.Right
-            : Position.Left
-        }
-        id={props.data.label}
-      />
-    </div>
-  );
-};
+import { ChainFuryNode } from "../../components/ChainFuryNode";
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -95,7 +67,41 @@ const FlowViewer = () => {
           id: type,
           position,
           type: "ChainFuryNode",
-          data: { label: `${type}` },
+          data: {
+            node: {
+              template: {
+                path: {
+                  required: true,
+                  placeholder: "",
+                  show: true,
+                  multiline: false,
+                  value: "",
+                  suffixes: [".csv"],
+                  fileTypes: ["csv"],
+                  password: false,
+                  name: "path",
+                  type: "file",
+                  list: false,
+                  content: null,
+                },
+                llm: {
+                  required: true,
+                  placeholder: "",
+                  show: true,
+                  multiline: false,
+                  password: false,
+                  name: "llm",
+                  type: "BaseLanguageModel",
+                  list: false,
+                },
+                _type: "csv_agent",
+              },
+              description: "Construct a json agent from a CSV and tools.",
+              base_classes: ["AgentExecutor"],
+            },
+            id: "newId",
+            value: null,
+          },
         };
 
         setNodes((nds) => nds.concat(newNode));
