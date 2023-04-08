@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ChatBotCard from "./ChatBotCard";
 import NewBotModel from "./NewBotModel";
 
@@ -11,6 +11,13 @@ const dummyChain = ["Chain 1", "Chain 2", "Chain 3"];
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
   const { flow_id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!localStorage.getItem("accessToken")) {
+      navigate("/login");
+    }
+  }, []);
 
   const onDragStart = (
     event: {

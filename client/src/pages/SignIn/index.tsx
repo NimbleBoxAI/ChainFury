@@ -1,8 +1,42 @@
 import { Button } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../redux/hooks/store";
+import { useLoginMutation } from "../../redux/services/auth";
+import { setAccessToken } from "../../redux/slices/authSlice";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [loginMutation] = useLoginMutation();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (localStorage.getItem("accessToken")) {
+      navigate("/dashboard");
+    }
+  }, []);
+
+  const handleLogin = () => {
+    loginMutation({ username, password })
+      .unwrap()
+      .then((res) => {
+        if (res?.token) {
+          dispatch(
+            setAccessToken({
+              accessToken: res.token,
+            })
+          );
+          navigate("/dashboard");
+        } else {
+          alert("Invalid Credentials");
+        }
+      })
+      .catch(() => {
+        alert("Invalid Credentials");
+      });
+  };
 
   return (
     <div
@@ -19,13 +53,26 @@ const Login = () => {
           </span>
         </div>
 
-        <input className="w-full h-[40px]" placeholder="Username" />
         <input
+          onChange={(e) => {
+            setUsername(e.target.value);
+          }}
+          value={username}
+          className="w-full h-[40px]"
+          placeholder="Username"
+        />
+        <input
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+          value={password}
           className="w-full h-[40px]"
           placeholder="Password"
           type={"password"}
         />
         <Button
+          onClick={handleLogin}
+          disabled={username.length === 0 || password.length === 0}
           className="h-[40px] mt-[8px!important] block"
           variant="contained"
           color="primary"
@@ -33,14 +80,7 @@ const Login = () => {
           Sign In
         </Button>
       </div>
-      <span
-        onClick={() => {
-          navigate("/signup");
-        }}
-        className="cursor-pointer text-light-primary-blue-600 semiBold300 mt-[8px]"
-      >
-        Create an account
-      </span>
+
       <div
         style={{
           transform: "matrix(1, 0, 0, -1, 0, 0)",

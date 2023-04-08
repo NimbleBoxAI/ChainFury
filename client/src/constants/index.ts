@@ -1,8 +1,9 @@
-const BASE_URL = "http://localhost:3000";
-interface DEFAULT_RESPONSE {
+const BASE_URL = "http://localhost:8000";
+type DEFAULT_RESPONSE = {
+  token?: string;
   success: boolean;
   data: any;
-}
+};
 type TemplateVariableType = {
   type: string;
   required: boolean;

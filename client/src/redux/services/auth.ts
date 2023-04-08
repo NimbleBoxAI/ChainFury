@@ -8,7 +8,7 @@ interface LoginRequest {
 
 export const authApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/api`,
+    baseUrl: `${BASE_URL}/`,
     prepareHeaders: (headers, { getState }) => {
       headers.set("content-type", "application/json;charset=UTF-8");
       return headers;
@@ -18,7 +18,7 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
       query: (credentials) => ({
-        url: "/v1/user/login",
+        url: "/login",
         method: "POST",
         body: credentials,
       }),

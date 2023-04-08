@@ -2,25 +2,26 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 
 type AuthState = {
-  count: number;
+  accessToken: string;
 };
 
 const slice = createSlice({
   name: "auth",
   initialState: {
-    count: 0,
+    accessToken: localStorage.getItem("accessToken") ?? "",
   } as AuthState,
   reducers: {
-    setCount: (
+    setAccessToken: (
       state,
-      { payload: { count } }: PayloadAction<{ count: number }>
+      { payload: { accessToken } }: PayloadAction<{ accessToken: string }>
     ) => {
-      state.count = count;
+      localStorage.setItem("accessToken", accessToken);
+      state.accessToken = accessToken;
     },
   },
 });
 
-export const { setCount } = slice.actions;
+export const { setAccessToken } = slice.actions;
 
 export default slice.reducer;
 
