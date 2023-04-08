@@ -8,7 +8,7 @@ from commons.config import engine
 from commons.utils import add_default_user
 from api.chatbot import chatbot_router
 from api.auth import auth_router
-
+from fastapi.middleware.cors import CORSMiddleware
 # Routers
 from api.user import user_router
 from api.metrics import metrics_router
@@ -24,6 +24,14 @@ app = FastAPI(
     description="Transform LLM development with LangChain DB - monitor I/O, evaluate models, and track performance with precision and efficiency using this open-source tool",
     version="0.0.1",
 )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_methods=['*'],
+    allow_headers=['*'],
+)
+
 add_default_user()
 
 ####################################################

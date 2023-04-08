@@ -1,16 +1,23 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BASE_URL, DEFAULT_RESPONSE } from "../../constants";
+import { RootState } from "../store";
 
 interface LoginRequest {
   username: string;
   password: string;
 }
 
+let token: string | null = null;
 export const authApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/api`,
+    baseUrl: `${BASE_URL}/`,
     prepareHeaders: (headers, { getState }) => {
+      // By default, if we have a token in the store, let's use that for authenticated requests
+      token = (getState() as RootState)?.auth?.accessToken;
       headers.set("content-type", "application/json;charset=UTF-8");
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
       return headers;
     },
     credentials: "include",
@@ -18,12 +25,78 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
       query: (credentials) => ({
-        url: "/v1/user/login",
+        url: "/login",
         method: "POST",
         body: credentials,
+      }),
+    }),
+    components: builder.mutation<DEFAULT_RESPONSE, void>({
+      query: () => ({
+        url: "/flow/components",
+        method: "GET",
+      }),
+    }),
+    getBots: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: "/chatbot/?token=" + credentials?.token,
+        method: "GET",
+      }),
+    }),
+    createBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: "/chatbot/?token=" + token,
+        method: "POST",
+        body: {
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes,
+            edges: credentials.edges,
+          },
+        },
+      }),
+    }),
+    editBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+        id: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `/chatbot/${credentials?.id}?token=` + token,
+        method: "PUT",
+        body: {
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes,
+            edges: credentials.edges,
+          },
+        },
       }),
     }),
   }),
 });
 
-export const { useLoginMutation } = authApi;
+export const {
+  useLoginMutation,
+  useComponentsMutation,
+  useCreateBotMutation,
+  useGetBotsMutation,
+  useEditBotMutation,
+} = authApi;

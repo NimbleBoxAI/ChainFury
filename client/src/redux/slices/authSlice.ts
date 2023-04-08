@@ -1,26 +1,92 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { APIClassType } from "../../constants";
 import { RootState } from "../store";
 
+interface ChatBots {
+  created_by: string;
+  id: string;
+  name: string;
+  dag: {
+    edges: any;
+    nodes: any;
+  };
+}
 type AuthState = {
-  count: number;
+  accessToken: string;
+  components: ComponentsInterface;
+  typesMap: Record<string, string[]>;
+  chatBots: Record<string, ChatBots>;
+  selectedChatBot: ChatBots;
 };
+
+interface ComponentsInterface {
+  [key: string]: Record<string, APIClassType>;
+}
 
 const slice = createSlice({
   name: "auth",
   initialState: {
-    count: 0,
+    accessToken: localStorage.getItem("accessToken") ?? "",
+    components: {},
+    typesMap: {},
+    chatBots: {},
+    selectedChatBot: {} as ChatBots,
   } as AuthState,
   reducers: {
-    setCount: (
+    setAccessToken: (
       state,
-      { payload: { count } }: PayloadAction<{ count: number }>
+      { payload: { accessToken } }: PayloadAction<{ accessToken: string }>
     ) => {
-      state.count = count;
+      localStorage.setItem("accessToken", accessToken);
+      state.accessToken = accessToken;
+    },
+    setComponents: (
+      state,
+      {
+        payload: { components },
+      }: PayloadAction<{ components: ComponentsInterface }>
+    ) => {
+      state.components = components;
+      const typesMap = {} as Record<string, string[]>;
+      Object.keys(components)?.forEach((componentKey) => {
+        const component = components[componentKey];
+        const baseClasses = [] as string[];
+        Object.values(component).forEach((value) => {
+          value?.base_classes?.forEach((baseClass) => {
+            if (!baseClasses.includes(baseClass)) {
+              baseClasses.push(baseClass);
+            }
+          });
+        });
+        typesMap[componentKey] = baseClasses;
+      });
+      state.typesMap = typesMap;
+    },
+    setChatBots: (
+      state,
+      { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>
+    ) => {
+      const tempChatBots = {} as Record<string, ChatBots>;
+      chatBots.forEach((chatBot) => {
+        tempChatBots[chatBot.id] = chatBot;
+      });
+      state.chatBots = tempChatBots;
+    },
+    setSelectedChatBot: (
+      state,
+      { payload: { chatBot } }: PayloadAction<{ chatBot: ChatBots }>
+    ) => {
+      state.selectedChatBot = chatBot;
     },
   },
 });
 
-export const { setCount } = slice.actions;
+export const {
+  setAccessToken,
+  setComponents,
+  setChatBots,
+  setSelectedChatBot,
+} = slice.actions;
 
 export default slice.reducer;
 
