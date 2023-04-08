@@ -8,15 +8,12 @@ from commons.utils import get_user_from_jwt, verify_user
 
 user_router = APIRouter(prefix="/user", tags=["user"])
 
+
 class ChangePasswordModel(BaseModel):
     username: str
     old_password: str
     new_password: str
 
-@user_router.post("/test", status_code=200)
-def test(db: Session = Depends(database.db_session)):
-    response = {"msg": "success"}
-    return response
 
 @user_router.post("/change_password", status_code=200)
 def change_password(inputs: ChangePasswordModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
