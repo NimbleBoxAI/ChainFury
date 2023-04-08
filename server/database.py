@@ -76,3 +76,15 @@ class IntermediateStep(Base):
 
     def __repr__(self):
         return f"Prompt(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
+
+
+class Template(Base):
+    __tablename__ = "template"
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+    dag = Column(JSON, nullable=False)
+    description = Column(Text)
+    meta = Column(JSON)
+
+    def __repr__(self):
+        return f"Template(id={self.id}, name={self.name}, description={self.description}, dag={self.dag}, meta={self.meta})"
