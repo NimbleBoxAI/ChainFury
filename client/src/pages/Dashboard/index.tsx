@@ -1,10 +1,11 @@
 import { Button } from "@mui/material";
 import ChatComp from "../../components/ChatComp";
 import SvgCopy from "../../components/SvgComps/Copy";
+import { Table } from "../../components/Table";
 
 const Dashboard = () => {
   return (
-    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full">
+    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
       <div className="flex justify-between items-center w-full">
         <span className="semiBold600">Bot 1</span>
         <Button variant="outlined" className="h-[24px]" color="primary">
@@ -35,7 +36,6 @@ window.onload = function () {
           </pre>
         </div>
       </div>
-
       <div className="flex flex-wrap gap-[8px] justify-between mt-[32px]">
         <ScoreCard title="Latency" value="00" />
         <ScoreCard title="#Token" value="00" />
@@ -43,6 +43,23 @@ window.onload = function () {
         <ScoreCard title="Internal Review Score" value="00" />
         <ScoreCard title="GPT Rating" value="5" />
       </div>
+
+      <Table
+        values={[
+          ["1", "2", "3", "4", "5", "6", "7", "8"],
+          ["1", "2", "3", "4", "5", "6", "7", "8"],
+        ]}
+        headings={[
+          "Input Prompt",
+          "Intermediate Steps",
+          "Final Propmt",
+          "Response",
+          "GPT Rating",
+          "User Ratings",
+          "Response Time",
+          "# of Tokens",
+        ]}
+      />
 
       <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
         <ChatComp chatId={"chatId"} />
