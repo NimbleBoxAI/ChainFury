@@ -1,16 +1,18 @@
-import logging
-from typing import Any, Dict
-from sqlalchemy.orm import Session
-from database import db_session
+import traceback
 import contextlib
 import io
+import logging
+import time
+from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException, Depends
-
-from langflow.interface.run import load_langchain_object, save_cache, fix_memory_inputs
-
+from database import db_session
 from database_utils.chatbot import get_chatbot
+from database_utils.intermediate_step import insert_intermediate_steps
+from database_utils.prompt import create_prompt
+from fastapi import APIRouter, Depends, HTTPException
+from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
 from schemas.prompt_schema import PromptSchema
+from sqlalchemy.orm import Session
 
 # build router
 router = APIRouter(tags=["prompts"])
@@ -53,30 +55,20 @@ def get_result_and_thought_using_graph(langchain_object, message: str):
                 chat_input = {key: message}
 
         if hasattr(langchain_object, "return_intermediate_steps"):
-            # https://github.com/hwchase17/langchain/issues/2068
-            # Deactivating until we have a frontend solution
-            # to display intermediate steps
             langchain_object.return_intermediate_steps = True
 
         fix_memory_inputs(langchain_object)
 
-        with io.StringIO() as output_buffer, contextlib.redirect_stdout(output_buffer):
-            try:
-                output = langchain_object(chat_input)
-            except ValueError as exc:
-                # make the error message more informative
-                logger.debug(f"Error: {str(exc)}")
-                output = langchain_object.run(chat_input)
-
-            intermediate_steps = output.get("intermediate_steps", []) if isinstance(output, dict) else []
-
-            result = output.get(langchain_object.output_keys[0]) if isinstance(output, dict) else output
-            if intermediate_steps:
-                thought = format_intermediate_steps(intermediate_steps)
-            else:
-                thought = {"steps": output_buffer.getvalue()}
+        output = langchain_object(chat_input)
+        intermediate_steps = output.get("intermediate_steps", []) if isinstance(output, dict) else []
+        result = output.get(langchain_object.output_keys[0]) if isinstance(output, dict) else output
+        if intermediate_steps:
+            thought = format_intermediate_steps(intermediate_steps)
+        else:
+            thought = []
 
     except Exception as exc:
+        traceback.print_exc()
         raise ValueError(f"Error: {str(exc)}") from exc
     return result, thought
 
@@ -110,18 +102,31 @@ def process_graph(message, chat_history, data_graph):
     return {"result": str(result), "thought": thought}
 
 
-@router.post("/chatbot/{chatbot_id}/prompt")
 def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_session)):
     try:
+        # start timer
+        start = time.time()
         chatbot = get_chatbot(db, chatbot_id)
+        logger.debug("Adding prompt to database")
+        prompt_row = create_prompt(db, chatbot_id, prompt.new_message, prompt.session_id)
 
         # Process graph
         logger.debug("Processing graph")
         result = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
 
+        prompt_row.response = result["result"]
+        prompt_row.time_taken = float(time.time() - start)
+        insert_intermediate_steps(db, prompt_row.id, result["thought"])
+
+        db.commit()
         logger.debug("Processed graph")
         return result
 
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@router.post("/chatbot/{chatbot_id}/prompt")
+def process_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_session)):
+    return get_prompt(chatbot_id, prompt, db)
