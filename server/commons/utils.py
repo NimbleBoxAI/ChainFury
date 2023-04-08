@@ -1,5 +1,7 @@
+import jwt
 from sqlalchemy.exc import IntegrityError
 from database import db_session, User, Prompt, IntermediateStep
+from commons.config import jwt_secret
 import database_constants as constants
 
 
@@ -11,6 +13,21 @@ def add_default_user():
         db.commit()
     except IntegrityError as e:
         print("Not adding default user")
+
+
+def get_user_from_jwt(token):
+    try:
+        payload = jwt.decode(token, key=jwt_secret, algorithms=['HS256', ])
+    except Exception as e:
+        print("Could not decide JWT token")
+        print(e)
+    return payload.get("username")
+        
+def verify_user(username):
+    db = db_session()
+    user = db.query(User).filter(User.username == username).first()
+    if user is None:
+        raise Exception("User not found")
 
 
 def filter_prompts_by_date_range(

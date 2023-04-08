@@ -1,5 +1,6 @@
-uvicorn
 fastapi
 langchain
 openai
 sqlalchemy
+pyjwt[crypto]
+ipython

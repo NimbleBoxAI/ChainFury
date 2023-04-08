@@ -6,6 +6,8 @@ import requests
 from commons import config as c
 from commons.config import engine
 from commons.utils import add_default_user
+from api.chatbot import chatbot_router
+from api.auth import auth_router
 
 # Routers
 from api.user import user_router
@@ -30,6 +32,9 @@ app.include_router(user_router)
 app.include_router(metrics_router)
 app.include_router(feedback_router)
 app.include_router(intermediate_steps_router)
+app.include_router(chatbot_router)
+app.include_router(auth_router)
+
 ####################################################
 ################ APIs ##############################
 ####################################################
