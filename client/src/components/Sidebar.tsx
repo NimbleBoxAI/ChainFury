@@ -1,25 +1,51 @@
-import { Button, Collapse } from "@mui/material";
+import { Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStates } from "../redux/hooks/dispatchHooks";
+import { useAppDispatch } from "../redux/hooks/store";
+import { useGetBotsMutation } from "../redux/services/auth";
+import { setChatBots, setSelectedChatBot } from "../redux/slices/authSlice";
 import ChatBotCard from "./ChatBotCard";
 import CollapsibleComponents from "./CollapsibleComponents";
 import NewBotModel from "./NewBotModel";
-
-const dummyBots = ["Bot 1", "Bot 2", "Bot 3"];
-const dummyTemplates = ["Template 1", "Template 2", "Template 3"];
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
   const { flow_id } = useParams();
   const navigate = useNavigate();
   const { auth } = useAuthStates();
+  const [getBots] = useGetBotsMutation();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
       navigate("/login");
+    } else {
+      getBotList();
     }
   }, []);
+
+  const getBotList = () => {
+    try {
+      getBots({
+        token: auth?.accessToken,
+      })
+        .unwrap()
+        .then((res) => {
+          dispatch(
+            setChatBots({
+              chatBots: res?.chatbots?.length ? res?.chatbots : [],
+            })
+          );
+          dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   const onDragStart = (
     event: {
@@ -53,16 +79,20 @@ const Sidebar = () => {
               <span className="semiBold250 text-light-neutral-grey-900">
                 Bots
               </span>
-              {dummyBots.map((bot, key) => {
-                return <ChatBotCard key={key} label={bot} />;
-              })}
-            </div>
-            <div className="flex flex-col gap-[8px] mt-[16px]">
-              <span className="semiBold250 text-light-neutral-grey-900">
-                Templates
-              </span>
-              {dummyTemplates.map((bot, key) => {
-                return <ChatBotCard key={key} label={bot} />;
+              {Object.values(auth?.chatBots ?? [])?.map((bot, key) => {
+                return (
+                  <div
+                    onClick={() => {
+                      dispatch(
+                        setSelectedChatBot({
+                          chatBot: bot,
+                        })
+                      );
+                    }}
+                  >
+                    <ChatBotCard key={key} label={bot?.name} />
+                  </div>
+                );
               })}
             </div>
           </>

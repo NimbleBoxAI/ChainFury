@@ -58,7 +58,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                   )}
                   {data?.node?.template[t].show ? (
                     <ParameterComponent
-                      data={data}
+                      data={JSON.parse(JSON.stringify(data))}
                       color={
                         nodeColors[
                           Object?.keys(auth?.typesMap)?.filter((key) =>
