@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from database import db_session
 import contextlib
 import io
-
+from commons.utils import update_internal_user_rating, get_prompt_from_prompt_id
 from fastapi import APIRouter, HTTPException, Depends
-
+from database_constants import PromptRating
+from pydantic import BaseModel
 from langflow.interface.run import load_langchain_object, save_cache, fix_memory_inputs
 
 from database_utils.chatbot import get_chatbot
@@ -110,18 +111,11 @@ def process_graph(message, chat_history, data_graph):
     return {"result": str(result), "thought": thought}
 
 
-@router.post("/chatbot/{chatbot_id}/prompt")
-def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_session)):
-    try:
-        chatbot = get_chatbot(db, chatbot_id)
+class InternalFeedbackModel(BaseModel):
+    score: PromptRating
 
-        # Process graph
-        logger.debug("Processing graph")
-        result = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
 
-        logger.debug("Processed graph")
-        return result
-
-    except Exception as e:
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail=str(e)) from e
+@router.put("/chatbot/{chatbot_id}/prompt")
+def update_internal_user_feedback(inputs: InternalFeedbackModel, prompt_id: int, db: Session = Depends(db_session)):
+    feedback = update_internal_user_rating(prompt_id, inputs.score)
+    return {"message": "Internal rating updated", "rating": inputs.score}
