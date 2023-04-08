@@ -4,11 +4,12 @@ import io
 import logging
 import time
 from typing import Any, Dict
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
 from schemas.prompt_schema import PromptSchema
 from sqlalchemy.orm import Session
-
+from typing import Annotated
+from commons.utils import get_user_from_jwt, verify_user
 
 from database import db_session
 from commons.utils import update_internal_user_rating, get_prompt_from_prompt_id
@@ -140,6 +141,10 @@ class InternalFeedbackModel(BaseModel):
 
 
 @router.put("/chatbot/{chatbot_id}/prompt")
-def update_internal_user_feedback(inputs: InternalFeedbackModel, prompt_id: int, db: Session = Depends(db_session)):
+def update_internal_user_feedback(
+    inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(db_session)
+):
+    username = get_user_from_jwt(token)
+    verify_user(username)
     feedback = update_internal_user_rating(prompt_id, inputs.score)
     return {"message": "Internal rating updated", "rating": inputs.score}

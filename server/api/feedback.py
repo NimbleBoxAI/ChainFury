@@ -13,7 +13,7 @@ class FeedbackModel(BaseModel):
 
 
 @feedback_router.put("/feedback", status_code=200)
-def post_internal_user_feedback(
+def post_chatbot_user_feedback(
     inputs: FeedbackModel,
     prompt_id: int,
     db: Session = Depends(database.db_session),
