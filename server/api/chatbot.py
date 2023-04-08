@@ -10,15 +10,14 @@ chatbot_router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
 class ChatBotModel(BaseModel):
     name: str
-    created_by: str
-    dag: str
+    dag: dict
 
 @chatbot_router.post("/", status_code=200)
 def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
     username = get_user_from_jwt(token)
     verify_user(username)
     try:
-        chatbot = ChatBot(name=inputs.name, created_by=inputs.created_by, dag=inputs.dag)
+        chatbot = ChatBot(name=inputs.name, created_by=username, dag=inputs.dag)
         db.add(chatbot)
         db.commit()
         response = {"msg": "success"}
