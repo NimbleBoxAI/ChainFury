@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy import DateTime
-import datetime
+from datetime import datetime
 from commons.utils import filter_prompts_by_date_range
 import database_constants as constants
 
@@ -23,16 +23,19 @@ def get_chatbot_metrics(
     sort_order: str = constants.SORT_ORDER_DESC,
 ):
     if from_date is None:
-        from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        parsed_from_date = datetime.now().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+    else:
+        parsed_from_date = datetime.strptime(from_date, "%Y-%m-%d")
     if to_date is None:
-        to_date = datetime.now().replace(
+        parsed_to_date = datetime.now().replace(
             hour=23, minute=59, second=59, microsecond=999999
         )
-
-    parsed_from_date = datetime.datetime.strptime(from_date, "%Y-%m-%d")
-    parsed_to_date = datetime.datetime.strptime(
-        to_date, "%Y-%m-%d"
-    ) + datetime.timedelta(days=1)
+    else:
+        parsed_to_date = datetime.strptime(to_date, "%Y-%m-%d") + datetime.timedelta(
+            days=1
+        )
 
     if parsed_to_date < parsed_from_date:
         raise HTTPException(status_code=400, detail="Invalid date range")

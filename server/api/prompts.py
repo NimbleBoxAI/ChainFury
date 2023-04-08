@@ -4,15 +4,20 @@ import io
 import logging
 import time
 from typing import Any, Dict
-
-from database import db_session
-from database_utils.chatbot import get_chatbot
-from database_utils.intermediate_step import insert_intermediate_steps
-from database_utils.prompt import create_prompt
 from fastapi import APIRouter, Depends, HTTPException
 from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
 from schemas.prompt_schema import PromptSchema
 from sqlalchemy.orm import Session
+
+
+from database import db_session
+from commons.utils import update_internal_user_rating, get_prompt_from_prompt_id
+from database_constants import PromptRating
+from pydantic import BaseModel
+
+from database_utils.chatbot import get_chatbot
+from database_utils.intermediate_step import insert_intermediate_steps
+from database_utils.prompt import create_prompt
 
 # build router
 router = APIRouter(tags=["prompts"])
@@ -102,7 +107,7 @@ def process_graph(message, chat_history, data_graph):
     return {"result": str(result), "thought": thought}
 
 
-def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_session)):
+def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session):
     try:
         # start timer
         start = time.time()
@@ -110,13 +115,11 @@ def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_s
         logger.debug("Adding prompt to database")
         prompt_row = create_prompt(db, chatbot_id, prompt.new_message, prompt.session_id)
 
-        # Process graph
-        logger.debug("Processing graph")
         result = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
 
         prompt_row.response = result["result"]
-        prompt_row.time_taken = float(time.time() - start)
-        insert_intermediate_steps(db, prompt_row.id, result["thought"])
+        prompt_row.time_taken = float(time.time() - start)  # type: ignore
+        insert_intermediate_steps(db, prompt_row.id, result["thought"])  # type: ignore
 
         db.commit()
         logger.debug("Processed graph")
@@ -130,3 +133,13 @@ def get_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_s
 @router.post("/chatbot/{chatbot_id}/prompt")
 def process_prompt(chatbot_id: int, prompt: PromptSchema, db: Session = Depends(db_session)):
     return get_prompt(chatbot_id, prompt, db)
+
+
+class InternalFeedbackModel(BaseModel):
+    score: PromptRating
+
+
+@router.put("/chatbot/{chatbot_id}/prompt")
+def update_internal_user_feedback(inputs: InternalFeedbackModel, prompt_id: int, db: Session = Depends(db_session)):
+    feedback = update_internal_user_rating(prompt_id, inputs.score)
+    return {"message": "Internal rating updated", "rating": inputs.score}
