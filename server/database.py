@@ -2,7 +2,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from commons.config import Base, SessionLocal, engine
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, JSON
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, JSON, Text
+from database_constants import PromptRating
+from enum import Enum
+from sqlalchemy import Float, DateTime, Enum
+
 
 def db_session() -> Session:  # type: ignore
     session_factory = sessionmaker(bind=engine)
@@ -13,12 +17,14 @@ def db_session() -> Session:  # type: ignore
     finally:
         session_class.remove()
 
+
 def fastapi_db_session():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
+
 
 class User(Base):
     __tablename__ = "user"
@@ -30,7 +36,8 @@ class User(Base):
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, password={self.password}, meta={self.meta})"
-    
+
+
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
@@ -44,3 +51,29 @@ class ChatBot(Base):
         return f"ChatBot(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
 
 
+class Prompt(Base):
+    __tablename__ = "prompt"
+
+    id = Column(Integer, primary_key=True)
+    chatbot_id = Column(Integer, ForeignKey("chatbot.id"), nullable=False)
+    input_prompt = Column(Text, nullable=False)
+    gpt_rating = Column(Text, nullable=True)
+    user_rating = Column(Enum(PromptRating), nullable=True)
+    chatbot_user_rating = input_prompt = Column(Enum(PromptRating), nullable=True)
+    response = Column(Text, nullable=False)
+    time_taken = Column(Float, nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    session_id = Column(String(80), nullable=False)
+    meta = Column(JSON)
+
+
+class IntermediateStep(Base):
+    __tablename__ = "intermediate_step"
+    id = Column(Integer, primary_key=True)
+    prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
+    intermediate_prompt = Column(Text, nullable=False)
+    intermediate_response = Column(Text, nullable=False)
+    meta = Column(JSON)
+
+    def __repr__(self):
+        return f"Prompt(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
