@@ -1,9 +1,5 @@
 const BASE_URL = "http://localhost:8000";
-type DEFAULT_RESPONSE = {
-  token?: string;
-  success: boolean;
-  data: any;
-};
+type DEFAULT_RESPONSE = any;
 type TemplateVariableType = {
   type: string;
   required: boolean;

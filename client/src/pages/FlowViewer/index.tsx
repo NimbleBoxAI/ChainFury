@@ -1,5 +1,5 @@
 import { Button } from "@mui/material";
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import ReactFlow, {
   ReactFlowProvider,
@@ -12,7 +12,9 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import { useAppDispatch } from "../../redux/hooks/store";
 import { useComponentsMutation } from "../../redux/services/auth";
+import { setComponents } from "../../redux/slices/authSlice";
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -31,6 +33,7 @@ const FlowViewer = () => {
   };
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (location.pathname.includes("?bot=") && flow_id === "new") {
@@ -45,10 +48,14 @@ const FlowViewer = () => {
     getComponents()
       .unwrap()
       .then((res) => {
-        console.log(res);
+        dispatch(
+          setComponents({
+            components: res,
+          })
+        );
       })
-      ?.catch((err) => {
-        console.log(err);
+      ?.catch(() => {
+        alert("Error fetching components");
       });
   };
 
