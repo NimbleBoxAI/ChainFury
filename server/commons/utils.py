@@ -17,12 +17,19 @@ def add_default_user():
 
 def get_user_from_jwt(token):
     try:
-        payload = jwt.decode(token, key=jwt_secret, algorithms=['HS256', ])
+        payload = jwt.decode(
+            token,
+            key=jwt_secret,
+            algorithms=[
+                "HS256",
+            ],
+        )
     except Exception as e:
         print("Could not decide JWT token")
         print(e)
     return payload.get("username")
-        
+
+
 def verify_user(username):
     db = db_session()
     user = db.query(User).filter(User.username == username).first()
@@ -79,8 +86,8 @@ def filter_prompts_by_date_range(
         db.query(Prompt)
         .filter(
             Prompt.chatbot_id == chatbot_id,
-            Prompt.date >= from_date,
-            Prompt.date <= to_date,
+            Prompt.created_at >= from_date,
+            Prompt.created_at <= to_date,
         )
         .order_by(order_query)
         .limit(page_size)
@@ -108,3 +115,14 @@ def get_prompt_from_prompt_id(prompt_id: int):
         return prompt
     else:
         return None
+
+
+def update_user_rating(prompt_id: int, rating: int):
+    db = db_session()
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+    if prompt is not None:
+        prompt.user_rating = rating
+        db.commit()
+    else:
+        raise Exception("Prompt not found")
+    return prompt.user_rating

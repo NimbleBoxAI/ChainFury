@@ -2,14 +2,14 @@ import database
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from commons.utils import get_prompt_from_prompt_id
-from http.client import HTTPException
+from commons.utils import get_prompt_from_prompt_id, update_user_rating
+from database_constants import PromptRating
 
 feedback_router = APIRouter(prefix="", tags=["feedback"])
 
 
 class FeedbackModel(BaseModel):
-    score: int
+    score: PromptRating
 
 
 @feedback_router.post("/feedback", status_code=200)
@@ -21,12 +21,9 @@ def post_internal_user_feedback(
 
     prompt = get_prompt_from_prompt_id(prompt_id)
     if prompt is not None:
-        prompt.user_rating = inputs.score
-        db.commit()
-        response = {"msg": "success"}
+        feedback = update_user_rating(prompt_id, inputs.score)
     else:
         raise HTTPException(
             status_code=404,
             detail=f"Unable to find the prompt",
         )
-    return response
