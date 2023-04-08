@@ -8,9 +8,11 @@ from commons.utils import get_user_from_jwt, verify_user
 
 chatbot_router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
+
 class ChatBotModel(BaseModel):
     name: str = None
     dag: dict = None
+
 
 @chatbot_router.post("/", status_code=200)
 def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
@@ -26,12 +28,14 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
         response = {"msg": "failed"}
     return response
 
+
 # @chatbot_router.get("/", status_code=200)
+
 
 @chatbot_router.put("/{id}", status_code=200)
 def update_chatbot(id: int, token: Annotated[str, Header()], inputs: ChatBotModel, db: Session = Depends(database.db_session)):
     verify_user(get_user_from_jwt(token))
-    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first()
+    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first() # type: ignore
     print(chatbot)
     if chatbot is not None:
         if inputs.name is not None:
@@ -43,6 +47,7 @@ def update_chatbot(id: int, token: Annotated[str, Header()], inputs: ChatBotMode
     else:
         response = {"msg": "failed"}
     return response
+
 
 @chatbot_router.get("/", status_code=200)
 def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):

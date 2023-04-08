@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker
 from commons.config import Base, SessionLocal, engine
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, JSON, Text
 from database_constants import PromptRating
-from enum import Enum
 from sqlalchemy import Float, DateTime, Enum
 
 
@@ -59,7 +58,7 @@ class Prompt(Base):
     input_prompt = Column(Text, nullable=False)
     gpt_rating = Column(Text, nullable=True)
     user_rating = Column(Enum(PromptRating), nullable=True)
-    chatbot_user_rating = input_prompt = Column(Enum(PromptRating), nullable=True)
+    chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
     response = Column(Text, nullable=False)
     time_taken = Column(Float, nullable=False)
     created_at = Column(DateTime, nullable=False)
