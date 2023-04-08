@@ -13,7 +13,6 @@ auth_router = APIRouter(prefix="", tags=["authentication"])
 class AuthModel(BaseModel):
     username: str = None
     password: str = None
-    token: str = None
 
 @auth_router.post("/login", status_code=200)
 def login(auth: AuthModel, db: Session = Depends(database.db_session)):
