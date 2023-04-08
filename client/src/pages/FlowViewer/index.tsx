@@ -12,6 +12,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
 import { useComponentsMutation } from "../../redux/services/auth";
 import { setComponents } from "../../redux/slices/authSlice";
@@ -31,6 +32,7 @@ const FlowViewer = () => {
   const { flow_id } = useParams() as {
     flow_id: string;
   };
+  const { auth } = useAuthStates();
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
@@ -102,37 +104,7 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
-            node: {
-              template: {
-                path: {
-                  required: true,
-                  placeholder: "",
-                  show: true,
-                  multiline: false,
-                  value: "",
-                  suffixes: [".csv"],
-                  fileTypes: ["csv"],
-                  password: false,
-                  name: "path",
-                  type: "file",
-                  list: false,
-                  content: null,
-                },
-                llm: {
-                  required: true,
-                  placeholder: "",
-                  show: true,
-                  multiline: false,
-                  password: false,
-                  name: "llm",
-                  type: "BaseLanguageModel",
-                  list: false,
-                },
-                _type: "csv_agent",
-              },
-              description: "Construct a json agent from a CSV and tools.",
-              base_classes: ["AgentExecutor"],
-            },
+            node: JSON.parse(type),
             id: "newId",
             value: null,
           },

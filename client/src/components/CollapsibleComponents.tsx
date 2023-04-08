@@ -34,7 +34,9 @@ const CollapsibleComponents = ({
         }}
         className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
         draggable
-        onDragStart={(event) => onDragStart(event, displayName + "-+-" + label)}
+        onDragStart={(event) =>
+          onDragStart(event, JSON.stringify(values[displayName]))
+        }
       >
         {displayName}
       </div>
@@ -44,7 +46,6 @@ const CollapsibleComponents = ({
   return (
     <Collapse in={open} collapsedSize={42}>
       <div className="prose-nbx cursor-pointer medium400 border border-light-neutral-grey-200 rounded-md bg-light-system-bg-primary">
-        {console.log({ values })}
         <div
           onClick={() => {
             setOpen(!open);
