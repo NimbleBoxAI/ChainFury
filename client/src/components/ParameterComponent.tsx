@@ -116,6 +116,8 @@ export default function ParameterComponent({
                     : data.node.template[name].value
                 }
                 onChange={(t: string[]) => {
+                  alert("jhhjhjhj");
+
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
                 }}
@@ -125,6 +127,8 @@ export default function ParameterComponent({
                 disabled={false}
                 value={data?.node.template[name].value ?? ""}
                 onChange={(t: string) => {
+                  alert("vggg");
+
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
                 }}
@@ -135,8 +139,10 @@ export default function ParameterComponent({
                 password={data?.node?.template[name].password ?? false}
                 value={data?.node?.template[name].value ?? ""}
                 onChange={(t) => {
+                  console.log("t", data?.node?.template?.[name]);
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
+                  alert("save");
                 }}
               />
             )}
@@ -150,6 +156,7 @@ export default function ParameterComponent({
                 if (data?.node?.template?.[name])
                   data.node.template[name].value = t;
                 setEnabled(t);
+                alert("save");
               }}
             />
           </div>
