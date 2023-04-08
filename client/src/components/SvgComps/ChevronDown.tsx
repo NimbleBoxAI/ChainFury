@@ -1,6 +1,11 @@
 import * as React from "react";
 
-const SvgChevronDown = (props: { className?: string }) => (
+const SvgChevronDown = (props: {
+  className?: string;
+  style: {
+    stroke: string;
+  };
+}) => (
   <svg
     width={20}
     height={20}

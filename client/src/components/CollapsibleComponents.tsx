@@ -53,9 +53,10 @@ const CollapsibleComponents = ({
         >
           <span className="capitalize semiBold300">{label}</span>
           <SvgChevronDown
-            className={`stroke-light-neutral-grey-700 ${
-              open ? "rotate-180" : ""
-            }`}
+            style={{
+              stroke: nodeColors[label],
+            }}
+            className={`${open ? "rotate-180" : ""}`}
           />
         </div>
         <div className="flex flex-col gap-[16px] p-[8px] bg-light-neutral-grey-100">
