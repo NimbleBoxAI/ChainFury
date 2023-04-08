@@ -68,6 +68,28 @@ export const authApi = createApi({
         },
       }),
     }),
+    editBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+        id: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `/chatbot/${credentials?.id}?token=` + token,
+        method: "PUT",
+        body: {
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes,
+            edges: credentials.edges,
+          },
+        },
+      }),
+    }),
   }),
 });
 
@@ -76,4 +98,5 @@ export const {
   useComponentsMutation,
   useCreateBotMutation,
   useGetBotsMutation,
+  useEditBotMutation,
 } = authApi;
