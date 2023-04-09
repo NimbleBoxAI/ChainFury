@@ -4,7 +4,7 @@ from database import User
 from typing import Annotated
 from passlib.hash import sha256_crypt
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Query, Header
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from commons import config as c
 from commons.utils import get_user_from_jwt

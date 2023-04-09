@@ -1,8 +1,8 @@
 import database
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from commons.utils import get_prompt_from_prompt_id, update_chatbot_user_rating
+from commons.utils import update_chatbot_user_rating
 from database_constants import PromptRating
 
 feedback_router = APIRouter(prefix="", tags=["feedback"])

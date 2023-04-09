@@ -106,3 +106,6 @@ class Template(Base):
 
     def __repr__(self):
         return f"Template(id={self.id}, name={self.name}, description={self.description}, dag={self.dag}, meta={self.meta})"
+
+
+Base.metadata.create_all(bind=engine)

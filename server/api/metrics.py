@@ -2,9 +2,7 @@ import database
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from fastapi import HTTPException
-from pydantic import BaseModel
-from sqlalchemy import DateTime
-from datetime import datetime
+from datetime import datetime, timedelta
 from commons.utils import (
     filter_prompts_by_date_range,
     get_user_score_metrics,
@@ -40,19 +38,11 @@ def get_chatbot_metrics(
     if to_date is None:
         parsed_to_date = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
     else:
-        parsed_to_date = datetime.strptime(to_date, "%Y-%m-%d") + datetime.timedelta(days=1)
+        parsed_to_date = datetime.strptime(to_date, "%Y-%m-%d") + timedelta(days=1)
 
     if parsed_to_date < parsed_from_date:
         raise HTTPException(status_code=400, detail="Invalid date range")
-    metrics = filter_prompts_by_date_range(
-        id,
-        parsed_from_date,
-        parsed_to_date,
-        page,
-        page_size,
-        sort_by,
-        sort_order,
-    )
+    metrics = filter_prompts_by_date_range(id, parsed_from_date, parsed_to_date, page, page_size, sort_by, sort_order)  # type: ignore
     if metrics is not None:
         response = {"msg": "success", "data": metrics}
     else:

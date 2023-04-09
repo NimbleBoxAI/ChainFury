@@ -1,6 +1,6 @@
 # ChainFury
 
-<img src="./docs/clock.png" align="center"/>
+<img src="./docs/1.png" align="center"/>
 
 
 ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
@@ -27,8 +27,11 @@ From the LangChain documentation, there are six main areas that LangChain is des
 | 🧠 Memory | Memory is the concept of persisting state between calls of a chain/agent. LangChain provides a standard interface for memory, a collection of memory implementations, and examples of chains/agents that use memory | Memory modules are supported, persistant memory coming soon |
 | 🧐 Evaluation | [BETA] Generative models are notoriously hard to evaluate with traditional metrics. One new way of evaluating them is using language models themselves to do the evaluation. LangChain provides some prompts/chains for assisting in this | Auto evaluation of all prompts though OpenAI APIs |
 
-## Installation Guide
+---
 
+<img src="./docs/2.png" align="center"/>
+
+---
 Installing ChainFury is easy, with two methods available.
 
 ### **Method 1: Docker**
@@ -69,8 +72,11 @@ cd server
 uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 
 ```
+---
 
-## Post-Installation Guide
+<img src="./docs/3.png" align="center"/>
+
+---
 
 ### Step 1:
 
@@ -94,6 +100,10 @@ Save & create your chatbot and start chatting with it by clicking the chat on th
 
 You can see chatbot statistics and feedback metrics in your ChainFury dashboard.
 
-## Contributing
+---
+
+<img src="./docs/4.png" align="center"/>
+
+---
 ChainFury is a work in progress, and is currently in the alpha stage. Please feel free to contribute to the project in any form!
 

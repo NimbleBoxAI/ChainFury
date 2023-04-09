@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 API_URL = "/api/v1"
@@ -24,7 +23,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 logger.info("Database opened successfully")
 
 Base = declarative_base()
-Base.metadata.create_all(bind=engine)
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "my_secret")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", None)
