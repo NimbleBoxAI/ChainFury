@@ -3,18 +3,39 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatComp from "../../components/ChatComp";
 import LineChart from "../../components/LineChart";
+import PieChart from "../../components/PieChart";
 import SvgCopy from "../../components/SvgComps/Copy";
 import { Table } from "../../components/Table";
 import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
-import { useGetPromptsMutation } from "../../redux/services/auth";
+import {
+  useGetMetricsMutation,
+  useGetPromptsMutation,
+} from "../../redux/services/auth";
 import { setPrompts } from "../../redux/slices/authSlice";
 
+const metrics = [
+  "latency",
+  "user_score",
+  "internal_review_score",
+  "gpt_review_score",
+];
 const Dashboard = () => {
   const { auth } = useAuthStates();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [getPrompts] = useGetPromptsMutation();
+  const [getMetrics] = useGetMetricsMutation();
+  const [metricsInfo, setMetricsInfo] = useState(
+    {} as Record<
+      string,
+      {
+        bad_count: number;
+        good_count: number;
+        neutral_count: number;
+      }
+    >
+  );
   const [latencies, setLatencies] = useState(
     [] as {
       name: string;
@@ -35,11 +56,31 @@ const Dashboard = () => {
             })
           );
         })
-        .catch((err) => {
+        .catch(() => {
           alert("Unable to fetch prompts");
         });
+      getMetricsDetails();
     }
   }, [auth.selectedChatBot]);
+
+  const getMetricsDetails = async () => {
+    metrics?.forEach(async (metric) => {
+      getMetrics({
+        id: auth?.selectedChatBot?.id,
+        token: auth?.accessToken,
+        metric_type: metric,
+      })
+        ?.unwrap()
+        ?.then((res) => {
+          setMetricsInfo((prev) => {
+            return {
+              ...prev,
+              [metric]: res.data,
+            };
+          });
+        });
+    });
+  };
 
   useEffect(() => {
     if (auth.selectedChatBot && auth?.prompts?.[auth?.selectedChatBot?.id]) {
@@ -70,7 +111,7 @@ const Dashboard = () => {
   </script>`;
 
   return (
-    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full ">
+    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
       {auth?.selectedChatBot?.name ? (
         <>
           <div className="flex justify-between items-center w-full">
@@ -86,7 +127,7 @@ const Dashboard = () => {
               Edit
             </Button>
           </div>
-          <div className="overflow-scroll h-full w-[calc(100%-270px)]">
+          <div className="overflow-scroll h-full w-full">
             <div className="flex gap-[8px] mt-[32px] flex-col">
               <span>
                 Embed the bot on your website by adding the following code to
@@ -104,8 +145,8 @@ const Dashboard = () => {
                 </pre>
               </div>
             </div>
-            <div className="flex flex-wrap gap-[8px] justify-between mt-[32px]">
-              <div className="w-[500px] h-[250px] overflow-hidden">
+            {latencies.length > 0 ? (
+              <div className="w-full h-[250px] overflow-hidden mt-[32px]">
                 <span className="semiBold350">Latency</span>
                 <LineChart
                   xAxis={{
@@ -124,31 +165,118 @@ const Dashboard = () => {
                   ]}
                 />
               </div>
+            ) : (
+              ""
+            )}
+            <div className="flex flex-wrap gap-x-[8px] gap-y-[16px] justify-between mt-[32px]">
+              {metricsInfo?.["user_score"]?.good_count ||
+              metricsInfo?.["user_score"]?.neutral_count ||
+              metricsInfo?.["user_score"]?.bad_count ? (
+                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                  <span className="semiBold350">USER SCORE</span>
+                  <PieChart
+                    values={[
+                      {
+                        name: "Good",
+                        value: metricsInfo?.["user_score"]?.good_count,
+                      },
+                      {
+                        name: "Neutral",
+                        value: metricsInfo?.["user_score"]?.neutral_count,
+                      },
+                      {
+                        name: "Bad",
+                        value: metricsInfo?.["user_score"]?.bad_count,
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                ""
+              )}
+              {metricsInfo?.["internal_review_score"]?.bad_count ||
+              metricsInfo?.["internal_review_score"]?.good_count ||
+              metricsInfo?.["internal_review_score"]?.neutral_count ? (
+                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                  <span className="semiBold350">INTERNAL REVIEW SCORE</span>
+                  <PieChart
+                    values={[
+                      {
+                        name: "Good",
+                        value:
+                          metricsInfo?.["internal_review_score"]?.good_count,
+                      },
+                      {
+                        name: "Neutral",
+                        value:
+                          metricsInfo?.["internal_review_score"]?.neutral_count,
+                      },
+                      {
+                        name: "Bad",
+                        value:
+                          metricsInfo?.["internal_review_score"]?.bad_count,
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                ""
+              )}
+
+              {metricsInfo?.["gpt_review_score"]?.bad_count ||
+              metricsInfo?.["gpt_review_score"]?.good_count ||
+              metricsInfo?.["gpt_review_score"]?.neutral_count ? (
+                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                  <span className="semiBold350">GPT REVIEW SCORE</span>
+                  <PieChart
+                    values={[
+                      {
+                        name: "Good",
+                        value: metricsInfo?.["gpt_review_score"]?.good_count,
+                      },
+                      {
+                        name: "Neutral",
+                        value: metricsInfo?.["gpt_review_score"]?.neutral_count,
+                      },
+                      {
+                        name: "Bad",
+                        value: metricsInfo?.["gpt_review_score"]?.bad_count,
+                      },
+                    ]}
+                  />
+                </div>
+              ) : (
+                ""
+              )}
             </div>
 
-            <Table
-              label="Prompts"
-              values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
-                (prompt) => [
-                  prompt?.id,
-                  prompt?.input_prompt,
-                  prompt?.user_rating ?? "",
-                  prompt?.response,
-                  prompt?.gpt_rating ?? "",
-                  Math.round(prompt?.time_taken) + "s",
-                  "-",
-                ]
-              )}
-              headings={[
-                "Prompt ID",
-                "Input Prompt",
-                "User Ratings",
-                "Final Prompt",
-                "GPT Rating",
-                "Response Time",
-                "# of Tokens",
-              ]}
-            />
+            {auth?.prompts?.[auth?.selectedChatBot?.id]?.length ? (
+              <Table
+                label="Prompts"
+                values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
+                  (prompt) => [
+                    prompt?.id,
+                    prompt?.input_prompt,
+                    prompt?.user_rating ?? "",
+                    prompt?.response,
+                    prompt?.gpt_rating ?? "",
+                    Math.round(prompt?.time_taken) + "s",
+                    "-",
+                  ]
+                )}
+                headings={[
+                  "Prompt ID",
+                  "Input Prompt",
+                  "User Ratings",
+                  "Final Prompt",
+                  "GPT Rating",
+                  "Response Time",
+                  "# of Tokens",
+                ]}
+              />
+            ) : (
+              ""
+            )}
           </div>
         </>
       ) : (

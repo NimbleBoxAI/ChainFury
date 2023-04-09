@@ -30,6 +30,37 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    addUserFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+      }
+    >({
+      query: ({ score, prompt_id }) => ({
+        url: "/feedback?prompt_id=" + prompt_id,
+        method: "PUT",
+        body: {
+          score,
+        },
+      }),
+    }),
+    addInternalFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+        chatbot_id: string;
+      }
+    >({
+      query: ({ score, prompt_id, chatbot_id }) => ({
+        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}&token=${token}`,
+        method: "PUT",
+        body: {
+          score,
+        },
+      }),
+    }),
     processPrompt: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -105,6 +136,30 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getTemplates: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: ({ token }) => ({
+        url: `/templates?token=` + token,
+        method: "GET",
+      }),
+    }),
+    getMetrics: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+        metric_type: string;
+      }
+    >({
+      query: ({ token, id, metric_type }) => ({
+        url: `/chatbot/${id}/metrics?metric_type=${metric_type}&token=` + token,
+        method: "GET",
+      }),
+    }),
     createBot: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -160,4 +215,8 @@ export const {
   useGetPromptsMutation,
   useGetStepsMutation,
   useProcessPromptMutation,
+  useGetMetricsMutation,
+  useAddUserFeedBackMutation,
+  useAddInternalFeedBackMutation,
+  useGetTemplatesMutation,
 } = authApi;
