@@ -14,10 +14,10 @@ WORKDIR /app
 RUN python3 -m pip install -r requirements.txt
 
 # Bundle app source
-COPY ./server /app
 COPY --from=builder /app/dist ./static
-RUN ls -la
 COPY --from=builder /app/dist/index.html ./templates/index.html
 
+COPY ./server /app
+
 EXPOSE 8000
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
