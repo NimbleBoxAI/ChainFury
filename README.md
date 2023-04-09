@@ -19,7 +19,7 @@ ChainFury supports a range of features, including:
 From the LangChain documentation, there are six main areas that LangChain is designed to help with. ChainFury consists of the same concepts to build LLM ChatBots. The components are, in increasing order of complexity:
 
 | Glossary | LangChain    | ChainFury    |
-| :----- | :--- | :--- |
+| --- | --- | --- |
 | 📃 LLMs and Prompts | Prompt management, prompt optimization, generic interface for all LLMs, and common utilities for working with LLMs   | Easy prompt management with GUI elements
 | 🔗 Chains | Chains are sequences of calls (whether to an LLM or a different utility). LangChain provides a standard interface for chains, lots of integrations with other tools, and end-to-end chains for common applications | Easy chain management with GUI |
 | 📚 Data Augmented Generation | Data Augmented Generation involves specific types of chains that first interact with an external datasource to fetch data to use in the generation step. Examples of this include summarization of long pieces of text and question/answering over specific data sources | Coming soon |
@@ -27,7 +27,7 @@ From the LangChain documentation, there are six main areas that LangChain is des
 | 🧠 Memory | Memory is the concept of persisting state between calls of a chain/agent. LangChain provides a standard interface for memory, a collection of memory implementations, and examples of chains/agents that use memory | Memory modules are supported, persistant memory coming soon |
 | 🧐 Evaluation | [BETA] Generative models are notoriously hard to evaluate with traditional metrics. One new way of evaluating them is using language models themselves to do the evaluation. LangChain provides some prompts/chains for assisting in this | Auto evaluation of all prompts though OpenAI APIs |
 
-## Installation
+## Installation Guide
 
 Installing ChainFury is easy, with two methods available.
 
@@ -70,7 +70,7 @@ uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 
 ```
 
-## Step-by-Step guide after Installation
+## Post-Installation Guide
 
 ### Step 1:
 
