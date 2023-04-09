@@ -39,7 +39,7 @@ function App() {
             path={route.path}
             element={
               route?.isPrivate ? (
-                <div className="flex">
+                <div className="flex overflow-hidden">
                   <Sidebar />
                   {route.element}
                 </div>

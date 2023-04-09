@@ -20,7 +20,9 @@
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.5",
     "react-router-dom": "^6.10.0",
-    "reactflow": "^11.7.0"
+    "reactflow": "^11.7.0",
+    "echarts": "^5.3.3",
+    "echarts-for-react": "^3.0.2"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",
