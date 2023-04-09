@@ -65,7 +65,7 @@ class Prompt(Base):
     id = Column(Integer, primary_key=True)
     chatbot_id = Column(Integer, ForeignKey("chatbot.id"), nullable=False)
     input_prompt = Column(Text, nullable=False)
-    gpt_rating = Column(Enum(PromptRating), nullable=True)
+    gpt_rating = Column(String(5), nullable=True)
     user_rating = Column(Enum(PromptRating), nullable=True)
     chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
     response = Column(Text, nullable=False)

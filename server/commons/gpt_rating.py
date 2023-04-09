@@ -5,15 +5,35 @@ from commons.config import OPENAI_API_KEY
 api_key = OPENAI_API_KEY
 openai.api_key = api_key
 
+SYSTEM_PROMPT = """You are an AI which rates a conversation betweeen User and a Bot. You rate the reply of the Bot on a scale of 1 to 10.
+
+The conversation is rated on the following criteria:
+1. Relevance of the conversation
+2. Accuracy of the answer
+3. Grammar and spelling
+4. If the user's task is completed
+
+You can only reply with a number between 1 to 10.
+You are very strict and will only give a 10 if the bot's reply is perfect.
+If there is even a single mistake or the a, you will give a 1.
+If the bot's reply is not relevant, you will give a 1.
+If user's task is not completed, you will give a 1 else you will give a 10.
+"""
+
+RATING_PROMPT = """Rate the following message
+```
+{message}
+```
+"""
+
 # TODOs: Handle max tokens reached
 # TODOs: Handle no text in response
 # Function to send a rate the chatbot's response and return the rating
 def rate_the_conversation(rating_log):
-
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=rating_log,
-        max_tokens=4000,
+        max_tokens=200,
         stop=None,
         temperature=0.7,
     )
@@ -26,20 +46,19 @@ def rate_the_conversation(rating_log):
 
 
 def ask_for_rating(message):
+    print("Rating -> ", message)
     message_log = [
-        {"role": "system", "content": "You are talking to a feedback chatbot, rate the conversation between 1 to 10."},
-        ({"role": "user", "content": "message"}),
+        {"role": "system", "content": SYSTEM_PROMPT},
+        ({"role": "user", "content": RATING_PROMPT.format(message=message)}),
     ]
     response = rate_the_conversation(message_log)
     score = process_rating_response(response)
+    print("Score -> ", score)
     return score
 
 
 def process_rating_response(response):
     score = extract_number_from_text(response)
-    print("*" * 30)
-    print("score")
-    print(score)
     return score
 
 
@@ -60,3 +79,10 @@ def calculate_ratings_metrics_score(metrics_scores):
         total_score += score
     # TODOs: Check for the range and send score accordingly
     return total_score
+
+
+if __name__ == "__main__":
+    # low score
+    print("Low score", ask_for_rating("User: This is a test message\nBot: Earth revoles around the sun"))
+    # high score
+    print("High score", ask_for_rating("User: This is a test message\nBot: This is a test reply"))
