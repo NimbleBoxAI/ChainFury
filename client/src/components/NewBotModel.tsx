@@ -1,7 +1,12 @@
 import { Button, Dialog } from "@mui/material";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import SvgClose from "./SvgComps/Close";
 
 const NewBotModel = ({ onClose }: { onClose: () => void }) => {
+  const navigate = useNavigate();
+  const [botName, setBotName] = useState("");
+
   return (
     <Dialog open={true} onClose={onClose}>
       <div
@@ -9,11 +14,22 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
       >
         <SvgClose className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer" />
         <input
+          onChange={(e) => {
+            setBotName(e.target.value?.replace(" ", "_"));
+          }}
+          value={botName}
           type="text"
           placeholder="Name"
           className="h-[40px] w-full mt-[16px]"
         />
-        <Button variant="contained" className="w-full">
+        <Button
+          onClick={() => {
+            navigate(`/dashboard/new?bot=${botName}`);
+            onClose();
+          }}
+          variant="contained"
+          className="w-full"
+        >
           Create
         </Button>
       </div>

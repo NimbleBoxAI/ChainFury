@@ -1,20 +1,15 @@
-import { Routes, Route, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import ChatComp from "./components/ChatComp";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import FlowViewer from "./pages/FlowViewer";
 import Login from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
 
 const AppRoutes = [
   {
     path: "/login",
     element: <Login />,
-    isPrivate: false,
-  },
-  {
-    path: "/signup",
-    element: <SignUp />,
     isPrivate: false,
   },
   {
@@ -35,8 +30,6 @@ const AppRoutes = [
 ];
 
 function App() {
-  const location = useLocation();
-
   return (
     <>
       <Routes>

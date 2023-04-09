@@ -1,9 +1,11 @@
 import jwt
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime, timedelta
 from database import db_session, User, Prompt, IntermediateStep
 from commons.config import jwt_secret
 import database_constants as constants
 from fastapi import HTTPException
+from sqlalchemy import func
 
 
 def add_default_user():
@@ -118,3 +120,74 @@ def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
             detail=f"Unable to find the prompt",
         )
     return prompt.user_rating
+
+
+def get_latency_metrics(chatbot_id: int):
+    db = db_session()
+    hourly_average_latency = (
+        db.query(Prompt)
+        .filter(Prompt.chatbot_id == chatbot_id)
+        .with_entities(
+            func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)).label("hour"),
+            func.avg(Prompt.time_taken).label("avg_time_taken"),
+        )
+        .group_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)))
+        .order_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)))
+        .limit(24)
+        .all()
+    )
+    latency_per_hour = []
+    for item in hourly_average_latency:
+        latency_per_hour.append({"x": item[0], "y": item[1]})
+    return latency_per_hour
+
+
+# def get_cost_metrics(chatbot_id: int):
+#     db = db_session()
+#     hourly_average_cost = (
+#         Prompt.query.filter(Prompt.chatbot_id == chatbot_id)
+#         .with_entities(
+#             func.date_trunc("token", func.date_trunc("token", Prompt.token)).label("hour"),
+#             func.sum(Prompt.token).label("total_token"),
+#         )
+#         .group_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.token)))
+#         .order_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.token)))
+#         .limit(24)
+#         .all()
+#     )
+#     cost_per_hour = []
+#     for item in hourly_average_cost:
+#         cost_per_hour.append({"x": item[0], "y": item[1]})
+#     return cost_per_hour
+
+
+def get_user_score_metrics(chatbot_id: int):
+    db = db_session()
+    one_count = ()
+
+    one_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.SAD).count()
+    two_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.NEUTRAL).count()
+    three_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.HAPPY).count()
+    user_ratings = []
+    user_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
+    return user_ratings
+
+
+def get_chatbot_user_score_metrics(chatbot_id: int):
+    db = db_session()
+    one_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.SAD).count()
+    two_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.NEUTRAL).count()
+    three_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.HAPPY).count()
+    chatbot_user_ratings = []
+    chatbot_user_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
+    return chatbot_user_ratings
+
+
+def get_gpt_rating_metrics(chatbot_id: int):
+    db = db_session()
+    one_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.SAD).count()
+    two_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.NEUTRAL).count()
+    three_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.HAPPY).count()
+    gpt_ratings = []
+    gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
+    return gpt_ratings

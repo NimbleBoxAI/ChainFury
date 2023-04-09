@@ -30,6 +30,10 @@ class InternalFeedbackModel(BaseModel):
 
 
 @router.put("/chatbot/{chatbot_id}/prompt")
-def update_internal_user_feedback(inputs: InternalFeedbackModel, prompt_id: int, db: Session = Depends(db_session)):
+def update_internal_user_feedback(
+    inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(db_session)
+):
+    username = get_user_from_jwt(token)
+    verify_user(username)
     feedback = update_internal_user_rating(prompt_id, inputs.score)
     return {"message": "Internal rating updated", "rating": inputs.score}

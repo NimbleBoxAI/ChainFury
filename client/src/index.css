@@ -19,6 +19,21 @@
   height: 100vh;
 }
 
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px;
+}
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+*::selection {
+  background-color: #006ef5;
+  color: #fff;
+}
+
 input {
   @apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-0 focus:border-gray-300 p-[8px];
 }
