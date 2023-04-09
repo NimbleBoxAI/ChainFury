@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -42,6 +42,7 @@ const FlowViewer = () => {
   const dispatch = useAppDispatch();
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
+  const navigate = useNavigate();
   const { auth } = useAuthStates();
 
   useEffect(() => {
@@ -124,6 +125,7 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
+            type: type,
             node: nodeData,
             id: type,
             value: null,
@@ -143,8 +145,7 @@ const FlowViewer = () => {
     createBot({ name: botName, nodes, edges, token: auth?.accessToken })
       .unwrap()
       ?.then((res) => {
-        console.log(res);
-        alert("Bot created successfully");
+        navigate("/ui/dashboard/" + res?.chatbot?.id);
       })
       .catch((err) => {
         console.log(err);
@@ -159,6 +160,7 @@ const FlowViewer = () => {
         position: node?.position ?? { x: 0, y: 0 },
         type: "ChainFuryNode",
         data: {
+          type: node?.id,
           ...node?.data,
           node: JSON.parse(JSON.stringify(node?.data?.node)),
           deleteMe: () => {
