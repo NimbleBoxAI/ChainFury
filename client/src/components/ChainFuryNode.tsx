@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { NodeDataType } from "../constants";
 import { useAuthStates } from "../redux/hooks/dispatchHooks";
 import { nodeColors } from "../utils";
@@ -19,6 +20,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           <div
             className="cursor-pointer"
             onClick={() => {
+              console.log("delete", data);
               data?.deleteMe?.();
             }}
           >
@@ -58,7 +60,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                   )}
                   {data?.node?.template[t].show ? (
                     <ParameterComponent
-                      data={JSON.parse(JSON.stringify(data))}
+                      data={data}
                       color={
                         nodeColors[
                           Object?.keys(auth?.typesMap)?.filter((key) =>

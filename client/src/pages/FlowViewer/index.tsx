@@ -9,6 +9,7 @@ import ReactFlow, {
   Controls,
   Connection,
   Edge,
+  ReactFlowInstance,
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
@@ -27,10 +28,9 @@ const FlowViewer = () => {
   const reactFlowWrapper = useRef(null) as any;
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [loading, setLoading] = useState(true as boolean);
   const [reactFlowInstance, setReactFlowInstance] = useState(
-    null as null | {
-      project: (arg0: { x: number; y: number }) => { x: number; y: number };
-    }
+    null as null | ReactFlowInstance
   );
   const [variant, setVariant] = useState("" as "new" | "edit");
   const { flow_id } = useParams() as {
@@ -48,18 +48,21 @@ const FlowViewer = () => {
     if (location.search?.includes("?bot=") && flow_id === "new") {
       setBotName(location.search.split("?bot=")[1]);
       setVariant("new");
+      setNodes([]);
+      setEdges([]);
+      setLoading(false);
     } else {
       setVariant("edit");
     }
     fetchComponents();
-  }, []);
+  }, [location]);
 
   useEffect(() => {
     if (auth?.chatBots?.[flow_id]) {
-      setNodes(auth?.chatBots?.[flow_id]?.dag?.nodes);
-      setEdges(auth?.chatBots?.[flow_id]?.dag?.edges);
+      setLoading(false);
+      createNodesForExistingBot();
     }
-  }, [auth.chatBots]);
+  }, [auth.chatBots, location]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -121,7 +124,7 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
-            node: JSON.parse(JSON.stringify(nodeData)),
+            node: nodeData,
             id: type,
             value: null,
             deleteMe: () => {
@@ -149,17 +152,36 @@ const FlowViewer = () => {
       });
   };
 
+  const createNodesForExistingBot = () => {
+    auth.chatBots?.[flow_id]?.dag?.nodes?.forEach((node: any) => {
+      const newNode = {
+        id: node?.id ?? "",
+        position: node?.position ?? { x: 0, y: 0 },
+        type: "ChainFuryNode",
+        data: {
+          ...node?.data,
+          node: JSON.parse(JSON.stringify(node?.data?.node)),
+          deleteMe: () => {
+            setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
+          },
+        },
+      };
+      setNodes((nds) => nds.concat(newNode));
+    });
+    setEdges(auth.chatBots?.[flow_id]?.dag?.edges);
+  };
+
   const editChatBot = () => {
     editBot({
       id: flow_id,
-      name: botName,
+      name: auth?.chatBots?.[flow_id]?.name,
       nodes,
       edges,
       token: auth?.accessToken,
     })
       .unwrap()
       ?.then((res) => {
-        console.log(res);
+        console.log({ hh: reactFlowInstance?.getNodes() });
         alert("Bot edited successfully");
       })
       .catch((err) => {
@@ -190,29 +212,34 @@ const FlowViewer = () => {
           {variant === "new" ? "Create" : "Save"}
         </Button>
       </div>
-      <ReactFlowProvider>
-        <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodeTypes={nodeTypes}
-            proOptions={{ hideAttribution: true }}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            defaultViewport={{
-              zoom: 1,
-              y: 0,
-              x: 0,
-            }}
-          >
-            <Controls />
-          </ReactFlow>
-        </div>
-      </ReactFlowProvider>
+      {!loading ? (
+        <ReactFlowProvider>
+          <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
+            <ReactFlow
+              nodeTypes={nodeTypes}
+              proOptions={{ hideAttribution: true }}
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onInit={setReactFlowInstance}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              fitView={true}
+              defaultViewport={{
+                zoom: 0.8,
+                y: 0,
+                x: 0,
+              }}
+            >
+              <Controls />
+            </ReactFlow>
+          </div>
+        </ReactFlowProvider>
+      ) : (
+        ""
+      )}
     </div>
   );
 };

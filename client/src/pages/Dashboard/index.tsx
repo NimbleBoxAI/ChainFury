@@ -37,7 +37,7 @@ const Dashboard = () => {
                 {`<script>
 window.onload = function () {
   const iframe = document.createElement("iframe");
-  iframe.src = "${window?.location?.host}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}}";
+  iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}}";
   iframe.style.position = "absolute";
   iframe.style.zIndex = "10000";
   iframe.style.bottom = "0";
