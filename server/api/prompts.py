@@ -1,14 +1,17 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
+from typing import Annotated
 from pydantic import BaseModel
 from schemas.prompt_schema import Prompt
 from sqlalchemy.orm import Session
 
+from commons.utils import get_user_from_jwt, verify_user
 from commons.langflow_utils import get_prompt
 from commons.utils import update_internal_user_rating
 from database import db_session
 from database_constants import PromptRating
+
 
 # build router
 router = APIRouter(tags=["prompts"])
