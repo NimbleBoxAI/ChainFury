@@ -1,12 +1,28 @@
 import os
+import logging
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+API_URL = "/api/v1"
+
+
+def get_logger(name):
+    temp_logger = logging.getLogger(name)
+    temp_logger.setLevel(logging.DEBUG)
+    return temp_logger
+
+
+logger = get_logger(__name__)
+
 DATABASE = "sqlite:///./chain.db"
 engine = create_engine(DATABASE, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-print("Database opened successfully")
+logger.info("Database opened successfully")
+
 Base = declarative_base()
 Base.metadata.create_all(bind=engine)
 

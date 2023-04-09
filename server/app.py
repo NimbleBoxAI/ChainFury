@@ -1,25 +1,25 @@
 import os
 from typing import Dict, List
 from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.responses import Response
-import requests
-from commons import config as c
-from commons.config import engine
-from commons.utils import add_default_user
-from api.chatbot import chatbot_router
-from api.auth import auth_router
+from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from commons import config as c
+from commons.utils import add_default_user
 
 # Routers
-from api.user import user_router
-from api.metrics import metrics_router
+from api.auth import auth_router
+from api.chatbot import chatbot_router
 from api.feedback import feedback_router
 from api.intermediate_steps import intermediate_steps_router
-from api.template import template_router
 from api.langflow import router as langflow_router
+from api.metrics import metrics_router
 from api.prompts import router as prompts_router
+from api.template import template_router
+from api.user import user_router
 
+logger = c.get_logger(__name__)
 
 app = FastAPI(
     title="ChainFury",
@@ -39,20 +39,22 @@ add_default_user()
 ####################################################
 ################ INITIALIZE ########################
 ####################################################
-API_URL = "/api/v1"
 # Registering apis.
-app.include_router(user_router, prefix=API_URL)
-app.include_router(metrics_router, prefix=API_URL)
-app.include_router(feedback_router, prefix=API_URL)
-app.include_router(intermediate_steps_router, prefix=API_URL)
-app.include_router(chatbot_router, prefix=API_URL)
-app.include_router(auth_router, prefix=API_URL)
-app.include_router(langflow_router, prefix=API_URL)
-app.include_router(prompts_router, prefix=API_URL)
-app.include_router(template_router, prefix=API_URL)
+app.include_router(user_router, prefix=c.API_URL)
+app.include_router(metrics_router, prefix=c.API_URL)
+app.include_router(feedback_router, prefix=c.API_URL)
+app.include_router(intermediate_steps_router, prefix=c.API_URL)
+app.include_router(chatbot_router, prefix=c.API_URL)
+app.include_router(auth_router, prefix=c.API_URL)
+app.include_router(langflow_router, prefix=c.API_URL)
+app.include_router(prompts_router, prefix=c.API_URL)
+app.include_router(template_router, prefix=c.API_URL)
 ####################################################
 ################ APIs ##############################
 ####################################################
+
+
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/ui/{rest_of_path:path}")
@@ -62,18 +64,14 @@ async def serve_spa(request: Request, rest_of_path: str):
 
 if "static" not in os.listdir("./"):
     # make static folder
-    print("Static folder not found. Creating one...")
+    logger.info("Static folder not found. Creating one...")
     os.mkdir("static")
+
+
+@app.get("/", response_class=RedirectResponse, status_code=302)
+async def redirect_pydantic():
+    return "/ui/login"
+
 
 # add static files
 app.mount("/", StaticFiles(directory="static"), name="assets")
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-
-templates = Jinja2Templates(directory="templates")
-
-
-# TO CHECK IF SERVER IS ON
-@app.get("/test", status_code=200)
-def test(response: Response):
-    return {"msg": "success"}

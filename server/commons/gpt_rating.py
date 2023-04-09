@@ -1,9 +1,11 @@
 import openai
 import re
-from commons.config import OPENAI_API_KEY
+from commons import config as c
 
-api_key = OPENAI_API_KEY
+api_key = c.OPENAI_API_KEY
 openai.api_key = api_key
+
+logger = c.get_logger(__name__)
 
 SYSTEM_PROMPT = """You are an AI which rates a conversation betweeen User and a Bot. You rate the reply of the Bot on a scale of 1 to 10.
 
@@ -38,22 +40,22 @@ def rate_the_conversation(rating_log):
         temperature=0.7,
     )
 
-    for choice in response.choices:
+    for choice in response.choices:  # type: ignore
         if "text" in choice:
             return choice.text
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content  # type: ignore
 
 
 def ask_for_rating(message):
-    print("Rating -> ", message)
+    logger.debug(f"Rating -> {message}")
     message_log = [
         {"role": "system", "content": SYSTEM_PROMPT},
         ({"role": "user", "content": RATING_PROMPT.format(message=message)}),
     ]
     response = rate_the_conversation(message_log)
     score = process_rating_response(response)
-    print("Score -> ", score)
+    logger.debug(f"Score -> {score}")
     return score
 
 

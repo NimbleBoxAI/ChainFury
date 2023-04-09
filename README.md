@@ -5,6 +5,8 @@
 
 ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow)), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
 
+You can try out ChainFury [here](https://alpaca-irregulardensity.byocawsv0.on.nimblebox.ai/).
+
 
 ## Featues
 ChainFury supports a range of features, including:

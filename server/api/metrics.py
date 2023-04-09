@@ -1,7 +1,7 @@
-from http.client import HTTPException
 import database
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
+from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import DateTime
 from datetime import datetime
@@ -24,8 +24,8 @@ def get_chatbot_metrics(
     id: int,
     token: Annotated[str, Header()],
     db: Session = Depends(database.db_session),
-    from_date: str = None,
-    to_date: str = None,
+    from_date: str = None,  # type: ignore
+    to_date: str = None,  # type: ignore
     page: int = 1,
     page_size: int = 10,
     sort_by: str = constants.SORT_BY_CREATED_AT,
@@ -56,10 +56,7 @@ def get_chatbot_metrics(
     if metrics is not None:
         response = {"msg": "success", "data": metrics}
     else:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Metrics for the chatbot with id {id} not found",
-        )
+        raise HTTPException(status_code=404, detail=f"Metrics for the chatbot with id {id} not found")
     return response
 
 
@@ -86,8 +83,5 @@ def get_chatbot_metrics(
     if metrics is not None:
         response = {"msg": "success", "data": metrics}
     else:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Metrics for the chatbot with id {id} not found",
-        )
+        raise HTTPException(status_code=404, detail=f"Metrics for the chatbot with id {id} not found")
     return response
