@@ -150,7 +150,11 @@ const FlowViewer = () => {
     createBot({ name: botName, nodes, edges, token: auth?.accessToken })
       .unwrap()
       ?.then((res) => {
-        navigate("/ui/dashboard/" + res?.chatbot?.id);
+        if (res?.chatbot?.id)
+          window.location.href = "/ui/dashboard/" + res?.chatbot?.id;
+        else {
+          alert("Error creating bot");
+        }
       })
       .catch((err) => {
         console.log(err);
