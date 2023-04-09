@@ -55,6 +55,20 @@ const Dashboard = () => {
     }
   }, [auth.prompts, auth.selectedChatBot]);
 
+  const embeddedScript = `<script>
+  window.onload = function () {
+    const iframe = document.createElement("iframe");
+    iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}";
+    iframe.style.position = "absolute";
+    iframe.style.zIndex = "10000";
+    iframe.style.bottom = "0";
+    iframe.style.right = "0";
+    iframe.style.width = "350px";
+    iframe.style.height = "450px";
+    document.body.appendChild(iframe);
+  };
+  </script>`;
+
   return (
     <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full ">
       {auth?.selectedChatBot?.name ? (
@@ -79,21 +93,14 @@ const Dashboard = () => {
                 your HTML
               </span>
               <div className="relative">
-                <SvgCopy className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer" />
+                <SvgCopy
+                  className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer"
+                  onClick={() => {
+                    navigator.clipboard.writeText(embeddedScript);
+                  }}
+                />
                 <pre className="regular300 font-mono rounded-md bg-light-neutral-grey-200 text-light-neutral-grey-600 w-[full] p-[16px] overflow-scroll max-h-[150px]">
-                  {`<script>
-window.onload = function () {
-  const iframe = document.createElement("iframe");
-  iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}";
-  iframe.style.position = "absolute";
-  iframe.style.zIndex = "10000";
-  iframe.style.bottom = "0";
-  iframe.style.right = "0";
-  iframe.style.width = "350px";
-  iframe.style.height = "450px";
-  document.body.appendChild(iframe);
-};
-</script>`}
+                  {embeddedScript}
                 </pre>
               </div>
             </div>

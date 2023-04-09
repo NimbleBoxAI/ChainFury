@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import ChatComp from "./components/ChatComp";
 import Sidebar from "./components/Sidebar";
@@ -49,6 +48,7 @@ function App() {
             }
           />
         ))}
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </>
   );

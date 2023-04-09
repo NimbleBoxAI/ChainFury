@@ -73,7 +73,9 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}/prompts?token=` + credentials?.token,
+        url:
+          `/chatbot/${credentials?.id}/prompts?page_size=50&page=1&token=` +
+          credentials?.token,
         method: "GET",
       }),
     }),
