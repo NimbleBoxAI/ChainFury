@@ -78,27 +78,15 @@ uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 
 ---
 
-### Step 1:
+1. Start the server by using the docker file provided or by using the manual method.
 
-Start the server by using the docker file provided or by using the manual method.
+2. Log into ChainFury by entering username = “admin” and password = “admin”
 
-### Step 2:
+3. Click on create chatbot
 
-Log into ChainFury by entering username = “admin” and password = “admin”
+4. Use one of the pre-configured chatbots or use the elements to create a custom chatbot.
 
-### Step 3:
-
-Click on create chatbot
-
-### Step 4:
-
-Use one of the pre-configured chatbots or use the elements to create a custom chatbot.
-
-### Step 5:
-
-Save & create your chatbot and start chatting with it by clicking the chat on the bottom-right.
-
-You can see chatbot statistics and feedback metrics in your ChainFury dashboard.
+5. Save & create your chatbot and start chatting with it by clicking the chat on the bottom-right. You can see chatbot statistics and feedback metrics in your ChainFury dashboard.
 
 ---
 
