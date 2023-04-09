@@ -7,6 +7,8 @@ from sqlalchemy.orm import sessionmaker
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
+API_URL = "/api/v1"
+
 
 def get_logger(name):
     temp_logger = logging.getLogger(name)
