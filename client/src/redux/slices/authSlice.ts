@@ -6,6 +6,7 @@ interface ChatBots {
   created_by: string;
   id: string;
   name: string;
+  description?: string;
   dag: {
     edges: any;
     nodes: any;
@@ -33,6 +34,7 @@ type AuthState = {
   chatBots: Record<string, ChatBots>;
   selectedChatBot: ChatBots;
   prompts: Record<string, PromptsInterface[]>;
+  templates: Record<string, ChatBots>;
 };
 
 interface ComponentsInterface {
@@ -48,6 +50,7 @@ const slice = createSlice({
     chatBots: {},
     selectedChatBot: {} as ChatBots,
     prompts: {},
+    templates: {},
   } as AuthState,
   reducers: {
     setAccessToken: (
@@ -89,6 +92,16 @@ const slice = createSlice({
       });
       state.chatBots = tempChatBots;
     },
+    setTemplates: (
+      state,
+      { payload: { templates } }: PayloadAction<{ templates: ChatBots[] }>
+    ) => {
+      const tempTemplates = {} as Record<string, ChatBots>;
+      templates.forEach((template) => {
+        tempTemplates[template.id] = template;
+      });
+      state.templates = tempTemplates;
+    },
     setSelectedChatBot: (
       state,
       { payload: { chatBot } }: PayloadAction<{ chatBot: ChatBots }>
@@ -116,6 +129,7 @@ export const {
   setChatBots,
   setSelectedChatBot,
   setPrompts,
+  setTemplates,
 } = slice.actions;
 
 export default slice.reducer;

@@ -3,8 +3,15 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStates } from "../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../redux/hooks/store";
-import { useGetBotsMutation } from "../redux/services/auth";
-import { setChatBots, setSelectedChatBot } from "../redux/slices/authSlice";
+import {
+  useGetBotsMutation,
+  useGetTemplatesMutation,
+} from "../redux/services/auth";
+import {
+  setChatBots,
+  setSelectedChatBot,
+  setTemplates,
+} from "../redux/slices/authSlice";
 import ChatBotCard from "./ChatBotCard";
 import CollapsibleComponents from "./CollapsibleComponents";
 import NewBotModel from "./NewBotModel";
@@ -16,6 +23,7 @@ const Sidebar = () => {
   const { auth } = useAuthStates();
   const [getBots] = useGetBotsMutation();
   const dispatch = useAppDispatch();
+  const [getTemplates] = useGetTemplatesMutation();
 
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
@@ -41,6 +49,17 @@ const Sidebar = () => {
         })
         .catch((err) => {
           console.log(err);
+        });
+      getTemplates({
+        token: localStorage.getItem("accessToken") ?? "",
+      })
+        .unwrap()
+        .then((res) => {
+          dispatch(
+            setTemplates({
+              templates: res?.templates?.length ? res?.templates : [],
+            })
+          );
         });
     } catch (err) {
       console.log(err);

@@ -60,7 +60,10 @@ export function Table({
         <div
           className={`prose-nbx max-h-[90vh] overflow-hidden relative  gap-[16px] p-[16px] flex flex-col justify-center w-[500px]`}
         >
-          <SvgClose className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer" />
+          <SvgClose
+            onClick={onClose}
+            className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer"
+          />
           <div className="flex flex-col">
             {headings?.map((value, id) => (
               <div key={id} className="flex py-[8px] flex-col">

@@ -33,7 +33,7 @@ const FlowViewer = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(
     null as null | ReactFlowInstance
   );
-  const [variant, setVariant] = useState("" as "new" | "edit");
+  const [variant, setVariant] = useState("" as "new" | "edit" | "template");
   const { flow_id } = useParams() as {
     flow_id: string;
   };
@@ -41,6 +41,7 @@ const FlowViewer = () => {
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const [templateId, setTemplateId] = useState("" as string);
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
   const navigate = useNavigate();
@@ -53,6 +54,10 @@ const FlowViewer = () => {
       setNodes([]);
       setEdges([]);
       setLoading(false);
+    } else if (flow_id === "template" && location.search?.includes("?bot=")) {
+      setBotName(location.search.split("?bot=")[1]);
+      setTemplateId(location.search.split("&id=")[1]);
+      setVariant("template");
     } else {
       setVariant("edit");
     }
@@ -60,11 +65,11 @@ const FlowViewer = () => {
   }, [location]);
 
   useEffect(() => {
-    if (auth?.chatBots?.[flow_id]) {
+    if (auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) {
       setLoading(false);
       createNodesForExistingBot();
     }
-  }, [auth.chatBots, location]);
+  }, [auth.chatBots, location, auth.templates, templateId]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -155,7 +160,10 @@ const FlowViewer = () => {
   };
 
   const createNodesForExistingBot = () => {
-    auth.chatBots?.[flow_id]?.dag?.nodes?.forEach((node: any) => {
+    (variant === "edit"
+      ? auth.chatBots?.[flow_id]
+      : auth?.templates?.[templateId]
+    )?.dag?.nodes?.forEach((node: any) => {
       const newNode = {
         id: node?.id ?? "",
         position: node?.position ?? { x: 0, y: 0 },
@@ -171,7 +179,12 @@ const FlowViewer = () => {
       };
       setNodes((nds) => nds.concat(newNode));
     });
-    setEdges(auth.chatBots?.[flow_id]?.dag?.edges);
+    setEdges(
+      (variant === "edit"
+        ? auth.chatBots?.[flow_id]
+        : auth?.templates?.[templateId]
+      )?.dag?.edges
+    );
   };
 
   const editChatBot = () => {
@@ -204,7 +217,7 @@ const FlowViewer = () => {
           variant="outlined"
           color="primary"
           onClick={() => {
-            if (variant === "new") {
+            if (variant === "new" || variant === "template") {
               createChatBot();
             } else {
               editChatBot();

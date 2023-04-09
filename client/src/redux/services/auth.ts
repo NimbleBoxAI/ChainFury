@@ -136,6 +136,17 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getTemplates: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: ({ token }) => ({
+        url: `/templates?token=` + token,
+        method: "GET",
+      }),
+    }),
     getMetrics: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -207,4 +218,5 @@ export const {
   useGetMetricsMutation,
   useAddUserFeedBackMutation,
   useAddInternalFeedBackMutation,
+  useGetTemplatesMutation,
 } = authApi;
