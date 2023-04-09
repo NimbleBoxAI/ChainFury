@@ -14,6 +14,8 @@ WORKDIR /app
 RUN python3 -m pip install -r requirements.txt
 
 # Bundle app source
+RUN rm -rf /app/static
+RUN rm -rf /app/templates
 COPY --from=builder /app/dist ./static
 COPY --from=builder /app/dist/index.html ./templates/index.html
 
