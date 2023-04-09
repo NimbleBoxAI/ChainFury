@@ -1,6 +1,7 @@
 import database
 from typing import Dict, List
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
 import requests
 from commons import config as c
@@ -19,7 +20,6 @@ from api.template import template_router
 from api.langflow import router as langflow_router
 from api.prompts import router as prompts_router
 
-c.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="ChainFury",
@@ -39,19 +39,33 @@ add_default_user()
 ####################################################
 ################ INITIALIZE ########################
 ####################################################
+API_URL = "/api/v1"
 # Registering apis.
-app.include_router(user_router)
-app.include_router(metrics_router)
-app.include_router(feedback_router)
-app.include_router(intermediate_steps_router)
-app.include_router(chatbot_router)
-app.include_router(auth_router)
-app.include_router(langflow_router)
-app.include_router(prompts_router)
-app.include_router(template_router)
+app.include_router(user_router, prefix=API_URL)
+app.include_router(metrics_router, prefix=API_URL)
+app.include_router(feedback_router, prefix=API_URL)
+app.include_router(intermediate_steps_router, prefix=API_URL)
+app.include_router(chatbot_router, prefix=API_URL)
+app.include_router(auth_router, prefix=API_URL)
+app.include_router(langflow_router, prefix=API_URL)
+app.include_router(prompts_router, prefix=API_URL)
+app.include_router(template_router, prefix=API_URL)
 ####################################################
 ################ APIs ##############################
 ####################################################
+
+
+@app.get("/ui/{rest_of_path:path}")
+async def serve_spa(request: Request, rest_of_path: str):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+# add static files
+app.mount("/", StaticFiles(directory="static"), name="assets")
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="templates")
 
 
 # TO CHECK IF SERVER IS ON

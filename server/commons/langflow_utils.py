@@ -109,5 +109,8 @@ def get_prompt(chatbot_id: int, prompt: Prompt, db: Session):
         return result
 
     except Exception as e:
-        print(e)
+        import traceback
+
+        traceback.print_exc()
+        # print(e)
         raise HTTPException(status_code=500, detail=str(e)) from e
