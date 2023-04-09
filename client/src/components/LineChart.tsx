@@ -109,7 +109,7 @@ const LineChart = ({
     if (xAxis?.formatter && xAxis?.type !== "time") {
       optionsTemplate.xAxis.axisLabel.formatter = `{value} ${xAxis.formatter}`;
     } else if (xAxis?.type === "time") {
-      optionsTemplate.xAxis.axisLabel.formatter = function (value) {
+      optionsTemplate.xAxis.axisLabel.formatter = function (value: any) {
         return moment(Number(value)).format("HH:mm:ss");
       };
     }

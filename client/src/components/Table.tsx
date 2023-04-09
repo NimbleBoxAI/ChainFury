@@ -13,7 +13,7 @@ export function Table({
   label?: string;
   headings: string[];
   spacing?: number[];
-  values: string[][];
+  values: (string | number)[][];
 }) {
   const [selectedRow, setSelectedRow] = useState(-1);
   const { auth } = useAuthStates();
@@ -30,7 +30,7 @@ export function Table({
     useEffect(() => {
       getSteps({
         id: auth?.selectedChatBot?.id,
-        prompt_id: values[selectedRow]?.[0],
+        prompt_id: values[selectedRow]?.[0] + "",
         token: auth?.accessToken,
       })
         .unwrap()
