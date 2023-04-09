@@ -1,6 +1,6 @@
 import { ReactFlowInstance } from "reactflow";
 
-const BASE_URL = "http://localhost:8000";
+const BASE_URL = "http://127.0.0.1:8000/api/v1";
 type DEFAULT_RESPONSE = any;
 type TemplateVariableType = {
   type: string;

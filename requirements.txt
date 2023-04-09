@@ -3,5 +3,6 @@ langchain==0.0.131
 openai
 sqlalchemy
 pyjwt[crypto]
+jinja2
 langflow==0.0.54
 black
