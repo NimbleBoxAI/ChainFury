@@ -10,9 +10,9 @@ template_router = APIRouter(prefix="", tags=["template"])
 
 
 class TemplateModel(BaseModel):
-    name: str = None
-    dag: dict = None
-    description: str = None
+    name: str
+    dag: dict
+    description: str = "No description provided"
 
 
 @template_router.get("/templates", status_code=200)

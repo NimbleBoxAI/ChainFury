@@ -2,7 +2,7 @@ import database
 from typing import Annotated
 from database import ChatBot
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Query, Header
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from commons.utils import get_user_from_jwt, verify_user
 from commons import config as c
