@@ -116,7 +116,6 @@ const FlowViewer = () => {
         let type = event.dataTransfer.getData("application/reactflow");
         const nodeData = JSON.parse(type);
         type = nodeData?.displayName;
-        console.log({ nodeData, type });
         // check if the dropped element is valid
         if (typeof type === "undefined" || !type) {
           return;
@@ -197,11 +196,9 @@ const FlowViewer = () => {
     })
       .unwrap()
       ?.then((res) => {
-        console.log({ hh: reactFlowInstance?.getNodes() });
         alert("Bot edited successfully");
       })
       .catch((err) => {
-        console.log(err);
         alert("Error editing bot");
       });
   };
