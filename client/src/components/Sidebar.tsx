@@ -12,6 +12,7 @@ import {
   setSelectedChatBot,
   setTemplates,
 } from "../redux/slices/authSlice";
+import ChangePassword from "./ChangePassword";
 import ChatBotCard from "./ChatBotCard";
 import CollapsibleComponents from "./CollapsibleComponents";
 import NewBotModel from "./NewBotModel";
@@ -24,6 +25,7 @@ const Sidebar = () => {
   const [getBots] = useGetBotsMutation();
   const dispatch = useAppDispatch();
   const [getTemplates] = useGetTemplatesMutation();
+  const [changePassword, setChangePassword] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
@@ -80,7 +82,7 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="overflow-hidden w-[250px] min-w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
+    <div className="relative overflow-hidden w-[250px] min-w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
       {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ""}
       {flow_id ? (
         <Button
@@ -104,7 +106,7 @@ const Sidebar = () => {
       >
         New Bot
       </Button>
-      <div className="overflow-scroll max-h-[calc(100%-60px)]">
+      <div className="overflow-scroll max-h-[calc(100%-120px)]">
         {!flow_id ? (
           <>
             <div className="flex flex-col gap-[8px]">
@@ -143,6 +145,34 @@ const Sidebar = () => {
           </div>
         )}
       </div>
+      <div className="h-[60px] absolute bottom-0 flex flex-col gap-[4px]">
+        <span
+          className="medium400 cursor-pointer"
+          onClick={() => {
+            setChangePassword(true);
+          }}
+        >
+          Change Password
+        </span>
+        <span
+          onClick={() => {
+            localStorage.clear();
+            navigate("/ui/login");
+          }}
+          className="medium400 cursor-pointer"
+        >
+          Log Out
+        </span>
+      </div>
+      {changePassword ? (
+        <ChangePassword
+          onClose={() => {
+            setChangePassword(false);
+          }}
+        />
+      ) : (
+        ""
+      )}
     </div>
   );
 };

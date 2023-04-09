@@ -30,6 +30,24 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    changePassword: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        old_password: string;
+        new_password: string;
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: "/user/change_password?token=" + token,
+        method: "POST",
+        body: {
+          old_password: credentials.old_password,
+          new_password: credentials.new_password,
+          username: "admin",
+        },
+      }),
+    }),
     addUserFeedBack: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -219,4 +237,5 @@ export const {
   useAddUserFeedBackMutation,
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
+  useChangePasswordMutation,
 } = authApi;
