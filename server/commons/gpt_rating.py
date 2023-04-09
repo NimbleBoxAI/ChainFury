@@ -40,11 +40,11 @@ def rate_the_conversation(rating_log):
         temperature=0.7,
     )
 
-    for choice in response.choices:
+    for choice in response.choices:  # type: ignore
         if "text" in choice:
             return choice.text
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content  # type: ignore
 
 
 def ask_for_rating(message):
