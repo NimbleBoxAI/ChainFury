@@ -63,6 +63,19 @@ const Sidebar = () => {
   return (
     <div className="overflow-hidden w-[250px] min-w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
       {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ""}
+      {flow_id ? (
+        <Button
+          onClick={() => navigate("/ui/dashboard")}
+          variant="outlined"
+          className="my-[8px!important]"
+          color="primary"
+          fullWidth
+        >
+          All Bots
+        </Button>
+      ) : (
+        ""
+      )}
       <Button
         onClick={() => setNewBotModel(true)}
         variant="contained"

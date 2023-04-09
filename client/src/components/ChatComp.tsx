@@ -1,6 +1,9 @@
 import { useEffect, useId, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useProcessPromptMutation } from "../redux/services/auth";
+import {
+  useAddUserFeedBackMutation,
+  useProcessPromptMutation,
+} from "../redux/services/auth";
 
 interface ChatInterface {
   id: number;
@@ -16,6 +19,8 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
   const { chat_id } = useParams<{ chat_id: string }>();
   const [processPrompt] = useProcessPromptMutation();
   const [usersMessages, setUsersMessages] = useState<string[]>([]);
+  const [enableFeedback, setEnableFeedback] = useState(false);
+  const [addFeedback] = useAddUserFeedBackMutation();
   const sessionId = useId();
 
   useEffect(() => {
@@ -23,6 +28,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
   }, [chat]);
 
   const handleProcessPrompt = async () => {
+    setEnableFeedback(false);
     setWaiting(true);
     processPrompt({
       chatbot_id: chatId ?? chat_id ?? "",
@@ -40,6 +46,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
             isSender: false,
           },
         ]);
+        setEnableFeedback(true);
       })
       .catch((err) => {
         if (err?.data?.detail)
@@ -62,6 +69,13 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
         setWaiting(false);
       });
     setCurrentMessage("");
+  };
+
+  const handleFeedback = (feedback: number, promptId: string) => {
+    addFeedback({
+      prompt_id: promptId,
+      score: feedback,
+    });
   };
 
   return (
@@ -94,14 +108,63 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
         {isChatOpen ? (
           <>
             <div className="overflow-scroll h-[420px] min-w-[350px] p-[16px] pb-[40px] chatContainer">
-              {chat.map((chat, key) => (
+              {chat.map((chatVal, key) => (
                 <div
                   key={key}
                   className={`chat ${
-                    chat.isSender ? "nbx-chat-end" : "nbx-chat-start"
+                    chatVal.isSender ? "nbx-chat-end" : "nbx-chat-start"
                   }`}
                 >
-                  <div className="chat-bubble">{chat.message}</div>
+                  <div
+                    className={`flex flex-col ${
+                      !chatVal?.isSender && enableFeedback
+                        ? "rounded-b-[8px!important] overflow-hidden"
+                        : ""
+                    }`}
+                  >
+                    <div
+                      className={`chat-bubble ${
+                        !chatVal?.isSender && enableFeedback
+                          ? "rounded-br-[0px!important]"
+                          : ""
+                      }`}
+                    >
+                      {chatVal.message}
+                    </div>
+                    {!chatVal?.isSender &&
+                    enableFeedback &&
+                    key === chat?.length - 1 ? (
+                      <div className="bg-light-neutral-grey-300 p-[8px] flex gap-[8px] text-light-neutral-grey-900 items-center">
+                        <span>Rate this answer:</span>
+                        <span
+                          onClick={() => {
+                            handleFeedback(3, chatVal.id.toString());
+                          }}
+                          className="text-[20px] cursor-pointer"
+                        >
+                          😀
+                        </span>
+                        <span
+                          onClick={() => {
+                            handleFeedback(2, chatVal.id.toString());
+                          }}
+                          className="text-[20px] cursor-pointer"
+                        >
+                          😐
+                        </span>
+                        <span
+                          onClick={() => {
+                            handleFeedback(1, chatVal.id.toString());
+                          }}
+                          className="text-[20px] cursor-pointer"
+                        >
+                          😞
+                        </span>
+                      </div>
+                    ) : (
+                      ""
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
