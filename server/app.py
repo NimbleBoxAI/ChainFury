@@ -1,4 +1,4 @@
-import database
+import os
 from typing import Dict, List
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -59,6 +59,11 @@ app.include_router(template_router, prefix=API_URL)
 async def serve_spa(request: Request, rest_of_path: str):
     return templates.TemplateResponse("index.html", {"request": request})
 
+
+if "static" not in os.listdir("./"):
+    # make static folder
+    print("Static folder not found. Creating one...")
+    os.mkdir("static")
 
 # add static files
 app.mount("/", StaticFiles(directory="static"), name="assets")
