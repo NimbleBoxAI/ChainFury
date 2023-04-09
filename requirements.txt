@@ -6,3 +6,4 @@ pyjwt[crypto]
 jinja2
 langflow==0.0.54
 black
+passlib

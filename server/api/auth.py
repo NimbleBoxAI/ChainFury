@@ -2,6 +2,7 @@ import jwt
 import database
 from database import User
 from typing import Annotated
+from passlib.hash import sha256_crypt
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Query, Header
 from pydantic import BaseModel
@@ -18,8 +19,8 @@ class AuthModel(BaseModel):
 
 @auth_router.post("/login", status_code=200)
 def login(auth: AuthModel, db: Session = Depends(database.db_session)):
-    user: User = db.query(User).filter((User.username == auth.username) & (User.password == auth.password)).first()  # type: ignore
-    if user is not None:
+    user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
+    if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
         token = jwt.encode(payload={"username": auth.username}, key=JWT_SECRET)
         response = {"msg": "success", "token": token}
     else:

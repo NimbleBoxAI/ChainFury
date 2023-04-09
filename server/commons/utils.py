@@ -1,4 +1,5 @@
 import jwt
+from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
 from database import db_session, User, Prompt, IntermediateStep
@@ -9,7 +10,8 @@ from sqlalchemy import func
 
 
 def add_default_user():
-    new_user = User(username="admin", password="admin", meta="")
+    admin_password = sha256_crypt.hash("admin")
+    new_user = User(username="admin", password=admin_password, meta="")
     db = db_session()
     try:
         db.add(new_user)
