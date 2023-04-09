@@ -1,13 +1,37 @@
 import { Button } from "@mui/material";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatComp from "../../components/ChatComp";
 import SvgCopy from "../../components/SvgComps/Copy";
 import { Table } from "../../components/Table";
 import { useAuthStates } from "../../redux/hooks/dispatchHooks";
+import { useAppDispatch } from "../../redux/hooks/store";
+import { useGetPromptsMutation } from "../../redux/services/auth";
+import { setPrompts } from "../../redux/slices/authSlice";
 
 const Dashboard = () => {
   const { auth } = useAuthStates();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [getPrompts] = useGetPromptsMutation();
+
+  useEffect(() => {
+    if (auth?.selectedChatBot?.id) {
+      getPrompts({ id: auth?.selectedChatBot?.id, token: auth?.accessToken })
+        ?.unwrap()
+        .then((res) => {
+          dispatch(
+            setPrompts({
+              prompts: res.data,
+              chatbot_id: auth?.selectedChatBot?.id,
+            })
+          );
+        })
+        .catch((err) => {
+          alert("Unable to fetch prompts");
+        });
+    }
+  }, [auth.selectedChatBot]);
 
   return (
     <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
@@ -37,7 +61,7 @@ const Dashboard = () => {
                 {`<script>
 window.onload = function () {
   const iframe = document.createElement("iframe");
-  iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}}";
+  iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}";
   iframe.style.position = "absolute";
   iframe.style.zIndex = "10000";
   iframe.style.bottom = "0";
@@ -59,17 +83,24 @@ window.onload = function () {
           </div>
 
           <Table
-            values={[
-              ["1", "2", "3", "4", "5", "6", "7", "8"],
-              ["1", "2", "3", "4", "5", "6", "7", "8"],
-            ]}
+            label="Prompts"
+            values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
+              (prompt) => [
+                prompt?.input_prompt,
+                "-",
+                prompt?.user_rating ?? "",
+                prompt?.response,
+                prompt?.gpt_rating ?? "",
+                prompt?.time_taken + "",
+                "-",
+              ]
+            )}
             headings={[
               "Input Prompt",
               "Intermediate Steps",
-              "Final Propmt",
-              "Response",
-              "GPT Rating",
               "User Ratings",
+              "Final Propmt",
+              "GPT Rating",
               "Response Time",
               "# of Tokens",
             ]}
@@ -79,7 +110,7 @@ window.onload = function () {
         ""
       )}
       <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
-        <ChatComp chatId={"chatId"} />
+        <ChatComp chatId={auth?.selectedChatBot?.id} />
       </div>
     </div>
   );

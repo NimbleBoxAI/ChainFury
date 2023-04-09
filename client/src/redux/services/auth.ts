@@ -36,6 +36,18 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getPrompts: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `/chatbot/${credentials?.id}/prompts?token=` + credentials?.token,
+        method: "GET",
+      }),
+    }),
     getBots: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -99,4 +111,5 @@ export const {
   useCreateBotMutation,
   useGetBotsMutation,
   useEditBotMutation,
+  useGetPromptsMutation,
 } = authApi;
