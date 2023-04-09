@@ -11,7 +11,7 @@ export function Table({
 }) {
   return (
     <>
-      <div className="overflow-x-auto relative rounded-[4px] prose-nbx mt-[32px]">
+      <div className="overflow-x-auto relative rounded-[4px] prose-nbx">
         {label ? <span className="semiBold400">{label}</span> : ""}
         <table draggable className="w-full text-sm text-left ">
           <tr className="flex bg-light-neutral-grey-100 semiBold250 text-light-neutral-grey-700 rounded-md">

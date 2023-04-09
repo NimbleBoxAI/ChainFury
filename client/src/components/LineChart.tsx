@@ -40,9 +40,9 @@ const LineChart = ({
   );
 
   useEffect(() => {
-    const tempSeriesColorMap = {};
+    const tempSeriesColorMap = {} as any;
     series.map((val) => {
-      tempSeriesColorMap[val?.name] = val?.colour;
+      tempSeriesColorMap[val?.name] = "#006EF5";
     });
     setSeriesColorMap(tempSeriesColorMap);
   }, [series]);
@@ -53,10 +53,11 @@ const LineChart = ({
 
   const formatOptions = () => {
     const optionsTemplate = {
+      color: "#006EF5",
       tooltip: {
         trigger: "axis",
         position: "top",
-        formatter: (params) => {
+        formatter: (params: any[]) => {
           return `
           <div style="min-width:150px" class="flex regular200 flex-col">${
             xAxis?.type !== "time"
@@ -67,7 +68,7 @@ const LineChart = ({
               seriesColorMap[val.seriesName]
             };border-radius:50%;display:block;height:8px;width:8px;"></span>`;
             return `<div class="flex gap-[4px] items-center w-full" >${icon} <span class="w-full flex items-center justify-between">
-            ${val.seriesName} <strong>${val.value}</strong>
+            ${val.seriesName} <strong>${val.value + "s"}</strong>
             </div></span>`;
           })}
           <div/>`.replaceAll(",", "");
@@ -117,7 +118,7 @@ const LineChart = ({
       optionsTemplate.yAxis.axisLabel.formatter = `{value} ${yAxis.formatter}`;
     }
 
-    const seriesData = series.map(({ name, data, colour }) => {
+    const seriesData = series.map(({ name, data }) => {
       return {
         name,
         data,
@@ -127,7 +128,7 @@ const LineChart = ({
         encode: {
           tooltip: "y",
         },
-        lineStyle: colour ? { color: colour } : undefined,
+        lineStyle: { color: "#006EF5" },
         markArea: undefined as any,
       };
     });
@@ -159,7 +160,11 @@ const LineChart = ({
   return (
     <>
       {Object.keys(seriesColorMap).length ? (
-        <ReactECharts notMerge={true} className="p-0 m-0" option={options} />
+        <ReactECharts
+          notMerge={true}
+          className="p-0 m-0 w-full"
+          option={options}
+        />
       ) : (
         ""
       )}

@@ -1,7 +1,8 @@
 import { Button } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ChatComp from "../../components/ChatComp";
+import LineChart from "../../components/LineChart";
 import SvgCopy from "../../components/SvgComps/Copy";
 import { Table } from "../../components/Table";
 import { useAuthStates } from "../../redux/hooks/dispatchHooks";
@@ -14,6 +15,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [getPrompts] = useGetPromptsMutation();
+  const [latencies, setLatencies] = useState(
+    [] as {
+      name: string;
+      time: number;
+      created_at: number;
+    }[]
+  );
 
   useEffect(() => {
     if (auth?.selectedChatBot?.id) {
@@ -33,8 +41,22 @@ const Dashboard = () => {
     }
   }, [auth.selectedChatBot]);
 
+  useEffect(() => {
+    if (auth.selectedChatBot && auth?.prompts?.[auth?.selectedChatBot?.id]) {
+      const prompts = auth?.prompts?.[auth?.selectedChatBot?.id];
+      const latencies = prompts.map((prompt) => {
+        return {
+          name: prompt.input_prompt,
+          time: Math.round(prompt.time_taken),
+          created_at: new Date(prompt.created_at).getTime(),
+        };
+      });
+      setLatencies(latencies);
+    }
+  }, [auth.prompts, auth.selectedChatBot]);
+
   return (
-    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
+    <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full ">
       {auth?.selectedChatBot?.name ? (
         <>
           <div className="flex justify-between items-center w-full">
@@ -50,15 +72,16 @@ const Dashboard = () => {
               Edit
             </Button>
           </div>
-          <div className="flex gap-[8px] mt-[32px] flex-col">
-            <span>
-              Embed the bot on your website by adding the following code to your
-              HTML
-            </span>
-            <div className="relative">
-              <SvgCopy className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer" />
-              <pre className="regular300 font-mono rounded-md bg-light-neutral-grey-200 text-light-neutral-grey-600 w-[full] p-[16px] overflow-scroll max-h-[150px]">
-                {`<script>
+          <div className="overflow-scroll h-full">
+            <div className="flex gap-[8px] mt-[32px] flex-col">
+              <span>
+                Embed the bot on your website by adding the following code to
+                your HTML
+              </span>
+              <div className="relative">
+                <SvgCopy className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer" />
+                <pre className="regular300 font-mono rounded-md bg-light-neutral-grey-200 text-light-neutral-grey-600 w-[full] p-[16px] overflow-scroll max-h-[150px]">
+                  {`<script>
 window.onload = function () {
   const iframe = document.createElement("iframe");
   iframe.src = "${window?.location?.protocol}://${window?.location?.host}/chat/${auth?.selectedChatBot?.id}";
@@ -71,40 +94,55 @@ window.onload = function () {
   document.body.appendChild(iframe);
 };
 </script>`}
-              </pre>
+                </pre>
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-[8px] justify-between mt-[32px]">
-            <ScoreCard title="Latency" value="00" />
-            <ScoreCard title="#Token" value="00" />
-            <ScoreCard title="User Score" value="00" />
-            <ScoreCard title="Internal Review Score" value="00" />
-            <ScoreCard title="GPT Rating" value="5" />
-          </div>
+            <div className="flex flex-wrap gap-[8px] justify-between mt-[32px]">
+              <div className="w-[500px] h-[250px] overflow-hidden">
+                <span className="semiBold350">Latency</span>
+                <LineChart
+                  xAxis={{
+                    formatter: " ",
+                    data: latencies.map((latency) => latency.created_at),
+                    type: "time",
+                  }}
+                  yAxis={{
+                    formatter: "s",
+                  }}
+                  series={[
+                    {
+                      name: "Time taken",
+                      data: latencies.map((latency) => latency.time),
+                    },
+                  ]}
+                />
+              </div>
+            </div>
 
-          <Table
-            label="Prompts"
-            values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
-              (prompt) => [
-                prompt?.input_prompt,
-                "-",
-                prompt?.user_rating ?? "",
-                prompt?.response,
-                prompt?.gpt_rating ?? "",
-                prompt?.time_taken + "",
-                "-",
-              ]
-            )}
-            headings={[
-              "Input Prompt",
-              "Intermediate Steps",
-              "User Ratings",
-              "Final Propmt",
-              "GPT Rating",
-              "Response Time",
-              "# of Tokens",
-            ]}
-          />
+            <Table
+              label="Prompts"
+              values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
+                (prompt) => [
+                  prompt?.input_prompt,
+                  "-",
+                  prompt?.user_rating ?? "",
+                  prompt?.response,
+                  prompt?.gpt_rating ?? "",
+                  prompt?.time_taken + "",
+                  "-",
+                ]
+              )}
+              headings={[
+                "Input Prompt",
+                "Intermediate Steps",
+                "User Ratings",
+                "Final Propmt",
+                "GPT Rating",
+                "Response Time",
+                "# of Tokens",
+              ]}
+            />
+          </div>
         </>
       ) : (
         ""
@@ -117,10 +155,3 @@ window.onload = function () {
 };
 
 export default Dashboard;
-
-const ScoreCard = ({ title, value }: { title: string; value: string }) => (
-  <div className="shadow-md p-[8px] gap-[8px] flex flex-col rounded-md w-[200px] border border-light-neutral-grey-200  prose-nbx">
-    <span className="medium300">{title}</span>
-    <span className="semiBold800">{value}</span>
-  </div>
-);
