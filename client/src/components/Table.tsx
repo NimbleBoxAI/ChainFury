@@ -1,5 +1,7 @@
 import { Dialog } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useAuthStates } from "../redux/hooks/dispatchHooks";
+import { useGetStepsMutation } from "../redux/services/auth";
 import SvgClose from "./SvgComps/Close";
 
 export function Table({
@@ -14,12 +16,49 @@ export function Table({
   values: string[][];
 }) {
   const [selectedRow, setSelectedRow] = useState(-1);
+  const { auth } = useAuthStates();
 
   const TableDialog = ({ onClose }: { onClose: () => void }) => {
+    const [getSteps] = useGetStepsMutation();
+    const [responses, setResponses] = useState(
+      [] as {
+        ques: string;
+        ans: string;
+      }[]
+    );
+
+    useEffect(() => {
+      getSteps({
+        id: auth?.selectedChatBot?.id,
+        prompt_id: values[selectedRow]?.[0],
+        token: auth?.accessToken,
+      })
+        .unwrap()
+        .then((res) => {
+          setResponses(
+            res.data?.length
+              ? res.data.map(
+                  (val: {
+                    intermediate_response: any;
+                    intermediate_prompt: any;
+                  }) => {
+                    return {
+                      ques: val.intermediate_response,
+                      ans: val.intermediate_prompt,
+                    };
+                  }
+                )
+              : []
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, []);
     return (
       <Dialog open={true} onClose={onClose}>
         <div
-          className={`prose-nbx relative  gap-[16px] p-[16px] flex flex-col justify-center w-[500px]`}
+          className={`prose-nbx max-h-[90vh] overflow-hidden relative  gap-[16px] p-[16px] flex flex-col justify-center w-[500px]`}
         >
           <SvgClose className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer" />
           <div className="flex flex-col">
@@ -31,7 +70,28 @@ export function Table({
                 </span>
               </div>
             ))}
-          </div>
+          </div>{" "}
+          {responses?.length ? (
+            <>
+              <span className="semiBold250">Intermediate Steps</span>
+              <div className="flex py-[8px] flex-col overflow-scroll h-full">
+                <div className="flex flex-col">
+                  {responses?.map((val, index) => (
+                    <div key={index}>
+                      <div className={`chat nbx-chat-start`}>
+                        <div className="chat-bubble medium250">{val?.ques}</div>
+                      </div>
+                      <div className={`chat nbx-chat-end`}>
+                        <div className="chat-bubble medium250">{val?.ans}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            ""
+          )}
         </div>
       </Dialog>
     );

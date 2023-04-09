@@ -59,6 +59,21 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getSteps: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+        prompt_id: string;
+      }
+    >({
+      query: ({ token, id, prompt_id }) => ({
+        url:
+          `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps?token=` +
+          token,
+        method: "GET",
+      }),
+    }),
     createBot: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -112,4 +127,5 @@ export const {
   useGetBotsMutation,
   useEditBotMutation,
   useGetPromptsMutation,
+  useGetStepsMutation,
 } = authApi;

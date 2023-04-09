@@ -123,6 +123,7 @@ window.onload = function () {
               label="Prompts"
               values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
                 (prompt) => [
+                  prompt?.id,
                   prompt?.input_prompt,
                   prompt?.user_rating ?? "",
                   prompt?.response,
@@ -132,9 +133,10 @@ window.onload = function () {
                 ]
               )}
               headings={[
+                "Prompt ID",
                 "Input Prompt",
                 "User Ratings",
-                "Final Propmt",
+                "Final Prompt",
                 "GPT Rating",
                 "Response Time",
                 "# of Tokens",
