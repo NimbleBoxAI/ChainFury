@@ -14,7 +14,7 @@ const Login = () => {
 
   useEffect(() => {
     if (localStorage.getItem("accessToken")) {
-      navigate("/dashboard");
+      navigate("/ui/dashboard");
     }
   }, []);
 
@@ -28,7 +28,7 @@ const Login = () => {
               accessToken: res.token,
             })
           );
-          navigate("/dashboard");
+          navigate("/ui/dashboard");
         } else {
           alert("Invalid Credentials");
         }

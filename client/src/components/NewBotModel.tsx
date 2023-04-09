@@ -24,7 +24,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
         />
         <Button
           onClick={() => {
-            navigate(`/dashboard/new?bot=${botName}`);
+            navigate(`/ui/dashboard/new?bot=${botName}`);
             onClose();
           }}
           variant="contained"

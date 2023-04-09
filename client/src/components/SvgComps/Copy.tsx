@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const SvgCopy = (props: { className?: string }) => (
+const SvgCopy = (props: { className?: string; onClick?: () => void }) => (
   <svg
     width={20}
     height={20}
