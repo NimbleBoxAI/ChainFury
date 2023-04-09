@@ -30,6 +30,37 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    addUserFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+      }
+    >({
+      query: ({ score, prompt_id }) => ({
+        url: "/feedback?prompt_id=" + prompt_id,
+        method: "PUT",
+        body: {
+          score,
+        },
+      }),
+    }),
+    addInternalFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+        chatbot_id: string;
+      }
+    >({
+      query: ({ score, prompt_id, chatbot_id }) => ({
+        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}&token=${token}`,
+        method: "PUT",
+        body: {
+          score,
+        },
+      }),
+    }),
     processPrompt: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -174,4 +205,6 @@ export const {
   useGetStepsMutation,
   useProcessPromptMutation,
   useGetMetricsMutation,
+  useAddUserFeedBackMutation,
+  useAddInternalFeedBackMutation,
 } = authApi;
