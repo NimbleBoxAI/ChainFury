@@ -8,22 +8,22 @@ import Login from "./pages/SignIn";
 
 const AppRoutes = [
   {
-    path: "/login",
+    path: "/ui/login",
     element: <Login />,
     isPrivate: false,
   },
   {
-    path: "/dashboard",
+    path: "/ui/dashboard",
     element: <Dashboard />,
     isPrivate: true,
   },
   {
-    path: "/chat/:chat_id",
+    path: "/ui/chat/:chat_id",
     element: <ChatComp />,
     isPrivate: false,
   },
   {
-    path: "/dashboard/:flow_id",
+    path: "/ui/dashboard/:flow_id",
     element: <FlowViewer />,
     isPrivate: true,
   },

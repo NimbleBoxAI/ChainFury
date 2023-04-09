@@ -10,8 +10,8 @@ chatbot_router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
 
 class ChatBotModel(BaseModel):
-    name: str = None
-    dag: dict = None
+    name: str
+    dag: dict
 
 
 @chatbot_router.post("/", status_code=200)
@@ -39,9 +39,9 @@ def update_chatbot(id: int, token: Annotated[str, Header()], inputs: ChatBotMode
     print(chatbot)
     if chatbot is not None:
         if inputs.name is not None:
-            chatbot.name = inputs.name
+            chatbot.name = inputs.name  # type: ignore
         if inputs.dag is not None:
-            chatbot.dag = inputs.dag
+            chatbot.dag = inputs.dag  # type: ignore
         db.commit()
         response = {"msg": "success"}
     else:

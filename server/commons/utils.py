@@ -2,7 +2,7 @@ import jwt
 from sqlalchemy.exc import IntegrityError
 from datetime import datetime, timedelta
 from database import db_session, User, Prompt, IntermediateStep
-from commons.config import jwt_secret
+from commons.config import JWT_SECRET
 import database_constants as constants
 from fastapi import HTTPException
 from sqlalchemy import func
@@ -22,14 +22,12 @@ def get_user_from_jwt(token):
     try:
         payload = jwt.decode(
             token,
-            key=jwt_secret,
-            algorithms=[
-                "HS256",
-            ],
+            key=JWT_SECRET,
+            algorithms=["HS256"],
         )
     except Exception as e:
         print("Could not decide JWT token")
-        print(e)
+        raise HTTPException(status_code=401, detail="Could not decode JWT token")
     return payload.get("username")
 
 
