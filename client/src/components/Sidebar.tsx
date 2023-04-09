@@ -19,7 +19,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     if (!localStorage.getItem("accessToken")) {
-      navigate("/login");
+      navigate("/ui/login");
     } else {
       getBotList();
     }

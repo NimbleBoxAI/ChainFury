@@ -80,7 +80,7 @@ const Dashboard = () => {
               className="h-[24px]"
               color="primary"
               onClick={() => {
-                navigate(`/dashboard/${auth?.selectedChatBot?.id}`);
+                navigate(`/ui/dashboard/${auth?.selectedChatBot?.id}`);
               }}
             >
               Edit

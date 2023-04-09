@@ -37,7 +37,7 @@ const SignUp = () => {
       </div>
       <span
         onClick={() => {
-          navigate("/login");
+          navigate("/ui/login");
         }}
         className="cursor-pointer z-10 relative text-light-primary-blue-600 semiBold300 mt-[8px]"
       >
