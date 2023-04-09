@@ -72,7 +72,7 @@ const Dashboard = () => {
               Edit
             </Button>
           </div>
-          <div className="overflow-scroll h-full">
+          <div className="overflow-scroll h-full w-[calc(100%-270px)]">
             <div className="flex gap-[8px] mt-[32px] flex-col">
               <span>
                 Embed the bot on your website by adding the following code to
@@ -124,17 +124,15 @@ window.onload = function () {
               values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
                 (prompt) => [
                   prompt?.input_prompt,
-                  "-",
                   prompt?.user_rating ?? "",
                   prompt?.response,
                   prompt?.gpt_rating ?? "",
-                  prompt?.time_taken + "",
+                  Math.round(prompt?.time_taken) + "s",
                   "-",
                 ]
               )}
               headings={[
                 "Input Prompt",
-                "Intermediate Steps",
                 "User Ratings",
                 "Final Propmt",
                 "GPT Rating",
