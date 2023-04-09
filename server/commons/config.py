@@ -11,3 +11,4 @@ Base = declarative_base()
 Base.metadata.create_all(bind=engine)
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "my_secret")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", None)
