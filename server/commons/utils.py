@@ -122,23 +122,23 @@ def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
     return prompt.user_rating
 
 
-def get_latency_metrics(chatbot_id: int):
+def get_hourly_latency_metrics(chatbot_id: int):
     db = db_session()
     hourly_average_latency = (
         db.query(Prompt)
         .filter(Prompt.chatbot_id == chatbot_id)
         .with_entities(
-            func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)).label("hour"),
+            func.strftime("%Y-%m-%d %H:00:00", Prompt.created_at).label("hour"),
             func.avg(Prompt.time_taken).label("avg_time_taken"),
         )
-        .group_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)))
-        .order_by(func.date_trunc("hour", func.date_trunc("hour", Prompt.time_taken)))
+        .group_by("hour")
         .limit(24)
         .all()
     )
+
     latency_per_hour = []
     for item in hourly_average_latency:
-        latency_per_hour.append({"x": item[0], "y": item[1]})
+        latency_per_hour.append({"created_at": item[0], "time": item[1]})
     return latency_per_hour
 
 
