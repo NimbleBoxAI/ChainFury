@@ -78,11 +78,11 @@ export function Table({
                 <div className="flex flex-col">
                   {responses?.map((val, index) => (
                     <div key={index}>
-                      <div className={`chat nbx-chat-start`}>
-                        <div className="chat-bubble medium250">{val?.ques}</div>
-                      </div>
                       <div className={`chat nbx-chat-end`}>
                         <div className="chat-bubble medium250">{val?.ans}</div>
+                      </div>{" "}
+                      <div className={`chat nbx-chat-start`}>
+                        <div className="chat-bubble medium250">{val?.ques}</div>
                       </div>
                     </div>
                   ))}

@@ -105,6 +105,19 @@ export const authApi = createApi({
         method: "GET",
       }),
     }),
+    getMetrics: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+        metric_type: string;
+      }
+    >({
+      query: ({ token, id, metric_type }) => ({
+        url: `/chatbot/${id}/metrics?metric_type=${metric_type}&token=` + token,
+        method: "GET",
+      }),
+    }),
     createBot: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -160,4 +173,5 @@ export const {
   useGetPromptsMutation,
   useGetStepsMutation,
   useProcessPromptMutation,
+  useGetMetricsMutation,
 } = authApi;

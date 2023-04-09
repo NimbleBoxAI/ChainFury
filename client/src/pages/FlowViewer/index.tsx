@@ -13,6 +13,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import ChatComp from "../../components/ChatComp";
 import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
 import {
@@ -239,6 +240,13 @@ const FlowViewer = () => {
             </ReactFlow>
           </div>
         </ReactFlowProvider>
+      ) : (
+        ""
+      )}
+      {flow_id ? (
+        <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
+          <ChatComp chatId={flow_id} />
+        </div>
       ) : (
         ""
       )}
