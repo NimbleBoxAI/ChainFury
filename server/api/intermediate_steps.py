@@ -1,13 +1,9 @@
-from http.client import HTTPException
-import database
+from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
-from pydantic import BaseModel
-from sqlalchemy import DateTime
-import datetime
-from commons.utils import get_prompt_intermediate_data
-import database_constants as constants
 from typing import Annotated
+
+import database
+from commons.utils import get_prompt_intermediate_data
 from commons.utils import get_user_from_jwt, verify_user
 
 intermediate_steps_router = APIRouter(prefix="", tags=["intermediate_steps"])
