@@ -1,72 +1,68 @@
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { useParams } from "react-router-dom";
+import { useProcessPromptMutation } from "../redux/services/auth";
 
-const dummyChat = [
-  {
-    id: 1,
-    message: "Hey, have you seen the latest episode of Rick and Morty?",
-    isSender: true,
-  },
-  {
-    id: 2,
-    message: "No, not yet. Is it good?",
-    isSender: false,
-  },
-  {
-    id: 3,
-    message:
-      "Yeah, it's pretty wild. Lots of crazy stuff happens. You gotta check it out.",
-    isSender: true,
-  },
-  {
-    id: 4,
-    message: "Sounds interesting. I'll watch it tonight.",
-    isSender: false,
-  },
-  {
-    id: 5,
-    message:
-      "Cool. Let me know what you think. I'm still trying to figure out what the heck was going on in that episode.",
-    isSender: true,
-  },
-  {
-    id: 6,
-    message:
-      "Haha, will do. You know, I still can't decide who's my favorite character: Rick or Morty.",
-    isSender: false,
-  },
-  {
-    id: 7,
-    message:
-      "Right? They're both so different but so awesome in their own ways. It's hard to choose.",
-    isSender: true,
-  },
-  {
-    id: 8,
-    message:
-      "I think I like Morty more, though. He's just so relatable sometimes.",
-    isSender: false,
-  },
-  {
-    id: 9,
-    message:
-      "Yeah, I can see that. But Rick's just so freaking cool. He's always doing crazy stuff and going on adventures.",
-    isSender: true,
-  },
-  {
-    id: 10,
-    message:
-      "True, true. Anyway, I'm gonna go watch that episode now. Thanks for the heads up!",
-    isSender: false,
-  },
-  {
-    id: 11,
-    message: "No problem. Let me know if you wanna talk about it afterwards.",
-    isSender: true,
-  },
-];
+interface ChatInterface {
+  id: number;
+  message: string;
+  isSender: boolean;
+}
 
 const ChatComp = ({ chatId }: { chatId?: string }) => {
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chat, setChat] = useState<ChatInterface[]>([]);
+  const [currentMessage, setCurrentMessage] = useState("");
+  const [waiting, setWaiting] = useState(false);
+  const { chat_id } = useParams<{ chat_id: string }>();
+  const [processPrompt] = useProcessPromptMutation();
+  const [usersMessages, setUsersMessages] = useState<string[]>([]);
+  const sessionId = useId();
+
+  useEffect(() => {
+    if (currentMessage?.trim()) handleProcessPrompt();
+  }, [chat]);
+
+  const handleProcessPrompt = async () => {
+    setWaiting(true);
+    processPrompt({
+      chatbot_id: chatId ?? chat_id ?? "",
+      new_message: currentMessage,
+      chat_history: usersMessages,
+      session_id: sessionId,
+    })
+      .unwrap()
+      .then((res) => {
+        setChat([
+          ...chat,
+          {
+            id: chat.length + 1,
+            message: res?.result,
+            isSender: false,
+          },
+        ]);
+      })
+      .catch((err) => {
+        if (err?.data?.detail)
+          setChat([
+            ...chat,
+            {
+              id: chat.length + 1,
+              message: err?.data?.detail,
+              isSender: false,
+            },
+          ]);
+      })
+      .finally(() => {
+        // scroll to bottom
+        const chatContainer = document.querySelector(".chatContainer");
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight - 300;
+        }
+        setUsersMessages([...usersMessages, currentMessage]);
+        setWaiting(false);
+      });
+    setCurrentMessage("");
+  };
 
   return (
     <div className="absolute bg-light-system-bg-primary z-[100000] right-0 bottom-0 ">
@@ -97,10 +93,10 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
         </div>
         {isChatOpen ? (
           <>
-            <div className="overflow-scroll h-full p-[16px]">
-              {dummyChat.map((chat) => (
+            <div className="overflow-scroll h-[420px] min-w-[350px] p-[16px] pb-[40px] chatContainer">
+              {chat.map((chat, key) => (
                 <div
-                  key={chat.id}
+                  key={key}
                   className={`chat ${
                     chat.isSender ? "nbx-chat-end" : "nbx-chat-start"
                   }`}
@@ -111,6 +107,23 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
             </div>
             <div className="p-[8px]">
               <input
+                value={waiting ? "Thinking..." : currentMessage}
+                disabled={waiting}
+                onChange={(e) => {
+                  setCurrentMessage(e.target.value);
+                }}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" && currentMessage?.trim()) {
+                    setChat([
+                      ...chat,
+                      {
+                        id: chat.length + 1,
+                        message: currentMessage,
+                        isSender: true,
+                      },
+                    ]);
+                  }
+                }}
                 type="text"
                 placeholder="Write your message!"
                 className="w-full focus:outline-none pl bg-light-system-bg-secondary rounded-md py-3"

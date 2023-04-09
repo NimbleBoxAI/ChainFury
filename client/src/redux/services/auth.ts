@@ -30,6 +30,35 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    processPrompt: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        chatbot_id: string;
+        chat_history: string[];
+        session_id: string;
+        new_message: string;
+      }
+    >({
+      query: ({
+        chatbot_id,
+        chat_history,
+        session_id,
+        new_message,
+      }: {
+        chatbot_id: string;
+        chat_history: string[];
+        session_id: string;
+        new_message: string;
+      }) => ({
+        url: `/chatbot/${chatbot_id}/prompt`,
+        method: "POST",
+        body: {
+          chat_history,
+          session_id,
+          new_message,
+        },
+      }),
+    }),
     components: builder.mutation<DEFAULT_RESPONSE, void>({
       query: () => ({
         url: "/flow/components",
@@ -128,4 +157,5 @@ export const {
   useEditBotMutation,
   useGetPromptsMutation,
   useGetStepsMutation,
+  useProcessPromptMutation,
 } = authApi;
