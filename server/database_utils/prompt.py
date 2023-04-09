@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import List
-
 from sqlalchemy.orm import Session
 
-from database import ChatBot, Prompt, IntermediateStep
+from database import Prompt
+from commons import config as c
+
+logger = c.get_logger(__name__)
 
 
 def get_prompts(db: Session, chatbot_id: int) -> List[Prompt]:
@@ -12,7 +14,7 @@ def get_prompts(db: Session, chatbot_id: int) -> List[Prompt]:
 
 
 def create_prompt(db: Session, chatbot_id: int, input_prompt: str, session_id: str) -> Prompt:
-    print(f"Creating prompt for chatbot {chatbot_id} with input prompt {input_prompt}")
+    logger.debug(f"Creating prompt for chatbot {chatbot_id} with input prompt {input_prompt}")
     db_prompt = Prompt(
         chatbot_id=chatbot_id,
         input_prompt=input_prompt,

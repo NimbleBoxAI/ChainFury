@@ -3,7 +3,6 @@ from typing import Dict, List
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import Response
-import requests
 from commons import config as c
 from commons.config import engine
 from commons.utils import add_default_user
@@ -20,6 +19,7 @@ from api.template import template_router
 from api.langflow import router as langflow_router
 from api.prompts import router as prompts_router
 
+logger = c.get_logger(__name__)
 
 app = FastAPI(
     title="ChainFury",
@@ -62,7 +62,7 @@ async def serve_spa(request: Request, rest_of_path: str):
 
 if "static" not in os.listdir("./"):
     # make static folder
-    print("Static folder not found. Creating one...")
+    logger.info("Static folder not found. Creating one...")
     os.mkdir("static")
 
 # add static files

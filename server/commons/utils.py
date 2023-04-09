@@ -1,12 +1,13 @@
 import jwt
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
 from database import db_session, User, Prompt, IntermediateStep
-from commons.config import JWT_SECRET
+from commons import config as c
 import database_constants as constants
 from fastapi import HTTPException
 from sqlalchemy import func
+
+logger = c.get_logger(__name__)
 
 
 def add_default_user():
@@ -17,18 +18,18 @@ def add_default_user():
         db.add(new_user)
         db.commit()
     except IntegrityError as e:
-        print("Not adding default user")
+        logger.info("Not adding default user")
 
 
 def get_user_from_jwt(token):
     try:
         payload = jwt.decode(
             token,
-            key=JWT_SECRET,
+            key=c.JWT_SECRET,
             algorithms=["HS256"],
         )
     except Exception as e:
-        print("Could not decide JWT token")
+        logger.exception("Could not decide JWT token")
         raise HTTPException(status_code=401, detail="Could not decode JWT token")
     return payload.get("username")
 
