@@ -55,7 +55,7 @@ const FlowViewer = () => {
       setEdges([]);
       setLoading(false);
     } else if (flow_id === "template" && location.search?.includes("?bot=")) {
-      setBotName(location.search.split("?bot=")[1]);
+      setBotName(location.search.split("?bot=")[1]?.split("&id=")[0]);
       setTemplateId(location.search.split("&id=")[1]);
       setVariant("template");
     } else {
