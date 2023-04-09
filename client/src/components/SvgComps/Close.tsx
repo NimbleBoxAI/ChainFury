@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const SvgClose = (props: { className?: string }) => (
+const SvgClose = (props: { className?: string; onClick?: () => void }) => (
   <svg
     width="16"
     height="16"

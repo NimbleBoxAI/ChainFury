@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -13,6 +13,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import { ChainFuryNode } from "../../components/ChainFuryNode";
+import ChatComp from "../../components/ChatComp";
 import { useAuthStates } from "../../redux/hooks/dispatchHooks";
 import { useAppDispatch } from "../../redux/hooks/store";
 import {
@@ -32,7 +33,7 @@ const FlowViewer = () => {
   const [reactFlowInstance, setReactFlowInstance] = useState(
     null as null | ReactFlowInstance
   );
-  const [variant, setVariant] = useState("" as "new" | "edit");
+  const [variant, setVariant] = useState("" as "new" | "edit" | "template");
   const { flow_id } = useParams() as {
     flow_id: string;
   };
@@ -40,8 +41,10 @@ const FlowViewer = () => {
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
+  const [templateId, setTemplateId] = useState("" as string);
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
+  const navigate = useNavigate();
   const { auth } = useAuthStates();
 
   useEffect(() => {
@@ -51,6 +54,10 @@ const FlowViewer = () => {
       setNodes([]);
       setEdges([]);
       setLoading(false);
+    } else if (flow_id === "template" && location.search?.includes("?bot=")) {
+      setBotName(location.search.split("?bot=")[1]?.split("&id=")[0]);
+      setTemplateId(location.search.split("&id=")[1]);
+      setVariant("template");
     } else {
       setVariant("edit");
     }
@@ -58,11 +65,11 @@ const FlowViewer = () => {
   }, [location]);
 
   useEffect(() => {
-    if (auth?.chatBots?.[flow_id]) {
+    if (auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) {
       setLoading(false);
       createNodesForExistingBot();
     }
-  }, [auth.chatBots, location]);
+  }, [auth.chatBots, location, auth.templates, templateId]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -109,7 +116,6 @@ const FlowViewer = () => {
         let type = event.dataTransfer.getData("application/reactflow");
         const nodeData = JSON.parse(type);
         type = nodeData?.displayName;
-        console.log({ nodeData, type });
         // check if the dropped element is valid
         if (typeof type === "undefined" || !type) {
           return;
@@ -124,6 +130,7 @@ const FlowViewer = () => {
           position,
           type: "ChainFuryNode",
           data: {
+            type: type,
             node: nodeData,
             id: type,
             value: null,
@@ -143,8 +150,11 @@ const FlowViewer = () => {
     createBot({ name: botName, nodes, edges, token: auth?.accessToken })
       .unwrap()
       ?.then((res) => {
-        console.log(res);
-        alert("Bot created successfully");
+        if (res?.chatbot?.id)
+          window.location.href = "/ui/dashboard/" + res?.chatbot?.id;
+        else {
+          alert("Error creating bot");
+        }
       })
       .catch((err) => {
         console.log(err);
@@ -153,12 +163,16 @@ const FlowViewer = () => {
   };
 
   const createNodesForExistingBot = () => {
-    auth.chatBots?.[flow_id]?.dag?.nodes?.forEach((node: any) => {
+    (variant === "edit"
+      ? auth.chatBots?.[flow_id]
+      : auth?.templates?.[templateId]
+    )?.dag?.nodes?.forEach((node: any) => {
       const newNode = {
         id: node?.id ?? "",
         position: node?.position ?? { x: 0, y: 0 },
         type: "ChainFuryNode",
         data: {
+          type: node?.id,
           ...node?.data,
           node: JSON.parse(JSON.stringify(node?.data?.node)),
           deleteMe: () => {
@@ -168,7 +182,12 @@ const FlowViewer = () => {
       };
       setNodes((nds) => nds.concat(newNode));
     });
-    setEdges(auth.chatBots?.[flow_id]?.dag?.edges);
+    setEdges(
+      (variant === "edit"
+        ? auth.chatBots?.[flow_id]
+        : auth?.templates?.[templateId]
+      )?.dag?.edges
+    );
   };
 
   const editChatBot = () => {
@@ -181,11 +200,9 @@ const FlowViewer = () => {
     })
       .unwrap()
       ?.then((res) => {
-        console.log({ hh: reactFlowInstance?.getNodes() });
         alert("Bot edited successfully");
       })
       .catch((err) => {
-        console.log(err);
         alert("Error editing bot");
       });
   };
@@ -201,7 +218,7 @@ const FlowViewer = () => {
           variant="outlined"
           color="primary"
           onClick={() => {
-            if (variant === "new") {
+            if (variant === "new" || variant === "template") {
               createChatBot();
             } else {
               editChatBot();
@@ -237,6 +254,13 @@ const FlowViewer = () => {
             </ReactFlow>
           </div>
         </ReactFlowProvider>
+      ) : (
+        ""
+      )}
+      {flow_id ? (
+        <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
+          <ChatComp chatId={flow_id} />
+        </div>
       ) : (
         ""
       )}

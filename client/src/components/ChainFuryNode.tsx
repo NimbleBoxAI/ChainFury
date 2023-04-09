@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { NodeDataType } from "../constants";
 import { useAuthStates } from "../redux/hooks/dispatchHooks";
 import { nodeColors } from "../utils";
