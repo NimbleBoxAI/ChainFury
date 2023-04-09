@@ -1,3 +1,5 @@
+import { ReactFlowInstance } from "reactflow";
+
 const BASE_URL = "http://localhost:8000";
 type DEFAULT_RESPONSE = any;
 type TemplateVariableType = {

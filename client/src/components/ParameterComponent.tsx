@@ -135,6 +135,7 @@ export default function ParameterComponent({
                 password={data?.node?.template[name].password ?? false}
                 value={data?.node?.template[name].value ?? ""}
                 onChange={(t) => {
+                  console.log("t", data?.node?.template?.[name]);
                   if (data?.node?.template?.[name])
                     data.node.template[name].value = t;
                 }}

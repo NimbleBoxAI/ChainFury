@@ -11,12 +11,28 @@ interface ChatBots {
     nodes: any;
   };
 }
+
+interface PromptsInterface {
+  gpt_rating: number;
+  id: string;
+  chatbot_user_rating: number;
+  time_taken: number;
+  created_at: string;
+  meta: any;
+  chatbot_id: string;
+  input_prompt: string;
+  user_rating: number;
+  response: string;
+  session_id: string;
+}
+
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
   typesMap: Record<string, string[]>;
   chatBots: Record<string, ChatBots>;
   selectedChatBot: ChatBots;
+  prompts: Record<string, PromptsInterface[]>;
 };
 
 interface ComponentsInterface {
@@ -31,6 +47,7 @@ const slice = createSlice({
     typesMap: {},
     chatBots: {},
     selectedChatBot: {} as ChatBots,
+    prompts: {},
   } as AuthState,
   reducers: {
     setAccessToken: (
@@ -78,6 +95,18 @@ const slice = createSlice({
     ) => {
       state.selectedChatBot = chatBot;
     },
+    setPrompts: (
+      state,
+      {
+        payload: { prompts, chatbot_id },
+      }: PayloadAction<{ chatbot_id: string; prompts: PromptsInterface[] }>
+    ) => {
+      const tempList = JSON.parse(JSON.stringify(state?.prompts));
+      if (!tempList[chatbot_id]) {
+        tempList[chatbot_id] = prompts;
+      }
+      state.prompts = tempList;
+    },
   },
 });
 
@@ -86,6 +115,7 @@ export const {
   setComponents,
   setChatBots,
   setSelectedChatBot,
+  setPrompts,
 } = slice.actions;
 
 export default slice.reducer;

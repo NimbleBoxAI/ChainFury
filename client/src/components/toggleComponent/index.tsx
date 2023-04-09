@@ -28,21 +28,23 @@ export default function ToggleComponent({
       >
         <span className="sr-only">Use setting</span>
         <span
-          className={classNames(
-            enabled ? "translate-x-5" : "translate-x-0",
-            "pointer-events-none relative inline-block h-5 w-5 transform rounded-full  shadow ring-0 transition duration-200 ease-in-out",
-            disabled
+          className={
+            enabled
+              ? "translate-x-5"
+              : "translate-x-0" +
+                "pointer-events-none relative inline-block h-5 w-5 transform rounded-full  shadow ring-0 transition duration-200 ease-in-out" +
+                disabled
               ? "bg-gray-200 dark:bg-gray-600"
               : "bg-white dark:bg-gray-800"
-          )}
+          }
         >
           <span
-            className={classNames(
+            className={
               enabled
                 ? "opacity-0 ease-out duration-100"
-                : "opacity-100 ease-in duration-200",
-              "absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
-            )}
+                : "opacity-100 ease-in duration-200" +
+                  "absolute inset-0 flex h-full w-full items-center justify-center transition-opacity"
+            }
             aria-hidden="true"
           >
             <svg
