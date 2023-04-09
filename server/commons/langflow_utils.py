@@ -8,6 +8,7 @@ from database_utils.chatbot import get_chatbot
 from database_utils.intermediate_step import insert_intermediate_steps
 from database_utils.prompt import create_prompt
 from schemas.prompt_schema import Prompt
+from server.api.gpt_rating import ask_for_rating
 
 
 def format_intermediate_steps(intermediate_steps):
@@ -101,7 +102,7 @@ def get_prompt(chatbot_id: int, prompt: Prompt, db: Session):
         prompt_row.response = result["result"]
         prompt_row.time_taken = float(time.time() - start)  # type: ignore
         insert_intermediate_steps(db, prompt_row.id, result["thought"])  # type: ignore
-
+        prompt_row.gpt_rating = ask_for_rating()  #  type: ignore
         db.commit()
 
         result["prompt_id"] = prompt_row.id

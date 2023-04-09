@@ -25,9 +25,10 @@ def rate_the_conversation(rating_log):
     return response.choices[0].message.content
 
 
-def ask_for_rating():
+def ask_for_rating(message):
     message_log = [
-        ({"role": "user", "content": "generate a number between 7 and 10 and why you chose that number"}),
+        {"role": "system", "content": "You are talking to a feedback chatbot, rate the conversation between 1 to 10."},
+        ({"role": "user", "content": "message"}),
     ]
     response = rate_the_conversation(message_log)
     score = process_rating_response(response)
@@ -59,7 +60,3 @@ def calculate_ratings_metrics_score(metrics_scores):
         total_score += score
     # TODOs: Check for the range and send score accordingly
     return total_score
-
-
-if __name__ == "__main__":
-    ask_for_rating()
