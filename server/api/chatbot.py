@@ -22,7 +22,7 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
         chatbot = ChatBot(name=inputs.name, created_by=username, dag=inputs.dag)
         db.add(chatbot)
         db.commit()
-        response = {"msg": "success"}
+        response = {"msg": "success", "chatbot": chatbot.to_dict()}
     except Exception as e:
         print(e)
         response = {"msg": "failed"}
@@ -35,7 +35,7 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
 @chatbot_router.put("/{id}", status_code=200)
 def update_chatbot(id: int, token: Annotated[str, Header()], inputs: ChatBotModel, db: Session = Depends(database.db_session)):
     verify_user(get_user_from_jwt(token))
-    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first() # type: ignore
+    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first()  # type: ignore
     print(chatbot)
     if chatbot is not None:
         if inputs.name is not None:
@@ -56,6 +56,7 @@ def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(databas
     print(chatbots)
     response = {"msg": "success", "chatbots": [chatbot.to_dict() for chatbot in chatbots]}
     return response
+
 
 # @chatbot_router.delete("/", status_code=200)
 # def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.db_session)):
