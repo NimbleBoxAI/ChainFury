@@ -10,7 +10,7 @@ from commons.utils import (
     get_user_score_metrics,
     get_chatbot_user_score_metrics,
     get_gpt_rating_metrics,
-    get_latency_metrics,
+    get_hourly_latency_metrics,
 )
 import database_constants as constants
 from typing import Annotated
@@ -74,7 +74,7 @@ def get_chatbot_metrics(
     verify_user(username)
     metrics = None
     if metric_type == constants.LATENCY_METRIC:
-        metrics = get_latency_metrics(id)
+        metrics = get_hourly_latency_metrics(id)
     # elif metric_type == "cost":
     #     metrics = get_cost_metrics(id)
     elif metric_type == constants.USER_SCORE_METRIC:
