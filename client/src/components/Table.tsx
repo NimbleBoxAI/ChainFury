@@ -1,7 +1,7 @@
 import { Dialog } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
-import { useGetStepsMutation } from '../redux/services/auth';
+import { useAddInternalFeedBackMutation, useGetStepsMutation } from '../redux/services/auth';
 import SvgClose from './SvgComps/Close';
 
 export function Table({
@@ -20,6 +20,7 @@ export function Table({
 
   const TableDialog = ({ onClose }: { onClose: () => void }) => {
     const [getSteps] = useGetStepsMutation();
+    const [addFeedBack] = useAddInternalFeedBackMutation();
     const [responses, setResponses] = useState(
       [] as {
         ques: string;
@@ -50,6 +51,21 @@ export function Table({
           console.log(err);
         });
     }, []);
+
+    const handleFeedback = (feedback: number, promptId: string) => {
+      addFeedBack({
+        prompt_id: promptId,
+        score: feedback,
+        chatbot_id: auth?.selectedChatBot?.id
+      })
+        .then(() => {
+          alert('Feedback added successfully');
+        })
+        .catch(() => {
+          alert('Error adding feedback');
+        });
+    };
+
     return (
       <Dialog open={true} onClose={onClose}>
         <div
@@ -60,6 +76,33 @@ export function Table({
             className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer"
           />
           <div className="flex flex-col">
+            <div className="bg-light-neutral-grey-300 p-[8px] flex gap-[8px] text-light-neutral-grey-900 items-center">
+              <span>Rate this answer:</span>
+              <span
+                onClick={() => {
+                  handleFeedback(3, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😀
+              </span>
+              <span
+                onClick={() => {
+                  handleFeedback(2, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😐
+              </span>
+              <span
+                onClick={() => {
+                  handleFeedback(1, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😞
+              </span>
+            </div>
             {headings?.map((value, id) => (
               <div key={id} className="flex py-[8px] flex-col">
                 <span className="semiBold250">{value}</span>
@@ -116,7 +159,7 @@ export function Table({
                     flex: spacing?.[index] || 1
                   }}
                   scope="col"
-                  className="p-[12px] min-w-[170px]"
+                  className="p-[12px] max-w-[170px]"
                 >
                   {val}
                 </th>
@@ -140,7 +183,7 @@ export function Table({
                       }}
                       scope="row"
                       key={key}
-                      className="p-[12px] min-w-[170px] text-ellipsis h-[48px] truncate"
+                      className="p-[12px] max-w-[170px] text-ellipsis h-[48px] truncate"
                     >
                       {row[key]}
                     </td>

@@ -134,7 +134,7 @@ const Dashboard = () => {
                   series={[
                     {
                       name: 'Time taken',
-                      data: latencies.map((latency) => latency.time)
+                      data: latencies.map((latency) => Math.round(latency.time * 100) / 100)
                     }
                   ]}
                 />
@@ -146,7 +146,7 @@ const Dashboard = () => {
               {metricsInfo?.['user_score']?.good_count ||
               metricsInfo?.['user_score']?.neutral_count ||
               metricsInfo?.['user_score']?.bad_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">USER SCORE</span>
                   <PieChart
                     values={[
@@ -171,7 +171,7 @@ const Dashboard = () => {
               {metricsInfo?.['internal_review_score']?.bad_count ||
               metricsInfo?.['internal_review_score']?.good_count ||
               metricsInfo?.['internal_review_score']?.neutral_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">INTERNAL REVIEW SCORE</span>
                   <PieChart
                     values={[
@@ -197,7 +197,7 @@ const Dashboard = () => {
               {metricsInfo?.['gpt_review_score']?.bad_count ||
               metricsInfo?.['gpt_review_score']?.good_count ||
               metricsInfo?.['gpt_review_score']?.neutral_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">GPT REVIEW SCORE</span>
                   <PieChart
                     values={[
@@ -227,20 +227,20 @@ const Dashboard = () => {
                 values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map((prompt) => [
                   prompt?.id,
                   prompt?.input_prompt,
-                  prompt?.user_rating ?? '',
                   prompt?.response,
+                  prompt?.user_rating ?? '',
                   prompt?.gpt_rating ?? '',
-                  Math.round(prompt?.time_taken) + 's',
-                  '-'
+                  prompt?.num_tokens ?? '',
+                  Math.round(prompt?.time_taken) + 's'
                 ])}
                 headings={[
                   'Prompt ID',
                   'Input Prompt',
-                  'User Ratings',
                   'Final Prompt',
+                  'User Ratings',
                   'GPT Rating',
-                  'Response Time',
-                  '# of Tokens'
+                  '# of Tokens',
+                  'Response Time'
                 ]}
               />
             ) : (

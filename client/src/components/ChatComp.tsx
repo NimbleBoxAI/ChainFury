@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAddUserFeedBackMutation, useProcessPromptMutation } from '../redux/services/auth';
+import { makeid } from '../utils';
 
 interface ChatInterface {
   id: number;
@@ -18,7 +19,16 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
   const [usersMessages, setUsersMessages] = useState<string[]>([]);
   const [enableFeedback, setEnableFeedback] = useState(false);
   const [addFeedback] = useAddUserFeedBackMutation();
-  const sessionId = useId();
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (chatId) {
+      setChat([]);
+      setUsersMessages([]);
+      setSessionId(makeid(30));
+      setIsChatOpen(false);
+    }
+  }, [chatId]);
 
   useEffect(() => {
     if (currentMessage?.trim()) handleProcessPrompt();

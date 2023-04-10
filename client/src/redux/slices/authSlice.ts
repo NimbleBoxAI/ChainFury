@@ -14,6 +14,7 @@ interface ChatBots {
 }
 
 interface PromptsInterface {
+  num_tokens: string;
   gpt_rating: number;
   id: string;
   chatbot_user_rating: number;

@@ -85,20 +85,20 @@ const Sidebar = () => {
           color="primary"
           fullWidth
         >
-          All Bots
+          Go Back
         </Button>
       ) : (
-        ''
+        <Button
+          onClick={() => setNewBotModel(true)}
+          variant="contained"
+          className="my-[8px!important]"
+          color="primary"
+          fullWidth
+        >
+          New Bot
+        </Button>
       )}
-      <Button
-        onClick={() => setNewBotModel(true)}
-        variant="contained"
-        className="my-[8px!important]"
-        color="primary"
-        fullWidth
-      >
-        New Bot
-      </Button>
+
       <div className="overflow-scroll max-h-[calc(100%-120px)]">
         {!flow_id ? (
           <>
