@@ -18,7 +18,7 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 
 
 @metrics_router.get("/chatbot/{id}/prompts", status_code=200)
-def get_chatbot_metrics(
+def get_chatbot_prompts(
     id: int,
     token: Annotated[str, Header()],
     db: Session = Depends(database.db_session),

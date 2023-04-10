@@ -18,6 +18,7 @@ from api.metrics import metrics_router
 from api.prompts import router as prompts_router
 from api.template import template_router
 from api.user import user_router
+from api.dashboard import dashboard_router
 
 logger = c.get_logger(__name__)
 
@@ -49,6 +50,7 @@ app.include_router(auth_router, prefix=c.API_URL)
 app.include_router(langflow_router, prefix=c.API_URL)
 app.include_router(prompts_router, prefix=c.API_URL)
 app.include_router(template_router, prefix=c.API_URL)
+app.include_router(dashboard_router, prefix=c.API_URL)
 ####################################################
 ################ APIs ##############################
 ####################################################
