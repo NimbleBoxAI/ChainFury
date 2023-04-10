@@ -114,9 +114,9 @@ export function Table({
       <div className="overflow-x-auto relative rounded-[4px] prose-nbx">
         {label ? <span className="semiBold400">{label}</span> : ""}
         <table draggable className="w-full text-sm text-left ">
-          <th className="flex bg-light-neutral-grey-100 semiBold250 text-light-neutral-grey-700 rounded-md">
-            {headings?.map((val, index) => (
-              <>
+          <tbody>
+            <tr className="flex bg-light-neutral-grey-100 semiBold250 text-light-neutral-grey-700 rounded-md">
+              {headings?.map((val, index) => (
                 <th
                   key={index}
                   style={{
@@ -127,35 +127,35 @@ export function Table({
                 >
                   {val}
                 </th>
-              </>
-            ))}
-          </th>
-          {values?.map((row, index) => (
-            <tr
-              onClick={() => {
-                setSelectedRow(index);
-              }}
-              className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${
-                index % 2 ? "bg-light-neutral-grey-100" : ""
-              }`}
-              key={index}
-            >
-              {headings?.map((val, key) => {
-                return (
-                  <td
-                    style={{
-                      flex: spacing?.[key] || 1,
-                    }}
-                    scope="row"
-                    key={key}
-                    className="p-[12px] min-w-[170px] text-ellipsis h-[48px] truncate"
-                  >
-                    {row[key]}
-                  </td>
-                );
-              })}
+              ))}
             </tr>
-          ))}
+            {values?.map((row, index) => (
+              <tr
+                onClick={() => {
+                  setSelectedRow(index);
+                }}
+                className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${
+                  index % 2 ? "bg-light-neutral-grey-100" : ""
+                }`}
+                key={index}
+              >
+                {headings?.map((val, key) => {
+                  return (
+                    <td
+                      style={{
+                        flex: spacing?.[key] || 1,
+                      }}
+                      scope="row"
+                      key={key}
+                      className="p-[12px] min-w-[170px] text-ellipsis h-[48px] truncate"
+                    >
+                      {row[key]}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </>

@@ -65,11 +65,14 @@ const FlowViewer = () => {
   }, [location]);
 
   useEffect(() => {
-    if (auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) {
+    if (
+      (auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) &&
+      variant
+    ) {
       setLoading(false);
       createNodesForExistingBot();
     }
-  }, [auth.chatBots, location, auth.templates, templateId]);
+  }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -163,6 +166,7 @@ const FlowViewer = () => {
   };
 
   const createNodesForExistingBot = () => {
+    alert(variant);
     (variant === "edit"
       ? auth.chatBots?.[flow_id]
       : auth?.templates?.[templateId]

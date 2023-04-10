@@ -116,6 +116,7 @@ const Sidebar = () => {
               {Object.values(auth?.chatBots ?? [])?.map((bot, key) => {
                 return (
                   <div
+                    key={key}
                     onClick={() => {
                       dispatch(
                         setSelectedChatBot({

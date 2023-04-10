@@ -11,7 +11,7 @@ const PieChart = ({
     },
     series: [
       {
-        name: "Access From",
+        name: "",
         type: "pie",
         radius: ["40%", "70%"],
         center: ["50%", "50%"],

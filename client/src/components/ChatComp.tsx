@@ -41,7 +41,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
         setChat([
           ...chat,
           {
-            id: chat.length + 1,
+            id: res?.prompt_id,
             message: res?.result,
             isSender: false,
           },
@@ -75,6 +75,8 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
     addFeedback({
       prompt_id: promptId,
       score: feedback,
+    }).finally(() => {
+      setEnableFeedback(false);
     });
   };
 

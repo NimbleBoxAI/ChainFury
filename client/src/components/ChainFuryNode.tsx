@@ -19,7 +19,6 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           <div
             className="cursor-pointer"
             onClick={() => {
-              console.log("delete", data);
               data?.deleteMe?.();
             }}
           >

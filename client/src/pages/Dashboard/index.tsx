@@ -20,6 +20,12 @@ const metrics = [
   "internal_review_score",
   "gpt_review_score",
 ];
+interface FeedbackInterface {
+  bad_count: number;
+  good_count: number;
+  neutral_count: number;
+}
+
 const Dashboard = () => {
   const { auth } = useAuthStates();
   const navigate = useNavigate();
@@ -27,18 +33,10 @@ const Dashboard = () => {
   const [getPrompts] = useGetPromptsMutation();
   const [getMetrics] = useGetMetricsMutation();
   const [metricsInfo, setMetricsInfo] = useState(
-    {} as Record<
-      string,
-      {
-        bad_count: number;
-        good_count: number;
-        neutral_count: number;
-      }
-    >
+    {} as Record<string, FeedbackInterface>
   );
   const [latencies, setLatencies] = useState(
     [] as {
-      name: string;
       time: number;
       created_at: number;
     }[]
@@ -64,7 +62,7 @@ const Dashboard = () => {
   }, [auth.selectedChatBot]);
 
   const getMetricsDetails = async () => {
-    metrics?.forEach(async (metric) => {
+    await metrics?.forEach(async (metric) => {
       getMetrics({
         id: auth?.selectedChatBot?.id,
         token: auth?.accessToken,
@@ -72,29 +70,18 @@ const Dashboard = () => {
       })
         ?.unwrap()
         ?.then((res) => {
-          setMetricsInfo((prev) => {
-            return {
-              ...prev,
-              [metric]: res.data,
-            };
-          });
+          if (metric === "latency") {
+            setLatencies(res.data);
+          } else
+            setMetricsInfo((prev) => {
+              return {
+                ...prev,
+                [metric]: res.data?.[0],
+              };
+            });
         });
     });
   };
-
-  useEffect(() => {
-    if (auth.selectedChatBot && auth?.prompts?.[auth?.selectedChatBot?.id]) {
-      const prompts = auth?.prompts?.[auth?.selectedChatBot?.id];
-      const latencies = prompts.map((prompt) => {
-        return {
-          name: prompt.input_prompt,
-          time: Math.round(prompt.time_taken),
-          created_at: new Date(prompt.created_at).getTime(),
-        };
-      });
-      setLatencies(latencies);
-    }
-  }, [auth.prompts, auth.selectedChatBot]);
 
   const embeddedScript = `<script type="text/javascript" >
   window.onload = function () {
@@ -151,7 +138,9 @@ const Dashboard = () => {
                 <LineChart
                   xAxis={{
                     formatter: " ",
-                    data: latencies.map((latency) => latency.created_at),
+                    data: latencies.map((latency) =>
+                      new Date(latency.created_at).getTime()
+                    ),
                     type: "time",
                   }}
                   yAxis={{
