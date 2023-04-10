@@ -40,4 +40,4 @@ def update_internal_user_feedback(
     username = get_user_from_jwt(token)
     verify_user(username)
     feedback = update_internal_user_rating(prompt_id, inputs.score)
-    return {"message": "Internal rating updated", "rating": inputs.score}
+    return {"message": "Internal user rating updated", "rating": inputs.score}
