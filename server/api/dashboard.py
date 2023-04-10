@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from typing import Annotated
 
 import database
-from server.database_utils.dashboard import (
+from database_utils.dashboard import (
     get_chatbots_from_username,
     get_prompts_from_chatbot_id,
     get_prompts_with_chatbot_user_rating_from_chatbot_id,
