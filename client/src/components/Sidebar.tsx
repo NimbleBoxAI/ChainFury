@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
 import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
@@ -19,6 +19,7 @@ const Sidebar = () => {
   const dispatch = useAppDispatch();
   const [getTemplates] = useGetTemplatesMutation();
   const [changePassword, setChangePassword] = useState(false);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
@@ -40,7 +41,10 @@ const Sidebar = () => {
               chatBots: res?.chatbots?.length ? res?.chatbots : []
             })
           );
-          dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
+          if (!searchParams?.get('id')) {
+            dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
+            navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id}`);
+          }
         })
         .catch((err) => {
           console.log(err);
@@ -114,6 +118,7 @@ const Sidebar = () => {
                           chatBot: bot
                         })
                       );
+                      navigate(`/ui/dashboard/?id=${bot?.id}`);
                     }}
                   >
                     <ChatBotCard key={key} label={bot?.name} />
