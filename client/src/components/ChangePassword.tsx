@@ -1,26 +1,26 @@
-import { Button, Dialog } from "@mui/material";
-import { useState } from "react";
-import { useChangePasswordMutation } from "../redux/services/auth";
-import SvgClose from "./SvgComps/Close";
+import { Button, Dialog } from '@mui/material';
+import { useState } from 'react';
+import { useChangePasswordMutation } from '../redux/services/auth';
+import SvgClose from './SvgComps/Close';
 
 const ChangePassword = ({ onClose }: { onClose: () => void }) => {
-  const [password, setPassword] = useState("");
-  const [oldPassword, setOldPassword] = useState("");
+  const [password, setPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState('');
   const [changePassword] = useChangePasswordMutation();
 
   const handlePasswordChange = () => {
     changePassword({
       old_password: oldPassword,
       new_password: password,
-      token: localStorage.getItem("accessToken") ?? "",
+      token: localStorage.getItem('accessToken') ?? ''
     })
       .unwrap()
       .then((res) => {
-        alert("Password changed successfully");
+        alert('Password changed successfully');
         onClose();
       })
       .catch(() => {
-        alert("Unable to change password");
+        alert('Unable to change password');
       });
   };
 
@@ -40,8 +40,8 @@ const ChangePassword = ({ onClose }: { onClose: () => void }) => {
           value={oldPassword}
           className="w-full h-[40px] mt-[32px]"
           placeholder="Old password"
-          type={"password"}
-        />{" "}
+          type={'password'}
+        />{' '}
         <input
           onChange={(e) => {
             setPassword(e.target.value);
@@ -49,10 +49,10 @@ const ChangePassword = ({ onClose }: { onClose: () => void }) => {
           value={password}
           className="w-full h-[40px]"
           placeholder="New Password"
-          type={"password"}
+          type={'password'}
         />
         <Button
-          disabled={password.length < 6 || password === ""}
+          disabled={password.length < 6 || password === ''}
           onClick={() => {
             handlePasswordChange();
           }}

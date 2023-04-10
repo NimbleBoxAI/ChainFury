@@ -1,8 +1,8 @@
-import { NodeDataType } from "../constants";
-import { useAuthStates } from "../redux/hooks/dispatchHooks";
-import { nodeColors } from "../utils";
-import ParameterComponent from "./ParameterComponent";
-import SvgTrash from "./SvgComps/Trash";
+import { NodeDataType } from '../constants';
+import { useAuthStates } from '../redux/hooks/dispatchHooks';
+import { nodeColors } from '../utils';
+import ParameterComponent from './ParameterComponent';
+import SvgTrash from './SvgComps/Trash';
 
 export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
   const { auth } = useAuthStates();
@@ -14,7 +14,7 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
       <div className="flex flex-col">
         <div className="p-[8px] bg-light-system-bg-secondary medium350 flex justify-between items-center border-b">
           <span className="semiBold250 text-light-neutral-grey-500 ">
-            {data?.node?.template?._type ?? ""}
+            {data?.node?.template?._type ?? ''}
           </span>
           <div
             className="cursor-pointer"
@@ -27,13 +27,11 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
         </div>
 
         <div className="w-full h-full p-[8px]">
-          <div className="w-full text-gray-500 text-sm py-[4px]">
-            {data.node?.description}
-          </div>
+          <div className="w-full text-gray-500 text-sm py-[4px]">{data.node?.description}</div>
 
           <>
             {Object.keys(data.node?.template ?? {})
-              .filter((t) => t.charAt(0) !== "_")
+              .filter((t) => t.charAt(0) !== '_')
               .map((t: string, idx) => (
                 <div key={idx}>
                   {idx === 0 ? (
@@ -41,17 +39,14 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                       className={
                         (data.node?.template &&
                         Object.keys(data.node?.template)?.filter(
-                          (key) =>
-                            !key.startsWith("_") &&
-                            data?.node?.template?.[key]?.show
+                          (key) => !key.startsWith('_') && data?.node?.template?.[key]?.show
                         ).length === 0
-                          ? "hidden"
-                          : "") +
-                        "medium400 text-light-neutral-grey-600 flex items-center gap-[4px] py-[8px]"
+                          ? 'hidden'
+                          : '') +
+                        'medium400 text-light-neutral-grey-600 flex items-center gap-[4px] py-[8px]'
                       }
                     >
-                      Inputs{" "}
-                      <div className="w-full bg-light-neutral-grey-200 h-px"></div>
+                      Inputs <div className="w-full bg-light-neutral-grey-200 h-px"></div>
                     </div>
                   ) : (
                     <></>
@@ -62,10 +57,8 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                       color={
                         nodeColors[
                           Object?.keys(auth?.typesMap)?.filter((key) =>
-                            auth?.typesMap?.[key]?.includes(
-                              data?.node?.template[t]?.type ?? ""
-                            )
-                          )?.[0] ?? ""
+                            auth?.typesMap?.[key]?.includes(data?.node?.template[t]?.type ?? '')
+                          )?.[0] ?? ''
                         ]
                       }
                       title={
@@ -75,12 +68,12 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
                       }
                       name={t}
                       tooltipTitle={
-                        "Type: " +
+                        'Type: ' +
                         data.node.template[t].type +
-                        (data.node.template[t].list ? " list" : "")
+                        (data.node.template[t].list ? ' list' : '')
                       }
                       required={data.node.template[t].required}
-                      id={data.node.template[t].type + "|" + t + "|" + data.id}
+                      id={data.node.template[t].type + '|' + t + '|' + data.id}
                       left={true}
                       type={data.node.template[t].type}
                     />
@@ -97,13 +90,11 @@ export const ChainFuryNode = ({ data }: { data: NodeDataType }) => {
           </span>
           <ParameterComponent
             data={data}
-            color={nodeColors[data?.node?.chain ?? ""]}
-            title={data?.node?.template?._type ?? ""}
-            tooltipTitle={`Type: ${data?.node?.base_classes.join(" | ")}`}
-            id={[data.type, data.id, ...(data?.node?.base_classes ?? [])]?.join(
-              "|"
-            )}
-            type={data?.node?.base_classes?.join("|") ?? ""}
+            color={nodeColors[data?.node?.chain ?? '']}
+            title={data?.node?.template?._type ?? ''}
+            tooltipTitle={`Type: ${data?.node?.base_classes.join(' | ')}`}
+            id={[data.type, data.id, ...(data?.node?.base_classes ?? [])]?.join('|')}
+            type={data?.node?.base_classes?.join('|') ?? ''}
             left={false}
           />
         </div>

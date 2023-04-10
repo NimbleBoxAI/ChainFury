@@ -1,18 +1,18 @@
-import { Button, Dialog } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthStates } from "../redux/hooks/dispatchHooks";
-import { useAppDispatch } from "../redux/hooks/store";
-import { useGetTemplatesMutation } from "../redux/services/auth";
-import { setTemplates } from "../redux/slices/authSlice";
-import ChatBotCard from "./ChatBotCard";
-import SvgClose from "./SvgComps/Close";
+import { Button, Dialog } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStates } from '../redux/hooks/dispatchHooks';
+import { useAppDispatch } from '../redux/hooks/store';
+import { useGetTemplatesMutation } from '../redux/services/auth';
+import { setTemplates } from '../redux/slices/authSlice';
+import ChatBotCard from './ChatBotCard';
+import SvgClose from './SvgComps/Close';
 
 const NewBotModel = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
-  const [botName, setBotName] = useState("");
-  const [selectedFlow, setSelectedFlow] = useState("scratch");
-  const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [botName, setBotName] = useState('');
+  const [selectedFlow, setSelectedFlow] = useState('scratch');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
   const { auth } = useAuthStates();
 
   return (
@@ -26,7 +26,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
         />
         <input
           onChange={(e) => {
-            setBotName(e.target.value?.replace(" ", "_"));
+            setBotName(e.target.value?.replace(' ', '_'));
           }}
           value={botName}
           type="text"
@@ -36,30 +36,30 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
         <div className="flex justify-between gap-[8px] w-full">
           <div
             onClick={() => {
-              setSelectedFlow("scratch");
+              setSelectedFlow('scratch');
             }}
             className={`${
-              selectedFlow === "scratch"
-                ? "border-light-primary-blue-400 bg-light-primary-blue-50"
-                : ""
+              selectedFlow === 'scratch'
+                ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
+                : ''
             } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
           >
             Start from scratch
           </div>
           <div
             onClick={() => {
-              setSelectedFlow("template");
+              setSelectedFlow('template');
             }}
             className={`${
-              selectedFlow !== "scratch"
-                ? "border-light-primary-blue-400 bg-light-primary-blue-50"
-                : ""
+              selectedFlow !== 'scratch'
+                ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
+                : ''
             } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
           >
             Create from template
           </div>
         </div>
-        {selectedFlow === "template" ? (
+        {selectedFlow === 'template' ? (
           <div className="bg-light-system-bg-secondary p-[8px] flex flex-col gap-[4px] overflow-scroll">
             {Object.values(auth?.templates)?.map((template, key) => (
               <div
@@ -69,8 +69,8 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
                 }}
                 className={`${
                   selectedTemplate === template?.id
-                    ? "border-light-primary-blue-400 bg-light-primary-blue-50"
-                    : ""
+                    ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
+                    : ''
                 } cursor-pointer flex flex-col gap-[4px]
                            p-[8px] border rounded-md border-light-neutral-grey-200
                            bg-light-system-bg-primary`}
@@ -81,19 +81,13 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
             ))}
           </div>
         ) : (
-          ""
+          ''
         )}
         <Button
-          disabled={
-            selectedFlow === "scratch"
-              ? !botName
-              : !botName || !selectedTemplate
-          }
+          disabled={selectedFlow === 'scratch' ? !botName : !botName || !selectedTemplate}
           onClick={() => {
-            if (selectedFlow === "template") {
-              navigate(
-                `/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}`
-              );
+            if (selectedFlow === 'template') {
+              navigate(`/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}`);
             } else navigate(`/ui/dashboard/new?bot=${botName}`);
             onClose();
           }}
