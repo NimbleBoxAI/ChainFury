@@ -28,6 +28,18 @@ interface PromptsInterface {
   session_id: string;
 }
 
+export interface MetricsInterface {
+  total_conversations: number;
+  total_tokens_processed: number;
+  no_of_conversations_rated_by_developer: number;
+  no_of_conversations_rated_by_end_user: number;
+  no_of_conversations_rated_by_openai: number;
+  average_rating: number;
+  average_chatbot_user_ratings: number;
+  average_developer_ratings: number;
+  average_openai_ratings: number;
+}
+
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
@@ -36,6 +48,7 @@ type AuthState = {
   selectedChatBot: ChatBots;
   prompts: Record<string, PromptsInterface[]>;
   templates: Record<string, ChatBots>;
+  metrics: Record<string, MetricsInterface>;
 };
 
 interface ComponentsInterface {
@@ -51,7 +64,8 @@ const slice = createSlice({
     chatBots: {},
     selectedChatBot: {} as ChatBots,
     prompts: {},
-    templates: {}
+    templates: {},
+    metrics: {}
   } as AuthState,
   reducers: {
     setAccessToken: (
@@ -109,6 +123,14 @@ const slice = createSlice({
         tempList[chatbot_id] = prompts;
       }
       state.prompts = tempList;
+    },
+    setMetrics: (state, { payload: { data } }: PayloadAction<{ data: any[] }>) => {
+      const tempMetrics = {} as any;
+      data?.forEach((item) => {
+        const entries = Object.entries(item);
+        tempMetrics[entries[0][0]] = entries[0][1];
+      });
+      state.metrics = tempMetrics;
     }
   }
 });
@@ -119,7 +141,8 @@ export const {
   setChatBots,
   setSelectedChatBot,
   setPrompts,
-  setTemplates
+  setTemplates,
+  setMetrics
 } = slice.actions;
 
 export default slice.reducer;
