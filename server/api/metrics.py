@@ -128,7 +128,8 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
                 openai_ratings.append(prompt.gpt_rating)
                 sum_openai_ratings += prompt.gpt_rating
                 total_openai_ratings += 1
-            total_tokens_processed += prompt.num_tokens
+            if prompt.num_tokens is not None:
+                total_tokens_processed += prompt.num_tokens
         total_chatbot_conversations += len(prompts)
 
         sum_of_all_ratings = sum_chatbot_user_ratings + sum_developer_ratings + sum_openai_ratings
