@@ -99,6 +99,11 @@ def update_chatbot_user_rating(prompt_id: int, rating: constants.PromptRating):
     db = db_session()
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
+        if prompt.chatbot_user_rating is not None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chatbot user rating already exists",
+            )
         prompt.chatbot_user_rating = rating
         db.commit()
     else:
@@ -186,9 +191,9 @@ def get_chatbot_user_score_metrics(chatbot_id: int):
 
 def get_gpt_rating_metrics(chatbot_id: int):
     db = db_session()
-    one_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.SAD).count()
-    two_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.NEUTRAL).count()
-    three_count = db.query(Prompt).filter(Prompt.gpt_rating == constants.PromptRating.HAPPY).count()
+    one_count = db.query(Prompt).filter(Prompt.gpt_rating <= 4).count()
+    two_count = db.query(Prompt).filter((Prompt.gpt_rating > 4) & (Prompt.gpt_rating <= 7)).count()
+    three_count = db.query(Prompt).filter(Prompt.gpt_rating > 7).count()
     gpt_ratings = []
     gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return gpt_ratings

@@ -71,7 +71,7 @@ def process_graph(message, chat_history, data_graph):
     # Load langchain object
     logger.debug("Loading langchain object")
     is_first_message = len(chat_history) == 0
-    computed_hash, langchain_object = load_langchain_object(data_graph, is_first_message)
+    computed_hash, langchain_object = load_langchain_object(data_graph, True)
     logger.debug("Loaded langchain object")
 
     if langchain_object is None:
