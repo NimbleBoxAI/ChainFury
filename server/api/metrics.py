@@ -13,6 +13,7 @@ from commons.utils import (
 import database_constants as constants
 from typing import Annotated
 from commons.utils import get_user_from_jwt, verify_user
+from database_utils.dashboard import get_chatbots_from_username, get_prompts_from_chatbot_id
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
 
@@ -75,3 +76,79 @@ def get_chatbot_metrics(
     else:
         raise HTTPException(status_code=404, detail=f"Metrics for the chatbot with id {id} not found")
     return response
+
+
+@metrics_router.get("/chatbots/metrics", status_code=200)
+def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+    #     - Average user rating per bot
+    #     - Average developer rating per bot
+    #     - Average openai rating per bot
+    #     - Total no. of ratings per bot
+    #     - number of good/neutral/bad rating per bot
+    #     - rise or fall of prompt ratings in the last 24 hours
+
+    # bots | user rating average | open api rating average | developer rating average (you) | last 24 hours |
+    # ----------------------------------------------------------------------------------------------------
+    # bot1 |       1.135         |         2.67          |             2.07                 |      /\  24 %
+    # bot2 |       1.114         |         2.75          |             1.05                 |      \/.  10%
+    username = get_user_from_jwt(token)
+    verify_user(username)
+    metrics = []
+    chatbots = get_chatbots_from_username(username)  # type: ignore
+
+    for chatbot in chatbots:
+        chatbot_user_ratings = []
+        developer_ratings = []
+        openai_ratings = []
+        bot_metrics = {}
+        total_tokens_processed = 0
+        total_chatbot_conversations = 0
+        sum_chatbot_user_ratings = 0
+        sum_developer_ratings = 0
+        sum_openai_ratings = 0
+        avg_chatbot_user_ratings = 0
+        avg_developer_ratings = 0
+        avg_openai_ratings = 0
+        total_ratings = 0
+        total_chatbot_user_ratings = 0
+        total_developer_ratings = 0
+        total_openai_ratings = 0
+        chatbot_id = chatbot.id
+        prompts = get_prompts_from_chatbot_id(chatbot_id)
+        for prompt in prompts:
+            if prompt.chatbot_user_rating is not None:
+                chatbot_user_ratings.append(prompt.chatbot_user_rating)
+                sum_chatbot_user_ratings += prompt.chatbot_user_rating
+                total_chatbot_user_ratings += 1
+            if prompt.user_rating is not None:
+                developer_ratings.append(prompt.user_rating)
+                sum_developer_ratings += prompt.user_rating
+                total_developer_ratings += 1
+            if prompt.gpt_rating is not None:
+                openai_ratings.append(prompt.gpt_rating)
+                sum_openai_ratings += prompt.gpt_rating
+                total_openai_ratings += 1
+            total_tokens_processed += prompt.num_tokens
+        total_chatbot_conversations += len(prompts)
+
+        sum_of_all_ratings = sum_chatbot_user_ratings + sum_developer_ratings + sum_openai_ratings
+        total_ratings = total_chatbot_user_ratings + total_developer_ratings + total_openai_ratings
+        avg_rating = 0 if total_ratings == 0 else sum_of_all_ratings / total_ratings
+
+        avg_chatbot_user_ratings = 0 if total_chatbot_user_ratings == 0 else sum_chatbot_user_ratings / total_chatbot_user_ratings
+        avg_developer_ratings = 0 if total_developer_ratings == 0 else sum_developer_ratings / total_developer_ratings
+        avg_openai_ratings = 0 if total_openai_ratings == 0 else sum_openai_ratings / total_openai_ratings
+
+        bot_metrics = {
+            "total_conversations": total_chatbot_conversations,
+            "total_tokens_processed": total_tokens_processed,
+            "no_of_conversations_rated_by_developer": len(developer_ratings),
+            "no_of_conversations_rated_by_end_user": len(chatbot_user_ratings),
+            "no_of_conversations_rated_by_openai": len(openai_ratings),
+            "average_rating": avg_rating,
+            "average_chatbot_user_ratings": avg_chatbot_user_ratings,
+            "average_developer_ratings": avg_developer_ratings,
+            "average_openai_ratings": avg_openai_ratings,
+        }
+        metrics.append({chatbot_id: bot_metrics})
+    return {"msg": "success", "all_bot_metrics": metrics}
