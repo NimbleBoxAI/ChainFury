@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import ChatComp from '../../components/ChatComp';
 import LineChart from '../../components/LineChart';
 import PieChart from '../../components/PieChart';
@@ -9,7 +9,7 @@ import { Table } from '../../components/Table';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
 import { useGetMetricsMutation, useGetPromptsMutation } from '../../redux/services/auth';
-import { setPrompts } from '../../redux/slices/authSlice';
+import { setPrompts, setSelectedChatBot } from '../../redux/slices/authSlice';
 
 const metrics = ['latency', 'user_score', 'internal_review_score', 'gpt_review_score'];
 interface FeedbackInterface {
@@ -31,6 +31,13 @@ const Dashboard = () => {
       created_at: number;
     }[]
   );
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams?.get('id') && auth?.chatBots?.[searchParams?.get('id') ?? '']) {
+      dispatch(setSelectedChatBot({ chatBot: auth?.chatBots?.[searchParams?.get('id') ?? ''] }));
+    }
+  }, [auth.chatBots, searchParams]);
 
   useEffect(() => {
     if (auth?.selectedChatBot?.id) {
@@ -49,7 +56,7 @@ const Dashboard = () => {
         });
       getMetricsDetails();
     }
-  }, [auth.selectedChatBot]);
+  }, [auth?.selectedChatBot?.id]);
 
   const getMetricsDetails = async () => {
     await metrics?.forEach(async (metric) => {
