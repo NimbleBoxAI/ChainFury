@@ -1,6 +1,7 @@
 import database
 from typing import Annotated
 from database import User
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from passlib.hash import sha256_crypt
 from fastapi import APIRouter, Depends, Query, Header
@@ -26,6 +27,6 @@ def change_password(inputs: ChangePasswordModel, token: Annotated[str, Header()]
         user.password = password  # type: ignore
         db.commit()
         response = {"msg": "success"}
+        return response
     else:
-        response = 400, {"msg": "You have entered the wrong password"}
-    return response
+        raise HTTPException(status_code=400, detail="You have entered the wrong password")
