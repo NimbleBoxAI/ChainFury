@@ -32,6 +32,7 @@ def format_intermediate_steps(intermediate_steps):
 
 def get_result_and_thought_using_graph(langchain_object, message: str):
     """Get result and thought from extracted json"""
+    num_of_tokens = len(message.split())
     try:
         if hasattr(langchain_object, "verbose"):
             langchain_object.verbose = True
@@ -49,7 +50,13 @@ def get_result_and_thought_using_graph(langchain_object, message: str):
 
         fix_memory_inputs(langchain_object)
 
-        output = langchain_object(chat_input)
+        from langchain.callbacks import get_openai_callback
+
+        with get_openai_callback() as cb:
+            output = langchain_object(chat_input)
+            logger.debug(f"Total tokens {cb.total_tokens}")
+            num_of_tokens = cb.total_tokens
+
         intermediate_steps = output.get("intermediate_steps", []) if isinstance(output, dict) else []
         result = output.get(langchain_object.output_keys[0]) if isinstance(output, dict) else output
         if intermediate_steps:
@@ -60,7 +67,7 @@ def get_result_and_thought_using_graph(langchain_object, message: str):
     except Exception as exc:
         traceback.print_exc()
         raise ValueError(f"Error: {str(exc)}") from exc
-    return result, thought
+    return result, thought, num_of_tokens
 
 
 def process_graph(message, chat_history, data_graph):
@@ -80,7 +87,7 @@ def process_graph(message, chat_history, data_graph):
 
     # Generate result and thought
     logger.debug("Generating result and thought")
-    result, thought = get_result_and_thought_using_graph(langchain_object, message)
+    result, thought, num_tokens = get_result_and_thought_using_graph(langchain_object, message)
     logger.debug("Generated result and thought")
 
     # Save langchain_object to cache
@@ -89,7 +96,7 @@ def process_graph(message, chat_history, data_graph):
     logger.debug("Saving langchain object to cache")
     # save_cache(computed_hash, langchain_object, is_first_message)
     logger.debug("Saved langchain object to cache")
-    return {"result": str(result), "thought": thought}
+    return {"result": str(result), "thought": thought, "num_tokens": num_tokens}
 
 
 def get_prompt(chatbot_id: int, prompt: Prompt, db: Session):
@@ -108,6 +115,7 @@ def get_prompt(chatbot_id: int, prompt: Prompt, db: Session):
 
         message = f"User: {prompt.new_message}\nBot: {result['result']}"
         prompt_row.gpt_rating = ask_for_rating(message)  #  type: ignore
+        prompt_row.num_tokens = result["num_tokens"]  # type: ignore
         db.commit()
 
         result["prompt_id"] = prompt_row.id
