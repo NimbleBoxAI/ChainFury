@@ -41,7 +41,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
       chatbot_id: chatId ?? chat_id ?? '',
       new_message: currentMessage,
       chat_history: usersMessages,
-      session_id: sessionId
+      session_id: sessionId ?? ''
     })
       .unwrap()
       .then((res) => {
