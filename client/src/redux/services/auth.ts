@@ -174,6 +174,17 @@ export const authApi = createApi({
         method: 'GET'
       })
     }),
+    getAllBotMetrics: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: ({ token }) => ({
+        url: `/chatbots/metrics?token=` + token,
+        method: 'GET'
+      })
+    }),
     createBot: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -233,5 +244,6 @@ export const {
   useAddUserFeedBackMutation,
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
-  useChangePasswordMutation
+  useChangePasswordMutation,
+  useGetAllBotMetricsMutation
 } = authApi;

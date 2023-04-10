@@ -8,8 +8,17 @@ import SvgCopy from '../../components/SvgComps/Copy';
 import { Table } from '../../components/Table';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
-import { useGetMetricsMutation, useGetPromptsMutation } from '../../redux/services/auth';
-import { setPrompts, setSelectedChatBot } from '../../redux/slices/authSlice';
+import {
+  useGetAllBotMetricsMutation,
+  useGetMetricsMutation,
+  useGetPromptsMutation
+} from '../../redux/services/auth';
+import {
+  MetricsInterface,
+  setMetrics,
+  setPrompts,
+  setSelectedChatBot
+} from '../../redux/slices/authSlice';
 
 const metrics = ['latency', 'user_score', 'internal_review_score', 'gpt_review_score'];
 interface FeedbackInterface {
@@ -32,15 +41,34 @@ const Dashboard = () => {
     }[]
   );
   const [searchParams] = useSearchParams();
+  const [getAllMetrics] = useGetAllBotMetricsMutation();
 
   useEffect(() => {
+    console.log({
+      auth
+    });
     if (searchParams?.get('id') && auth?.chatBots?.[searchParams?.get('id') ?? '']) {
       dispatch(setSelectedChatBot({ chatBot: auth?.chatBots?.[searchParams?.get('id') ?? ''] }));
     }
   }, [auth.chatBots, searchParams]);
 
+  const handleAllMetrics = () => {
+    getAllMetrics({
+      token: auth?.accessToken
+    })
+      ?.unwrap()
+      ?.then((res) => {
+        dispatch(
+          setMetrics({
+            data: res?.all_bot_metrics ?? []
+          })
+        );
+      });
+  };
+
   useEffect(() => {
     if (auth?.selectedChatBot?.id) {
+      handleAllMetrics();
       getPrompts({ id: auth?.selectedChatBot?.id, token: auth?.accessToken })
         ?.unwrap()
         .then((res) => {
@@ -112,6 +140,11 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="overflow-scroll h-full w-full">
+            {auth?.metrics?.[auth?.selectedChatBot?.id] ? (
+              <BotMetrics metricsInfo={auth?.metrics?.[auth?.selectedChatBot?.id]} />
+            ) : (
+              ''
+            )}
             <div className="flex gap-[8px] mt-[32px] flex-col">
               <span>Embed the bot on your website by adding the following code to your HTML</span>
               <div className="relative">
@@ -266,3 +299,74 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+const BotMetrics = ({ metricsInfo }: { metricsInfo: MetricsInterface }) => {
+  return (
+    <>
+      <div className="flex flex-wrap w-full gap-[16px] mt-[32px]">
+        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
+          <div className="flex gap-[8px] items-center">
+            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
+              Total tokens processed
+            </span>
+          </div>
+          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
+            {metricsInfo?.['total_tokens_processed']}
+          </span>
+        </div>
+        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
+          <div className="flex gap-[8px] items-center">
+            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
+              Conversation rated by developers
+            </span>
+          </div>
+          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
+            {metricsInfo?.['no_of_conversations_rated_by_developer']}/
+            {metricsInfo?.['total_conversations']}
+          </span>
+          <span className="regular150">
+            Average rating: {Math.round(metricsInfo?.average_developer_ratings * 100) / 100}
+          </span>
+        </div>
+        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
+          <div className="flex gap-[8px] items-center">
+            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
+              Conversation rated by users
+            </span>
+          </div>
+          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
+            {metricsInfo?.['no_of_conversations_rated_by_end_user']}/
+            {metricsInfo?.['total_conversations']}
+          </span>
+          <span className="regular150">
+            Average rating: {Math.round(metricsInfo?.average_chatbot_user_ratings * 100) / 100}
+          </span>
+        </div>
+        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
+          <div className="flex gap-[8px] items-center">
+            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
+              Conversation rated by gpt
+            </span>
+          </div>
+          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
+            {metricsInfo?.['no_of_conversations_rated_by_openai']}/
+            {metricsInfo?.['total_conversations']}
+          </span>
+          <span className="regular150">
+            Average rating: {Math.round(metricsInfo?.average_openai_ratings * 100) / 100}
+          </span>
+        </div>
+        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
+          <div className="flex gap-[8px] items-center">
+            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
+              Average rating
+            </span>
+          </div>
+          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
+            {Math.round(metricsInfo?.['average_rating'] * 100) / 100}
+          </span>
+        </div>
+      </div>
+    </>
+  );
+};

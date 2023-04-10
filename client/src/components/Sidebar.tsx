@@ -4,7 +4,12 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
 import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
-import { setChatBots, setSelectedChatBot, setTemplates } from '../redux/slices/authSlice';
+import {
+  setChatBots,
+  setMetrics,
+  setSelectedChatBot,
+  setTemplates
+} from '../redux/slices/authSlice';
 import ChangePassword from './ChangePassword';
 import ChatBotCard from './ChatBotCard';
 import CollapsibleComponents from './CollapsibleComponents';
@@ -30,39 +35,35 @@ const Sidebar = () => {
   }, []);
 
   const getBotList = () => {
-    try {
-      getBots({
-        token: auth?.accessToken
+    getBots({
+      token: auth?.accessToken
+    })
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setChatBots({
+            chatBots: res?.chatbots?.length ? res?.chatbots : []
+          })
+        );
+        if (!searchParams?.get('id')) {
+          dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
+          navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id}`);
+        }
       })
-        .unwrap()
-        .then((res) => {
-          dispatch(
-            setChatBots({
-              chatBots: res?.chatbots?.length ? res?.chatbots : []
-            })
-          );
-          if (!searchParams?.get('id')) {
-            dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
-            navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id}`);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      getTemplates({
-        token: localStorage.getItem('accessToken') ?? ''
-      })
-        .unwrap()
-        .then((res) => {
-          dispatch(
-            setTemplates({
-              templates: res?.templates?.length ? res?.templates : []
-            })
-          );
-        });
-    } catch (err) {
-      console.log(err);
-    }
+      .catch((err) => {
+        console.log(err);
+      });
+    getTemplates({
+      token: localStorage.getItem('accessToken') ?? ''
+    })
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setTemplates({
+            templates: res?.templates?.length ? res?.templates : []
+          })
+        );
+      });
   };
 
   const onDragStart = (
