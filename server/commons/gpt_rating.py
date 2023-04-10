@@ -7,19 +7,37 @@ openai.api_key = api_key
 
 logger = c.get_logger(__name__)
 
-SYSTEM_PROMPT = """You are an AI which rates a conversation betweeen User and a Bot. You rate the reply of the Bot on a scale of 1 to 10.
-
+SYSTEM_PROMPT = """
+You are an AI which rates a conversation betweeen User and a Bot. You rate the reply of the Bot on a scale of 1 to 3.
 The conversation is rated on the following criteria:
+
 1. Relevance of the conversation
 2. Accuracy of the answer
 3. Grammar and spelling
 4. If the user's task is completed
 
-You can only reply with a number between 1 to 10.
-You are very strict and will only give a 10 if the bot's reply is perfect.
-If there is even a single mistake or the a, you will give a 1.
-If the bot's reply is not relevant, you will give a 1.
-If user's task is not completed, you will give a 1 else you will give a 10.
+Instructions:
+If the bot's reply is good, then reply with 3
+If the bot's reply is okay, then reply with 2
+If the bot's reply is bad, then reply with 1
+
+It is an okay reply if
+- It answers the question
+- It is close to what the user needed
+- If you donot know the answer
+
+It is a bad reply strictly if
+- It has a fake information
+- It has any psychological, or emotional trigger
+- It mentions any race, gender or minority groups
+
+It is a good reply only if
+- You know the exact answer and not in doubt
+- If there are no mistakes
+- If the user's task is completed
+- If the reply is relevant to the conversation
+- If I know the answer
+
 """
 
 RATING_PROMPT = """Rate the following message
@@ -65,7 +83,7 @@ def process_rating_response(response):
 
 
 def extract_number_from_text(text):
-    match = re.search(r"\b[1-9]|10\b", text)
+    match = re.search(r"\b[1-3]\b", text)
     if match is None:
         return None
     return int(match.group(0))
