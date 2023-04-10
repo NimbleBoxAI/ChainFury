@@ -19,4 +19,4 @@ def post_chatbot_user_feedback(
     db: Session = Depends(database.db_session),
 ):
     feedback = update_chatbot_user_rating(prompt_id, inputs.score)
-    return {"message": "Internal rating updated", "rating": inputs.score}
+    return {"message": "Chatbot user rating updated", "rating": inputs.score}
