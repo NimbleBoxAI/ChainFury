@@ -1,44 +1,32 @@
-import { Button } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import ChatComp from "../../components/ChatComp";
-import LineChart from "../../components/LineChart";
-import PieChart from "../../components/PieChart";
-import SvgCopy from "../../components/SvgComps/Copy";
-import { Table } from "../../components/Table";
-import { useAuthStates } from "../../redux/hooks/dispatchHooks";
-import { useAppDispatch } from "../../redux/hooks/store";
-import {
-  useGetMetricsMutation,
-  useGetPromptsMutation,
-} from "../../redux/services/auth";
-import { setPrompts } from "../../redux/slices/authSlice";
+import { Button } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import ChatComp from '../../components/ChatComp';
+import LineChart from '../../components/LineChart';
+import PieChart from '../../components/PieChart';
+import SvgCopy from '../../components/SvgComps/Copy';
+import { Table } from '../../components/Table';
+import { useAuthStates } from '../../redux/hooks/dispatchHooks';
+import { useAppDispatch } from '../../redux/hooks/store';
+import { useGetMetricsMutation, useGetPromptsMutation } from '../../redux/services/auth';
+import { setPrompts } from '../../redux/slices/authSlice';
 
-const metrics = [
-  "latency",
-  "user_score",
-  "internal_review_score",
-  "gpt_review_score",
-];
+const metrics = ['latency', 'user_score', 'internal_review_score', 'gpt_review_score'];
+interface FeedbackInterface {
+  bad_count: number;
+  good_count: number;
+  neutral_count: number;
+}
+
 const Dashboard = () => {
   const { auth } = useAuthStates();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [getPrompts] = useGetPromptsMutation();
   const [getMetrics] = useGetMetricsMutation();
-  const [metricsInfo, setMetricsInfo] = useState(
-    {} as Record<
-      string,
-      {
-        bad_count: number;
-        good_count: number;
-        neutral_count: number;
-      }
-    >
-  );
+  const [metricsInfo, setMetricsInfo] = useState({} as Record<string, FeedbackInterface>);
   const [latencies, setLatencies] = useState(
     [] as {
-      name: string;
       time: number;
       created_at: number;
     }[]
@@ -52,49 +40,38 @@ const Dashboard = () => {
           dispatch(
             setPrompts({
               prompts: res.data,
-              chatbot_id: auth?.selectedChatBot?.id,
+              chatbot_id: auth?.selectedChatBot?.id
             })
           );
         })
         .catch(() => {
-          alert("Unable to fetch prompts");
+          alert('Unable to fetch prompts');
         });
       getMetricsDetails();
     }
   }, [auth.selectedChatBot]);
 
   const getMetricsDetails = async () => {
-    metrics?.forEach(async (metric) => {
+    await metrics?.forEach(async (metric) => {
       getMetrics({
         id: auth?.selectedChatBot?.id,
         token: auth?.accessToken,
-        metric_type: metric,
+        metric_type: metric
       })
         ?.unwrap()
         ?.then((res) => {
-          setMetricsInfo((prev) => {
-            return {
-              ...prev,
-              [metric]: res.data,
-            };
-          });
+          if (metric === 'latency') {
+            setLatencies(res.data);
+          } else
+            setMetricsInfo((prev) => {
+              return {
+                ...prev,
+                [metric]: res.data?.[0]
+              };
+            });
         });
     });
   };
-
-  useEffect(() => {
-    if (auth.selectedChatBot && auth?.prompts?.[auth?.selectedChatBot?.id]) {
-      const prompts = auth?.prompts?.[auth?.selectedChatBot?.id];
-      const latencies = prompts.map((prompt) => {
-        return {
-          name: prompt.input_prompt,
-          time: Math.round(prompt.time_taken),
-          created_at: new Date(prompt.created_at).getTime(),
-        };
-      });
-      setLatencies(latencies);
-    }
-  }, [auth.prompts, auth.selectedChatBot]);
 
   const embeddedScript = `<script type="text/javascript" >
   window.onload = function () {
@@ -129,10 +106,7 @@ const Dashboard = () => {
           </div>
           <div className="overflow-scroll h-full w-full">
             <div className="flex gap-[8px] mt-[32px] flex-col">
-              <span>
-                Embed the bot on your website by adding the following code to
-                your HTML
-              </span>
+              <span>Embed the bot on your website by adding the following code to your HTML</span>
               <div className="relative">
                 <SvgCopy
                   className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer"
@@ -150,137 +124,132 @@ const Dashboard = () => {
                 <span className="semiBold350">Latency</span>
                 <LineChart
                   xAxis={{
-                    formatter: " ",
-                    data: latencies.map((latency) => latency.created_at),
-                    type: "time",
+                    formatter: ' ',
+                    data: latencies.map((latency) => new Date(latency.created_at).getTime()),
+                    type: 'time'
                   }}
                   yAxis={{
-                    formatter: "s",
+                    formatter: 's'
                   }}
                   series={[
                     {
-                      name: "Time taken",
-                      data: latencies.map((latency) => latency.time),
-                    },
+                      name: 'Time taken',
+                      data: latencies.map((latency) => Math.round(latency.time * 100) / 100)
+                    }
                   ]}
                 />
               </div>
             ) : (
-              ""
+              ''
             )}
             <div className="flex flex-wrap gap-x-[8px] gap-y-[16px] justify-between mt-[32px]">
-              {metricsInfo?.["user_score"]?.good_count ||
-              metricsInfo?.["user_score"]?.neutral_count ||
-              metricsInfo?.["user_score"]?.bad_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+              {metricsInfo?.['user_score']?.good_count ||
+              metricsInfo?.['user_score']?.neutral_count ||
+              metricsInfo?.['user_score']?.bad_count ? (
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">USER SCORE</span>
                   <PieChart
                     values={[
                       {
-                        name: "Good",
-                        value: metricsInfo?.["user_score"]?.good_count,
+                        name: 'Good',
+                        value: metricsInfo?.['user_score']?.good_count
                       },
                       {
-                        name: "Neutral",
-                        value: metricsInfo?.["user_score"]?.neutral_count,
+                        name: 'Neutral',
+                        value: metricsInfo?.['user_score']?.neutral_count
                       },
                       {
-                        name: "Bad",
-                        value: metricsInfo?.["user_score"]?.bad_count,
-                      },
+                        name: 'Bad',
+                        value: metricsInfo?.['user_score']?.bad_count
+                      }
                     ]}
                   />
                 </div>
               ) : (
-                ""
+                ''
               )}
-              {metricsInfo?.["internal_review_score"]?.bad_count ||
-              metricsInfo?.["internal_review_score"]?.good_count ||
-              metricsInfo?.["internal_review_score"]?.neutral_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+              {metricsInfo?.['internal_review_score']?.bad_count ||
+              metricsInfo?.['internal_review_score']?.good_count ||
+              metricsInfo?.['internal_review_score']?.neutral_count ? (
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">INTERNAL REVIEW SCORE</span>
                   <PieChart
                     values={[
                       {
-                        name: "Good",
-                        value:
-                          metricsInfo?.["internal_review_score"]?.good_count,
+                        name: 'Good',
+                        value: metricsInfo?.['internal_review_score']?.good_count
                       },
                       {
-                        name: "Neutral",
-                        value:
-                          metricsInfo?.["internal_review_score"]?.neutral_count,
+                        name: 'Neutral',
+                        value: metricsInfo?.['internal_review_score']?.neutral_count
                       },
                       {
-                        name: "Bad",
-                        value:
-                          metricsInfo?.["internal_review_score"]?.bad_count,
-                      },
+                        name: 'Bad',
+                        value: metricsInfo?.['internal_review_score']?.bad_count
+                      }
                     ]}
                   />
                 </div>
               ) : (
-                ""
+                ''
               )}
 
-              {metricsInfo?.["gpt_review_score"]?.bad_count ||
-              metricsInfo?.["gpt_review_score"]?.good_count ||
-              metricsInfo?.["gpt_review_score"]?.neutral_count ? (
-                <div className="w-[400px] h-[320px] pb-[20px] overflow-hidden text-center">
+              {metricsInfo?.['gpt_review_score']?.bad_count ||
+              metricsInfo?.['gpt_review_score']?.good_count ||
+              metricsInfo?.['gpt_review_score']?.neutral_count ? (
+                <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                   <span className="semiBold350">GPT REVIEW SCORE</span>
                   <PieChart
                     values={[
                       {
-                        name: "Good",
-                        value: metricsInfo?.["gpt_review_score"]?.good_count,
+                        name: 'Good',
+                        value: metricsInfo?.['gpt_review_score']?.good_count
                       },
                       {
-                        name: "Neutral",
-                        value: metricsInfo?.["gpt_review_score"]?.neutral_count,
+                        name: 'Neutral',
+                        value: metricsInfo?.['gpt_review_score']?.neutral_count
                       },
                       {
-                        name: "Bad",
-                        value: metricsInfo?.["gpt_review_score"]?.bad_count,
-                      },
+                        name: 'Bad',
+                        value: metricsInfo?.['gpt_review_score']?.bad_count
+                      }
                     ]}
                   />
                 </div>
               ) : (
-                ""
+                ''
               )}
             </div>
 
             {auth?.prompts?.[auth?.selectedChatBot?.id]?.length ? (
               <Table
                 label="Prompts"
-                values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map(
-                  (prompt) => [
-                    prompt?.id,
-                    prompt?.input_prompt,
-                    prompt?.user_rating ?? "",
-                    prompt?.response,
-                    prompt?.gpt_rating ?? "",
-                    Math.round(prompt?.time_taken) + "s",
-                    "-",
-                  ]
-                )}
+                values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map((prompt) => [
+                  prompt?.id,
+                  prompt?.input_prompt,
+                  prompt?.response,
+                  prompt?.user_rating ?? '',
+                  prompt?.gpt_rating ?? '',
+                  prompt?.num_tokens ?? '',
+                  Math.round(prompt?.time_taken) + 's'
+                ])}
                 headings={[
-                  "Prompt ID",
-                  "Input Prompt",
-                  "User Ratings",
-                  "Final Prompt",
-                  "GPT Rating",
-                  "Response Time",
-                  "# of Tokens",
+                  'Prompt ID',
+                  'Input Prompt',
+                  'Final Prompt',
+                  'User Ratings',
+                  'GPT Rating',
+                  '# of Tokens',
+                  'Response Time'
                 ]}
               />
             ) : (
-              ""
+              ''
             )}
           </div>
         </>
       ) : (
-        ""
+        ''
       )}
       <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
         <ChatComp chatId={auth?.selectedChatBot?.id} />

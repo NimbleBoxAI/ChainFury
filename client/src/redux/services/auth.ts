@@ -1,6 +1,6 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { BASE_URL, DEFAULT_RESPONSE } from "../../constants";
-import { RootState } from "../store";
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { BASE_URL, DEFAULT_RESPONSE } from '../../constants';
+import { RootState } from '../store';
 
 interface LoginRequest {
   username: string;
@@ -14,21 +14,21 @@ export const authApi = createApi({
     prepareHeaders: (headers, { getState }) => {
       // By default, if we have a token in the store, let's use that for authenticated requests
       token = (getState() as RootState)?.auth?.accessToken;
-      headers.set("content-type", "application/json;charset=UTF-8");
+      headers.set('content-type', 'application/json;charset=UTF-8');
       if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
+        headers.set('Authorization', `Bearer ${token}`);
       }
       return headers;
     },
-    credentials: "include",
+    credentials: 'include'
   }),
   endpoints: (builder) => ({
     login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
       query: (credentials) => ({
-        url: "/login",
-        method: "POST",
-        body: credentials,
-      }),
+        url: '/login',
+        method: 'POST',
+        body: credentials
+      })
     }),
     changePassword: builder.mutation<
       DEFAULT_RESPONSE,
@@ -39,14 +39,14 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: "/user/change_password?token=" + token,
-        method: "POST",
+        url: '/user/change_password?token=' + token,
+        method: 'POST',
         body: {
           old_password: credentials.old_password,
           new_password: credentials.new_password,
-          username: "admin",
-        },
-      }),
+          username: 'admin'
+        }
+      })
     }),
     addUserFeedBack: builder.mutation<
       DEFAULT_RESPONSE,
@@ -56,12 +56,12 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id }) => ({
-        url: "/feedback?prompt_id=" + prompt_id,
-        method: "PUT",
+        url: '/feedback?prompt_id=' + prompt_id,
+        method: 'PUT',
         body: {
-          score,
-        },
-      }),
+          score
+        }
+      })
     }),
     addInternalFeedBack: builder.mutation<
       DEFAULT_RESPONSE,
@@ -73,11 +73,11 @@ export const authApi = createApi({
     >({
       query: ({ score, prompt_id, chatbot_id }) => ({
         url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}&token=${token}`,
-        method: "PUT",
+        method: 'PUT',
         body: {
-          score,
-        },
-      }),
+          score
+        }
+      })
     }),
     processPrompt: builder.mutation<
       DEFAULT_RESPONSE,
@@ -92,7 +92,7 @@ export const authApi = createApi({
         chatbot_id,
         chat_history,
         session_id,
-        new_message,
+        new_message
       }: {
         chatbot_id: string;
         chat_history: string[];
@@ -100,19 +100,19 @@ export const authApi = createApi({
         new_message: string;
       }) => ({
         url: `/chatbot/${chatbot_id}/prompt`,
-        method: "POST",
+        method: 'POST',
         body: {
           chat_history,
           session_id,
-          new_message,
-        },
-      }),
+          new_message
+        }
+      })
     }),
     components: builder.mutation<DEFAULT_RESPONSE, void>({
       query: () => ({
-        url: "/flow/components",
-        method: "GET",
-      }),
+        url: '/flow/components',
+        method: 'GET'
+      })
     }),
     getPrompts: builder.mutation<
       DEFAULT_RESPONSE,
@@ -122,11 +122,9 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url:
-          `/chatbot/${credentials?.id}/prompts?page_size=50&page=1&token=` +
-          credentials?.token,
-        method: "GET",
-      }),
+        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1&token=` + credentials?.token,
+        method: 'GET'
+      })
     }),
     getBots: builder.mutation<
       DEFAULT_RESPONSE,
@@ -135,9 +133,9 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: "/chatbot/?token=" + credentials?.token,
-        method: "GET",
-      }),
+        url: '/chatbot/?token=' + credentials?.token,
+        method: 'GET'
+      })
     }),
     getSteps: builder.mutation<
       DEFAULT_RESPONSE,
@@ -148,11 +146,9 @@ export const authApi = createApi({
       }
     >({
       query: ({ token, id, prompt_id }) => ({
-        url:
-          `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps?token=` +
-          token,
-        method: "GET",
-      }),
+        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps?token=` + token,
+        method: 'GET'
+      })
     }),
     getTemplates: builder.mutation<
       DEFAULT_RESPONSE,
@@ -162,8 +158,8 @@ export const authApi = createApi({
     >({
       query: ({ token }) => ({
         url: `/templates?token=` + token,
-        method: "GET",
-      }),
+        method: 'GET'
+      })
     }),
     getMetrics: builder.mutation<
       DEFAULT_RESPONSE,
@@ -175,8 +171,8 @@ export const authApi = createApi({
     >({
       query: ({ token, id, metric_type }) => ({
         url: `/chatbot/${id}/metrics?metric_type=${metric_type}&token=` + token,
-        method: "GET",
-      }),
+        method: 'GET'
+      })
     }),
     createBot: builder.mutation<
       DEFAULT_RESPONSE,
@@ -188,16 +184,16 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: "/chatbot/?token=" + token,
-        method: "POST",
+        url: '/chatbot/?token=' + token,
+        method: 'POST',
         body: {
           name: credentials.name,
           dag: {
             nodes: credentials.nodes,
-            edges: credentials.edges,
-          },
-        },
-      }),
+            edges: credentials.edges
+          }
+        }
+      })
     }),
     editBot: builder.mutation<
       DEFAULT_RESPONSE,
@@ -211,17 +207,17 @@ export const authApi = createApi({
     >({
       query: (credentials) => ({
         url: `/chatbot/${credentials?.id}?token=` + token,
-        method: "PUT",
+        method: 'PUT',
         body: {
           name: credentials.name,
           dag: {
             nodes: credentials.nodes,
-            edges: credentials.edges,
-          },
-        },
-      }),
-    }),
-  }),
+            edges: credentials.edges
+          }
+        }
+      })
+    })
+  })
 });
 
 export const {
@@ -237,5 +233,5 @@ export const {
   useAddUserFeedBackMutation,
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
-  useChangePasswordMutation,
+  useChangePasswordMutation
 } = authApi;

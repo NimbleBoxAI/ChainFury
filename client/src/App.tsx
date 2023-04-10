@@ -1,40 +1,40 @@
-import { Alert, Snackbar } from "@mui/material";
-import { useState } from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
-import ChatComp from "./components/ChatComp";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import FlowViewer from "./pages/FlowViewer";
-import Login from "./pages/SignIn";
+import { Alert, Snackbar } from '@mui/material';
+import { useState } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import ChatComp from './components/ChatComp';
+import Sidebar from './components/Sidebar';
+import Dashboard from './pages/Dashboard';
+import FlowViewer from './pages/FlowViewer';
+import Login from './pages/SignIn';
 
 const AppRoutes = [
   {
-    path: "/ui/login",
+    path: '/ui/login',
     element: <Login />,
-    isPrivate: false,
+    isPrivate: false
   },
   {
-    path: "/ui/dashboard",
+    path: '/ui/dashboard',
     element: <Dashboard />,
-    isPrivate: true,
+    isPrivate: true
   },
   {
-    path: "/ui/chat/:chat_id",
+    path: '/ui/chat/:chat_id',
     element: <ChatComp />,
-    isPrivate: false,
+    isPrivate: false
   },
   {
-    path: "/ui/dashboard/:flow_id",
+    path: '/ui/dashboard/:flow_id',
     element: <FlowViewer />,
-    isPrivate: true,
-  },
+    isPrivate: true
+  }
 ];
 
 function App() {
   const [showAlert, setShowAlert] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState('');
 
-  window["alert"] = function (message: string) {
+  window['alert'] = function (message: string) {
     setAlertMessage(message);
     setShowAlert(true);
   };
@@ -43,14 +43,14 @@ function App() {
     <>
       <Snackbar
         open={showAlert}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         autoHideDuration={1000}
         onClose={() => {
           setShowAlert(false);
         }}
       >
-        <Alert severity={"info"}>{alertMessage}</Alert>
-      </Snackbar>{" "}
+        <Alert severity={'info'}>{alertMessage}</Alert>
+      </Snackbar>{' '}
       <Routes>
         {AppRoutes.map((route, key) => (
           <Route

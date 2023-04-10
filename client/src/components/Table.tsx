@@ -1,14 +1,14 @@
-import { Dialog } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useAuthStates } from "../redux/hooks/dispatchHooks";
-import { useGetStepsMutation } from "../redux/services/auth";
-import SvgClose from "./SvgComps/Close";
+import { Dialog } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useAuthStates } from '../redux/hooks/dispatchHooks';
+import { useAddInternalFeedBackMutation, useGetStepsMutation } from '../redux/services/auth';
+import SvgClose from './SvgComps/Close';
 
 export function Table({
   label,
   headings,
   spacing,
-  values,
+  values
 }: {
   label?: string;
   headings: string[];
@@ -20,6 +20,7 @@ export function Table({
 
   const TableDialog = ({ onClose }: { onClose: () => void }) => {
     const [getSteps] = useGetStepsMutation();
+    const [addFeedBack] = useAddInternalFeedBackMutation();
     const [responses, setResponses] = useState(
       [] as {
         ques: string;
@@ -30,24 +31,19 @@ export function Table({
     useEffect(() => {
       getSteps({
         id: auth?.selectedChatBot?.id,
-        prompt_id: values[selectedRow]?.[0] + "",
-        token: auth?.accessToken,
+        prompt_id: values[selectedRow]?.[0] + '',
+        token: auth?.accessToken
       })
         .unwrap()
         .then((res) => {
           setResponses(
             res.data?.length
-              ? res.data.map(
-                  (val: {
-                    intermediate_response: any;
-                    intermediate_prompt: any;
-                  }) => {
-                    return {
-                      ques: val.intermediate_response,
-                      ans: val.intermediate_prompt,
-                    };
-                  }
-                )
+              ? res.data.map((val: { intermediate_response: any; intermediate_prompt: any }) => {
+                  return {
+                    ques: val.intermediate_response,
+                    ans: val.intermediate_prompt
+                  };
+                })
               : []
           );
         })
@@ -55,6 +51,21 @@ export function Table({
           console.log(err);
         });
     }, []);
+
+    const handleFeedback = (feedback: number, promptId: string) => {
+      addFeedBack({
+        prompt_id: promptId,
+        score: feedback,
+        chatbot_id: auth?.selectedChatBot?.id
+      })
+        .then(() => {
+          alert('Feedback added successfully');
+        })
+        .catch(() => {
+          alert('Error adding feedback');
+        });
+    };
+
     return (
       <Dialog open={true} onClose={onClose}>
         <div
@@ -65,15 +76,40 @@ export function Table({
             className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer"
           />
           <div className="flex flex-col">
+            <div className="bg-light-neutral-grey-300 p-[8px] flex gap-[8px] text-light-neutral-grey-900 items-center">
+              <span>Rate this answer:</span>
+              <span
+                onClick={() => {
+                  handleFeedback(3, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😀
+              </span>
+              <span
+                onClick={() => {
+                  handleFeedback(2, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😐
+              </span>
+              <span
+                onClick={() => {
+                  handleFeedback(1, values?.[selectedRow]?.[0] + '');
+                }}
+                className="text-[20px] cursor-pointer"
+              >
+                😞
+              </span>
+            </div>
             {headings?.map((value, id) => (
               <div key={id} className="flex py-[8px] flex-col">
                 <span className="semiBold250">{value}</span>
-                <span className="medium250">
-                  {values[selectedRow]?.[id] ?? "-"}
-                </span>
+                <span className="medium250">{values[selectedRow]?.[id] ?? '-'}</span>
               </div>
             ))}
-          </div>{" "}
+          </div>{' '}
           {responses?.length ? (
             <>
               <span className="semiBold250">Intermediate Steps</span>
@@ -83,7 +119,7 @@ export function Table({
                     <div key={index}>
                       <div className={`chat nbx-chat-end`}>
                         <div className="chat-bubble medium250">{val?.ans}</div>
-                      </div>{" "}
+                      </div>{' '}
                       <div className={`chat nbx-chat-start`}>
                         <div className="chat-bubble medium250">{val?.ques}</div>
                       </div>
@@ -93,7 +129,7 @@ export function Table({
               </div>
             </>
           ) : (
-            ""
+            ''
           )}
         </div>
       </Dialog>
@@ -109,53 +145,53 @@ export function Table({
           }}
         />
       ) : (
-        ""
+        ''
       )}
       <div className="overflow-x-auto relative rounded-[4px] prose-nbx">
-        {label ? <span className="semiBold400">{label}</span> : ""}
+        {label ? <span className="semiBold400">{label}</span> : ''}
         <table draggable className="w-full text-sm text-left ">
-          <th className="flex bg-light-neutral-grey-100 semiBold250 text-light-neutral-grey-700 rounded-md">
-            {headings?.map((val, index) => (
-              <>
+          <tbody>
+            <tr className="flex bg-light-neutral-grey-100 semiBold250 text-light-neutral-grey-700 rounded-md">
+              {headings?.map((val, index) => (
                 <th
                   key={index}
                   style={{
-                    flex: spacing?.[index] || 1,
+                    flex: spacing?.[index] || 1
                   }}
                   scope="col"
-                  className="p-[12px] min-w-[170px]"
+                  className="p-[12px] max-w-[170px]"
                 >
                   {val}
                 </th>
-              </>
-            ))}
-          </th>
-          {values?.map((row, index) => (
-            <tr
-              onClick={() => {
-                setSelectedRow(index);
-              }}
-              className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${
-                index % 2 ? "bg-light-neutral-grey-100" : ""
-              }`}
-              key={index}
-            >
-              {headings?.map((val, key) => {
-                return (
-                  <td
-                    style={{
-                      flex: spacing?.[key] || 1,
-                    }}
-                    scope="row"
-                    key={key}
-                    className="p-[12px] min-w-[170px] text-ellipsis h-[48px] truncate"
-                  >
-                    {row[key]}
-                  </td>
-                );
-              })}
+              ))}
             </tr>
-          ))}
+            {values?.map((row, index) => (
+              <tr
+                onClick={() => {
+                  setSelectedRow(index);
+                }}
+                className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${
+                  index % 2 ? 'bg-light-neutral-grey-100' : ''
+                }`}
+                key={index}
+              >
+                {headings?.map((val, key) => {
+                  return (
+                    <td
+                      style={{
+                        flex: spacing?.[key] || 1
+                      }}
+                      scope="row"
+                      key={key}
+                      className="p-[12px] max-w-[170px] text-ellipsis h-[48px] truncate"
+                    >
+                      {row[key]}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
     </>
