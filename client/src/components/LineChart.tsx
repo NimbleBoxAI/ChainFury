@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import ReactECharts from "echarts-for-react";
-import moment from "moment";
+import { useEffect, useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import moment from 'moment';
 
 export interface axisInterface {
   data?: string[] | number[];
@@ -26,7 +26,7 @@ const LineChart = ({
   yAxis,
   series,
   markArea,
-  smooth = 0.1,
+  smooth = 0.1
 }: {
   xAxis: axisInterface;
   yAxis: axisInterface;
@@ -35,14 +35,12 @@ const LineChart = ({
   smooth?: number;
 }) => {
   const [options, setOptions] = useState({});
-  const [seriesColorMap, setSeriesColorMap] = useState(
-    {} as Record<string, string>
-  );
+  const [seriesColorMap, setSeriesColorMap] = useState({} as Record<string, string>);
 
   useEffect(() => {
     const tempSeriesColorMap = {} as any;
     series.map((val) => {
-      tempSeriesColorMap[val?.name] = "#006EF5";
+      tempSeriesColorMap[val?.name] = '#006EF5';
     });
     setSeriesColorMap(tempSeriesColorMap);
   }, [series]);
@@ -53,50 +51,50 @@ const LineChart = ({
 
   const formatOptions = () => {
     const optionsTemplate = {
-      color: "#006EF5",
+      color: '#006EF5',
       tooltip: {
-        trigger: "axis",
-        position: "top",
+        trigger: 'axis',
+        position: 'top',
         formatter: (params: any[]) => {
           return `
           <div style="min-width:150px" class="flex regular200 flex-col">${
-            xAxis?.type !== "time"
+            xAxis?.type !== 'time'
               ? params?.[0].name
-              : moment(Number(params?.[0].name)).format("DD MMM YYYY HH:mm:ss")
+              : moment(Number(params?.[0].name)).format('DD MMM YYYY HH:mm:ss')
           }<br/>${params?.map((val) => {
             const icon = `<span style="background-color: ${
               seriesColorMap[val.seriesName]
             };border-radius:50%;display:block;height:8px;width:8px;"></span>`;
             return `<div class="flex gap-[4px] items-center w-full" >${icon} <span class="w-full flex items-center justify-between">
-            ${val.seriesName} <strong>${val.value + "s"}</strong>
+            ${val.seriesName} <strong>${val.value + 's'}</strong>
             </div></span>`;
           })}
-          <div/>`.replaceAll(",", "");
-        },
+          <div/>`.replaceAll(',', '');
+        }
       },
       grid: {
-        top: "8%",
-        left: "3%",
-        right: "3%",
-        bottom: "32%",
-        containLabel: true,
+        top: '8%',
+        left: '3%',
+        right: '3%',
+        bottom: '32%',
+        containLabel: true
       },
       xAxis: {
-        type: "category",
+        type: 'category',
         boundaryGap: false,
         axisLabel: {
-          formatter: "" as any,
+          formatter: '' as any
         },
-        data: undefined as string[] | number[] | undefined,
+        data: undefined as string[] | number[] | undefined
       },
       yAxis: {
-        type: "value",
+        type: 'value',
         axisLabel: {
-          formatter: "" as string | undefined,
+          formatter: '' as string | undefined
         },
-        data: undefined as string[] | number[] | undefined,
+        data: undefined as string[] | number[] | undefined
       },
-      series: [] as seriesInterface[],
+      series: [] as seriesInterface[]
     };
     if (xAxis?.data) {
       optionsTemplate.xAxis.data = xAxis.data;
@@ -106,11 +104,11 @@ const LineChart = ({
       optionsTemplate.yAxis.data = yAxis.data;
     }
 
-    if (xAxis?.formatter && xAxis?.type !== "time") {
+    if (xAxis?.formatter && xAxis?.type !== 'time') {
       optionsTemplate.xAxis.axisLabel.formatter = `{value} ${xAxis.formatter}`;
-    } else if (xAxis?.type === "time") {
+    } else if (xAxis?.type === 'time') {
       optionsTemplate.xAxis.axisLabel.formatter = function (value: any) {
-        return moment(Number(value)).format("HH:mm:ss");
+        return moment(Number(value)).format('HH:mm:ss');
       };
     }
 
@@ -122,14 +120,14 @@ const LineChart = ({
       return {
         name,
         data,
-        type: "line",
+        type: 'line',
         showSymbol: false,
         smooth: smooth,
         encode: {
-          tooltip: "y",
+          tooltip: 'y'
         },
-        lineStyle: { color: "#006EF5" },
-        markArea: undefined as any,
+        lineStyle: { color: '#006EF5' },
+        markArea: undefined as any
       };
     });
 
@@ -137,18 +135,18 @@ const LineChart = ({
       const tempData = markArea.data?.map((val) => [
         {
           name: val.name,
-          xAxis: val.from,
+          xAxis: val.from
         },
         {
           name: val.name,
-          xAxis: val.to,
-        },
+          xAxis: val.to
+        }
       ]);
-      seriesData[0]["markArea"] = {
+      seriesData[0]['markArea'] = {
         itemStyle: {
-          color: "rgba(255, 173, 177, 0.4)",
+          color: 'rgba(255, 173, 177, 0.4)'
         },
-        data: tempData,
+        data: tempData
       };
     }
 
@@ -160,13 +158,9 @@ const LineChart = ({
   return (
     <>
       {Object.keys(seriesColorMap).length ? (
-        <ReactECharts
-          notMerge={true}
-          className="p-0 m-0 w-full"
-          option={options}
-        />
+        <ReactECharts notMerge={true} className="p-0 m-0 w-full" option={options} />
       ) : (
-        ""
+        ''
       )}
     </>
   );

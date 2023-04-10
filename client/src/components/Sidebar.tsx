@@ -1,21 +1,14 @@
-import { Button } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useAuthStates } from "../redux/hooks/dispatchHooks";
-import { useAppDispatch } from "../redux/hooks/store";
-import {
-  useGetBotsMutation,
-  useGetTemplatesMutation,
-} from "../redux/services/auth";
-import {
-  setChatBots,
-  setSelectedChatBot,
-  setTemplates,
-} from "../redux/slices/authSlice";
-import ChangePassword from "./ChangePassword";
-import ChatBotCard from "./ChatBotCard";
-import CollapsibleComponents from "./CollapsibleComponents";
-import NewBotModel from "./NewBotModel";
+import { Button } from '@mui/material';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuthStates } from '../redux/hooks/dispatchHooks';
+import { useAppDispatch } from '../redux/hooks/store';
+import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
+import { setChatBots, setSelectedChatBot, setTemplates } from '../redux/slices/authSlice';
+import ChangePassword from './ChangePassword';
+import ChatBotCard from './ChatBotCard';
+import CollapsibleComponents from './CollapsibleComponents';
+import NewBotModel from './NewBotModel';
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
@@ -28,8 +21,8 @@ const Sidebar = () => {
   const [changePassword, setChangePassword] = useState(false);
 
   useEffect(() => {
-    if (!localStorage.getItem("accessToken")) {
-      navigate("/ui/login");
+    if (!localStorage.getItem('accessToken')) {
+      navigate('/ui/login');
     } else {
       getBotList();
     }
@@ -38,13 +31,13 @@ const Sidebar = () => {
   const getBotList = () => {
     try {
       getBots({
-        token: auth?.accessToken,
+        token: auth?.accessToken
       })
         .unwrap()
         .then((res) => {
           dispatch(
             setChatBots({
-              chatBots: res?.chatbots?.length ? res?.chatbots : [],
+              chatBots: res?.chatbots?.length ? res?.chatbots : []
             })
           );
           dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
@@ -53,13 +46,13 @@ const Sidebar = () => {
           console.log(err);
         });
       getTemplates({
-        token: localStorage.getItem("accessToken") ?? "",
+        token: localStorage.getItem('accessToken') ?? ''
       })
         .unwrap()
         .then((res) => {
           dispatch(
             setTemplates({
-              templates: res?.templates?.length ? res?.templates : [],
+              templates: res?.templates?.length ? res?.templates : []
             })
           );
         });
@@ -77,16 +70,16 @@ const Sidebar = () => {
     },
     nodeType: any
   ) => {
-    event.dataTransfer.setData("application/reactflow", nodeType);
-    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData('application/reactflow', nodeType);
+    event.dataTransfer.effectAllowed = 'move';
   };
 
   return (
     <div className="relative overflow-hidden w-[250px] min-w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
-      {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ""}
+      {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ''}
       {flow_id ? (
         <Button
-          onClick={() => navigate("/ui/dashboard")}
+          onClick={() => navigate('/ui/dashboard')}
           variant="outlined"
           className="my-[8px!important]"
           color="primary"
@@ -95,7 +88,7 @@ const Sidebar = () => {
           All Bots
         </Button>
       ) : (
-        ""
+        ''
       )}
       <Button
         onClick={() => setNewBotModel(true)}
@@ -110,16 +103,15 @@ const Sidebar = () => {
         {!flow_id ? (
           <>
             <div className="flex flex-col gap-[8px]">
-              <span className="semiBold250 text-light-neutral-grey-900">
-                Bots
-              </span>
+              <span className="semiBold250 text-light-neutral-grey-900">Bots</span>
               {Object.values(auth?.chatBots ?? [])?.map((bot, key) => {
                 return (
                   <div
+                    key={key}
                     onClick={() => {
                       dispatch(
                         setSelectedChatBot({
-                          chatBot: bot,
+                          chatBot: bot
                         })
                       );
                     }}
@@ -157,7 +149,7 @@ const Sidebar = () => {
         <span
           onClick={() => {
             localStorage.clear();
-            navigate("/ui/login");
+            navigate('/ui/login');
           }}
           className="medium400 cursor-pointer"
         >
@@ -171,7 +163,7 @@ const Sidebar = () => {
           }}
         />
       ) : (
-        ""
+        ''
       )}
     </div>
   );

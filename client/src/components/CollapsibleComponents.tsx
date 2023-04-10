@@ -1,13 +1,13 @@
-import { Collapse } from "@mui/material";
-import { useState } from "react";
-import { APIClassType } from "../constants";
-import { nodeColors } from "../utils";
-import SvgChevronDown from "./SvgComps/ChevronDown";
+import { Collapse } from '@mui/material';
+import { useState } from 'react';
+import { APIClassType } from '../constants';
+import { nodeColors } from '../utils';
+import SvgChevronDown from './SvgComps/ChevronDown';
 
 const CollapsibleComponents = ({
   onDragStart,
   values,
-  label,
+  label
 }: {
   values: Record<string, APIClassType>;
   label: string;
@@ -30,7 +30,7 @@ const CollapsibleComponents = ({
     return (
       <div
         style={{
-          borderLeftColor: nodeColors[label],
+          borderLeftColor: nodeColors[label]
         }}
         className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
         draggable
@@ -40,7 +40,7 @@ const CollapsibleComponents = ({
             JSON.stringify({
               ...values[displayName],
               chain: label,
-              displayName,
+              displayName
             })
           )
         }
@@ -62,9 +62,9 @@ const CollapsibleComponents = ({
           <span className="capitalize semiBold300">{label}</span>
           <SvgChevronDown
             style={{
-              stroke: nodeColors[label],
+              stroke: nodeColors[label]
             }}
-            className={`${open ? "rotate-180" : ""}`}
+            className={`${open ? 'rotate-180' : ''}`}
           />
         </div>
         <div className="flex flex-col gap-[16px] p-[8px] bg-light-neutral-grey-100">

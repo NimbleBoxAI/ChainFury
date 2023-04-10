@@ -1,14 +1,10 @@
-import { Listbox, Transition } from "@headlessui/react";
-import { Fragment, useState } from "react";
-import { DropDownComponentType } from "../../constants";
+import { Listbox, Transition } from '@headlessui/react';
+import { Fragment, useState } from 'react';
+import { DropDownComponentType } from '../../constants';
 
-export default function Dropdown({
-  value,
-  options,
-  onSelect,
-}: DropDownComponentType) {
+export default function Dropdown({ value, options, onSelect }: DropDownComponentType) {
   let [internalValue, setInternalValue] = useState(
-    value === "" || !value ? "Choose an option" : value
+    value === '' || !value ? 'Choose an option' : value
   );
   return (
     <>
@@ -38,9 +34,7 @@ export default function Dropdown({
                   {options?.map((option: any, id) => (
                     <Listbox.Option
                       key={id}
-                      className={
-                        "relative cursor-default select-none py-2 pl-3 pr-9"
-                      }
+                      className={'relative cursor-default select-none py-2 pl-3 pr-9'}
                       value={option}
                     >
                       {({ selected, active }) => (
@@ -49,9 +43,7 @@ export default function Dropdown({
 
                           {selected ? (
                             <span
-                              className={
-                                "absolute inset-y-0 right-0 flex items-center pr-4"
-                              }
+                              className={'absolute inset-y-0 right-0 flex items-center pr-4'}
                             ></span>
                           ) : null}
                         </>

@@ -1,6 +1,6 @@
-import { Button } from "@mui/material";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Button } from '@mui/material';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -9,19 +9,19 @@ import ReactFlow, {
   Controls,
   Connection,
   Edge,
-  ReactFlowInstance,
-} from "reactflow";
-import "reactflow/dist/style.css";
-import { ChainFuryNode } from "../../components/ChainFuryNode";
-import ChatComp from "../../components/ChatComp";
-import { useAuthStates } from "../../redux/hooks/dispatchHooks";
-import { useAppDispatch } from "../../redux/hooks/store";
+  ReactFlowInstance
+} from 'reactflow';
+import 'reactflow/dist/style.css';
+import { ChainFuryNode } from '../../components/ChainFuryNode';
+import ChatComp from '../../components/ChatComp';
+import { useAuthStates } from '../../redux/hooks/dispatchHooks';
+import { useAppDispatch } from '../../redux/hooks/store';
 import {
   useComponentsMutation,
   useCreateBotMutation,
-  useEditBotMutation,
-} from "../../redux/services/auth";
-import { setComponents } from "../../redux/slices/authSlice";
+  useEditBotMutation
+} from '../../redux/services/auth';
+import { setComponents } from '../../redux/slices/authSlice';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -30,46 +30,44 @@ const FlowViewer = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [loading, setLoading] = useState(true as boolean);
-  const [reactFlowInstance, setReactFlowInstance] = useState(
-    null as null | ReactFlowInstance
-  );
-  const [variant, setVariant] = useState("" as "new" | "edit" | "template");
+  const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
+  const [variant, setVariant] = useState('' as 'new' | 'edit' | 'template');
   const { flow_id } = useParams() as {
     flow_id: string;
   };
-  const [botName, setBotName] = useState("" as string);
+  const [botName, setBotName] = useState('' as string);
   const [getComponents] = useComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const [templateId, setTemplateId] = useState("" as string);
+  const [templateId, setTemplateId] = useState('' as string);
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
   const navigate = useNavigate();
   const { auth } = useAuthStates();
 
   useEffect(() => {
-    if (location.search?.includes("?bot=") && flow_id === "new") {
-      setBotName(location.search.split("?bot=")[1]);
-      setVariant("new");
+    if (location.search?.includes('?bot=') && flow_id === 'new') {
+      setBotName(location.search.split('?bot=')[1]);
+      setVariant('new');
       setNodes([]);
       setEdges([]);
       setLoading(false);
-    } else if (flow_id === "template" && location.search?.includes("?bot=")) {
-      setBotName(location.search.split("?bot=")[1]?.split("&id=")[0]);
-      setTemplateId(location.search.split("&id=")[1]);
-      setVariant("template");
+    } else if (flow_id === 'template' && location.search?.includes('?bot=')) {
+      setBotName(location.search.split('?bot=')[1]?.split('&id=')[0]);
+      setTemplateId(location.search.split('&id=')[1]);
+      setVariant('template');
     } else {
-      setVariant("edit");
+      setVariant('edit');
     }
     fetchComponents();
   }, [location]);
 
   useEffect(() => {
-    if (auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) {
+    if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
       setLoading(false);
       createNodesForExistingBot();
     }
-  }, [auth.chatBots, location, auth.templates, templateId]);
+  }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
   const fetchComponents = async () => {
     getComponents()
@@ -77,12 +75,12 @@ const FlowViewer = () => {
       .then((res) => {
         dispatch(
           setComponents({
-            components: res,
+            components: res
           })
         );
       })
       ?.catch(() => {
-        alert("Error fetching components");
+        alert('Error fetching components');
       });
   };
 
@@ -92,12 +90,9 @@ const FlowViewer = () => {
   );
 
   const onDragOver = useCallback(
-    (event: {
-      preventDefault: () => void;
-      dataTransfer: { dropEffect: string };
-    }) => {
+    (event: { preventDefault: () => void; dataTransfer: { dropEffect: string } }) => {
       event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
+      event.dataTransfer.dropEffect = 'move';
     },
     []
   );
@@ -111,24 +106,23 @@ const FlowViewer = () => {
     }) => {
       event.preventDefault();
       if (reactFlowInstance?.project && reactFlowWrapper?.current) {
-        const reactFlowBounds =
-          reactFlowWrapper?.current?.getBoundingClientRect();
-        let type = event.dataTransfer.getData("application/reactflow");
+        const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
+        let type = event.dataTransfer.getData('application/reactflow');
         const nodeData = JSON.parse(type);
         type = nodeData?.displayName;
         // check if the dropped element is valid
-        if (typeof type === "undefined" || !type) {
+        if (typeof type === 'undefined' || !type) {
           return;
         }
 
         const position = reactFlowInstance.project({
           x: event.clientX - reactFlowBounds.left,
-          y: event.clientY - reactFlowBounds.top,
+          y: event.clientY - reactFlowBounds.top
         });
         const newNode = {
           id: type,
           position,
-          type: "ChainFuryNode",
+          type: 'ChainFuryNode',
           data: {
             type: type,
             node: nodeData,
@@ -136,8 +130,8 @@ const FlowViewer = () => {
             value: null,
             deleteMe: () => {
               setNodes((nds) => nds.filter((node) => node.id !== type));
-            },
-          },
+            }
+          }
         };
 
         setNodes((nds) => nds.concat(newNode));
@@ -150,43 +144,40 @@ const FlowViewer = () => {
     createBot({ name: botName, nodes, edges, token: auth?.accessToken })
       .unwrap()
       ?.then((res) => {
-        if (res?.chatbot?.id)
-          window.location.href = "/ui/dashboard/" + res?.chatbot?.id;
+        if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
         else {
-          alert("Error creating bot");
+          alert('Error creating bot');
         }
       })
       .catch((err) => {
         console.log(err);
-        alert("Error creating bot");
+        alert('Error creating bot');
       });
   };
 
   const createNodesForExistingBot = () => {
-    (variant === "edit"
+    alert(variant);
+    (variant === 'edit'
       ? auth.chatBots?.[flow_id]
       : auth?.templates?.[templateId]
     )?.dag?.nodes?.forEach((node: any) => {
       const newNode = {
-        id: node?.id ?? "",
+        id: node?.id ?? '',
         position: node?.position ?? { x: 0, y: 0 },
-        type: "ChainFuryNode",
+        type: 'ChainFuryNode',
         data: {
           type: node?.id,
           ...node?.data,
           node: JSON.parse(JSON.stringify(node?.data?.node)),
           deleteMe: () => {
             setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
-          },
-        },
+          }
+        }
       };
       setNodes((nds) => nds.concat(newNode));
     });
     setEdges(
-      (variant === "edit"
-        ? auth.chatBots?.[flow_id]
-        : auth?.templates?.[templateId]
-      )?.dag?.edges
+      (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
     );
   };
 
@@ -196,37 +187,37 @@ const FlowViewer = () => {
       name: auth?.chatBots?.[flow_id]?.name,
       nodes,
       edges,
-      token: auth?.accessToken,
+      token: auth?.accessToken
     })
       .unwrap()
       ?.then((res) => {
-        alert("Bot edited successfully");
+        alert('Bot edited successfully');
       })
       .catch((err) => {
-        alert("Error editing bot");
+        alert('Error editing bot');
       });
   };
 
   return (
     <div className=" w-full max-h-screen flex flex-col overflow-hidden prose-nbx">
       <div className="p-[16px] border-b border-light-neutral-grey-200 semiBold350">
-        {variant === "new"
-          ? "Start building your flow by dragging and dropping nodes from the left panel"
-          : "Edit your flow by dragging and dropping nodes from the left panel"}
+        {variant === 'new'
+          ? 'Start building your flow by dragging and dropping nodes from the left panel'
+          : 'Edit your flow by dragging and dropping nodes from the left panel'}
         <Button
           className="h-[28px]"
           variant="outlined"
           color="primary"
           onClick={() => {
-            if (variant === "new" || variant === "template") {
+            if (variant === 'new' || variant === 'template') {
               createChatBot();
             } else {
               editChatBot();
             }
           }}
-          sx={{ float: "right" }}
+          sx={{ float: 'right' }}
         >
-          {variant === "new" ? "Create" : "Save"}
+          {variant === 'new' ? 'Create' : 'Save'}
         </Button>
       </div>
       {!loading ? (
@@ -247,7 +238,7 @@ const FlowViewer = () => {
               defaultViewport={{
                 zoom: 0.8,
                 y: 0,
-                x: 0,
+                x: 0
               }}
             >
               <Controls />
@@ -255,14 +246,14 @@ const FlowViewer = () => {
           </div>
         </ReactFlowProvider>
       ) : (
-        ""
+        ''
       )}
       {flow_id ? (
         <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
           <ChatComp chatId={flow_id} />
         </div>
       ) : (
-        ""
+        ''
       )}
     </div>
   );

@@ -1,6 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { APIClassType } from "../../constants";
-import { RootState } from "../store";
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { APIClassType } from '../../constants';
+import { RootState } from '../store';
 
 interface ChatBots {
   created_by: string;
@@ -42,29 +42,27 @@ interface ComponentsInterface {
 }
 
 const slice = createSlice({
-  name: "auth",
+  name: 'auth',
   initialState: {
-    accessToken: localStorage.getItem("accessToken") ?? "",
+    accessToken: localStorage.getItem('accessToken') ?? '',
     components: {},
     typesMap: {},
     chatBots: {},
     selectedChatBot: {} as ChatBots,
     prompts: {},
-    templates: {},
+    templates: {}
   } as AuthState,
   reducers: {
     setAccessToken: (
       state,
       { payload: { accessToken } }: PayloadAction<{ accessToken: string }>
     ) => {
-      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem('accessToken', accessToken);
       state.accessToken = accessToken;
     },
     setComponents: (
       state,
-      {
-        payload: { components },
-      }: PayloadAction<{ components: ComponentsInterface }>
+      { payload: { components } }: PayloadAction<{ components: ComponentsInterface }>
     ) => {
       state.components = components;
       const typesMap = {} as Record<string, string[]>;
@@ -82,36 +80,27 @@ const slice = createSlice({
       });
       state.typesMap = typesMap;
     },
-    setChatBots: (
-      state,
-      { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>
-    ) => {
+    setChatBots: (state, { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>) => {
       const tempChatBots = {} as Record<string, ChatBots>;
       chatBots.forEach((chatBot) => {
         tempChatBots[chatBot.id] = chatBot;
       });
       state.chatBots = tempChatBots;
     },
-    setTemplates: (
-      state,
-      { payload: { templates } }: PayloadAction<{ templates: ChatBots[] }>
-    ) => {
+    setTemplates: (state, { payload: { templates } }: PayloadAction<{ templates: ChatBots[] }>) => {
       const tempTemplates = {} as Record<string, ChatBots>;
       templates.forEach((template) => {
         tempTemplates[template.id] = template;
       });
       state.templates = tempTemplates;
     },
-    setSelectedChatBot: (
-      state,
-      { payload: { chatBot } }: PayloadAction<{ chatBot: ChatBots }>
-    ) => {
+    setSelectedChatBot: (state, { payload: { chatBot } }: PayloadAction<{ chatBot: ChatBots }>) => {
       state.selectedChatBot = chatBot;
     },
     setPrompts: (
       state,
       {
-        payload: { prompts, chatbot_id },
+        payload: { prompts, chatbot_id }
       }: PayloadAction<{ chatbot_id: string; prompts: PromptsInterface[] }>
     ) => {
       const tempList = JSON.parse(JSON.stringify(state?.prompts));
@@ -119,8 +108,8 @@ const slice = createSlice({
         tempList[chatbot_id] = prompts;
       }
       state.prompts = tempList;
-    },
-  },
+    }
+  }
 });
 
 export const {
@@ -129,7 +118,7 @@ export const {
   setChatBots,
   setSelectedChatBot,
   setPrompts,
-  setTemplates,
+  setTemplates
 } = slice.actions;
 
 export default slice.reducer;

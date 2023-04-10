@@ -1,8 +1,8 @@
-import { ReactFlowInstance } from "reactflow";
+import { ReactFlowInstance } from 'reactflow';
 
-const BASE_URL = window?.location?.host?.includes("localhost:5173")
-  ? "http://127.0.0.1:8000/api/v1"
-  : "/api/v1";
+const BASE_URL = window?.location?.host?.includes('localhost:5173')
+  ? 'http://127.0.0.1:8000/api/v1'
+  : '/api/v1';
 type DEFAULT_RESPONSE = any;
 type TemplateVariableType = {
   type: string;
@@ -107,5 +107,5 @@ export type {
   InputListComponentType,
   FloatComponentType,
   ToggleComponentType,
-  ParameterComponentType,
+  ParameterComponentType
 };
