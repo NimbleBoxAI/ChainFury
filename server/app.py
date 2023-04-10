@@ -1,7 +1,8 @@
 import os
+import requests
 from typing import Dict, List
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,9 +71,11 @@ if "static" not in os.listdir("./"):
     os.mkdir("static")
 
 
-@app.get("/", response_class=RedirectResponse, status_code=302)
-async def redirect_pydantic():
-    return "/ui/login"
+# get https://chainfury.framer.website/ and serve on /
+@app.get("/")
+async def serve_farmer():
+    r = requests.get("https://chainfury.framer.website/")
+    return HTMLResponse(content=r.text, status_code=r.status_code)
 
 
 # add static files
