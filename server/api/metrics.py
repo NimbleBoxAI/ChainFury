@@ -1,4 +1,5 @@
 import database
+from database_constants import PromptRating
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from fastapi import HTTPException
@@ -117,18 +118,19 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
         prompts = get_prompts_from_chatbot_id(chatbot_id)
         for prompt in prompts:
             if prompt.chatbot_user_rating is not None:
-                chatbot_user_ratings.append(prompt.chatbot_user_rating)
-                sum_chatbot_user_ratings += prompt.chatbot_user_rating
+                chatbot_user_ratings.append(PromptRating(prompt.chatbot_user_rating).value)
+                sum_chatbot_user_ratings += PromptRating(prompt.chatbot_user_rating).value
                 total_chatbot_user_ratings += 1
             if prompt.user_rating is not None:
-                developer_ratings.append(prompt.user_rating)
-                sum_developer_ratings += prompt.user_rating
+                developer_ratings.append(PromptRating(prompt.user_rating).value)
+                sum_developer_ratings += PromptRating(prompt.user_rating).value
                 total_developer_ratings += 1
             if prompt.gpt_rating is not None:
-                openai_ratings.append(prompt.gpt_rating)
-                sum_openai_ratings += prompt.gpt_rating
+                openai_ratings.append(int(prompt.gpt_rating))
+                sum_openai_ratings += int(prompt.gpt_rating)
                 total_openai_ratings += 1
-            total_tokens_processed += prompt.num_tokens
+            if prompt.num_tokens is not None:
+                total_tokens_processed += prompt.num_tokens
         total_chatbot_conversations += len(prompts)
 
         sum_of_all_ratings = sum_chatbot_user_ratings + sum_developer_ratings + sum_openai_ratings
