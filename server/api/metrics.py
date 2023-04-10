@@ -67,9 +67,9 @@ def get_chatbot_metrics(
     # elif metric_type == "cost":
     #     metrics = get_cost_metrics(id)
     elif metric_type == constants.USER_SCORE_METRIC:
-        metrics = get_user_score_metrics(id)
-    elif metric_type == constants.INTERNAL_REVIEW_SCORE_METRIC:
         metrics = get_chatbot_user_score_metrics(id)
+    elif metric_type == constants.INTERNAL_REVIEW_SCORE_METRIC:
+        metrics = get_user_score_metrics(id)
     elif metric_type == constants.GPT_REVIEW_SCORE_METRIC:
         metrics = get_gpt_rating_metrics(id)
     if metrics is not None:
