@@ -4,7 +4,7 @@ from database import db_session, ChatBot, Prompt
 def get_chatbots_from_username(username: str):
     chatbots = []
     db = db_session()
-    chatbots = db.query(ChatBot).filter(ChatBot.username == username).all()
+    chatbots = db.query(ChatBot).filter(ChatBot.created_by == username).all()
     return chatbots
 
 

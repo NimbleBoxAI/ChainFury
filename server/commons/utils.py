@@ -171,9 +171,9 @@ def get_user_score_metrics(chatbot_id: int):
     db = db_session()
     one_count = ()
 
-    one_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.SAD).count()
-    two_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.NEUTRAL).count()
-    three_count = db.query(Prompt).filter(Prompt.user_rating == constants.PromptRating.HAPPY).count()
+    one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.user_rating == constants.PromptRating.SAD)).count()
+    two_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.user_rating == constants.PromptRating.NEUTRAL)).count()
+    three_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.user_rating == constants.PromptRating.HAPPY)).count()
     user_ratings = []
     user_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return user_ratings
@@ -181,9 +181,15 @@ def get_user_score_metrics(chatbot_id: int):
 
 def get_chatbot_user_score_metrics(chatbot_id: int):
     db = db_session()
-    one_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.SAD).count()
-    two_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.NEUTRAL).count()
-    three_count = db.query(Prompt).filter(Prompt.chatbot_user_rating == constants.PromptRating.HAPPY).count()
+    one_count = (
+        db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.SAD)).count()
+    )
+    two_count = (
+        db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.NEUTRAL)).count()
+    )
+    three_count = (
+        db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.HAPPY)).count()
+    )
     chatbot_user_ratings = []
     chatbot_user_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return chatbot_user_ratings
@@ -191,9 +197,9 @@ def get_chatbot_user_score_metrics(chatbot_id: int):
 
 def get_gpt_rating_metrics(chatbot_id: int):
     db = db_session()
-    one_count = db.query(Prompt).filter(Prompt.gpt_rating <= 4).count()
-    two_count = db.query(Prompt).filter((Prompt.gpt_rating > 4) & (Prompt.gpt_rating <= 7)).count()
-    three_count = db.query(Prompt).filter(Prompt.gpt_rating > 7).count()
+    one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating <= 4)).count()
+    two_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating > 4) & (Prompt.gpt_rating <= 7)).count()
+    three_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating > 7)).count()
     gpt_ratings = []
     gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return gpt_ratings
