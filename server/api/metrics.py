@@ -94,16 +94,14 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
     username = get_user_from_jwt(token)
     verify_user(username)
     metrics = []
-    chatbot_user_ratings = []
-    developer_ratings = []
-    openai_ratings = []
-    total_chatbot_user_ratings = 0
-    total_developer_ratings = 0
-    total_openai_ratings = 0
     chatbots = get_chatbots_from_username(username)  # type: ignore
 
     for chatbot in chatbots:
+        chatbot_user_ratings = []
+        developer_ratings = []
+        openai_ratings = []
         bot_metrics = {}
+        total_tokens_processed = 0
         total_chatbot_conversations = 0
         sum_chatbot_user_ratings = 0
         sum_developer_ratings = 0
@@ -112,6 +110,9 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
         avg_developer_ratings = 0
         avg_openai_ratings = 0
         total_ratings = 0
+        total_chatbot_user_ratings = 0
+        total_developer_ratings = 0
+        total_openai_ratings = 0
         chatbot_id = chatbot.id
         prompts = get_prompts_from_chatbot_id(chatbot_id)
         for prompt in prompts:
@@ -127,7 +128,7 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
                 openai_ratings.append(prompt.gpt_rating)
                 sum_openai_ratings += prompt.gpt_rating
                 total_openai_ratings += 1
-
+            total_tokens_processed += prompt.num_tokens
         total_chatbot_conversations += len(prompts)
 
         sum_of_all_ratings = sum_chatbot_user_ratings + sum_developer_ratings + sum_openai_ratings
@@ -140,6 +141,7 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
 
         bot_metrics = {
             "total_conversations": total_chatbot_conversations,
+            "total_tokens_processed": total_tokens_processed,
             "no_of_conversations_rated_by_developer": len(developer_ratings),
             "no_of_conversations_rated_by_end_user": len(chatbot_user_ratings),
             "no_of_conversations_rated_by_openai": len(openai_ratings),
