@@ -75,7 +75,10 @@ if "static" not in os.listdir("./"):
 @app.get("/")
 async def serve_farmer():
     r = requests.get("https://chainfury.framer.website/")
-    return HTMLResponse(content=r.text, status_code=r.status_code)
+    modified_text = ''
+    if r.text:
+        modified_text = r.text.replace("https://alpaca-irregulardensity.byocawsv0.on.nimblebox.ai/ui/login", "/ui/login")
+    return HTMLResponse(content=modified_text, status_code=r.status_code)
 
 
 # add static files
