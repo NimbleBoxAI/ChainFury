@@ -1,0 +1,8 @@
+[
+    {
+        "id": 1,
+        "name": "Base Template",
+        "description": "This is a basic prompt to start from. It contains just a simple conversational chain.",
+        "dag": "basic_template.json"
+    }
+]
