@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from commons import config as c
-from commons.utils import add_default_user
+from commons.utils import add_default_user, add_default_templates
 
 # Routers
 from api.auth import auth_router
@@ -37,6 +37,7 @@ app.add_middleware(
 )
 
 add_default_user()
+add_default_templates()
 
 ####################################################
 ################ INITIALIZE ########################

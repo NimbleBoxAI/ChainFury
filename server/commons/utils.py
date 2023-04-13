@@ -1,11 +1,12 @@
 import jwt
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
-from database import db_session, User, Prompt, IntermediateStep
+from database import db_session, User, Prompt, IntermediateStep, Template
 from commons import config as c
 import database_constants as constants
 from fastapi import HTTPException
 from sqlalchemy import func
+import json
 
 logger = c.get_logger(__name__)
 
@@ -19,6 +20,29 @@ def add_default_user():
         db.commit()
     except IntegrityError as e:
         logger.info("Not adding default user")
+
+def add_default_templates():
+    db = db_session()
+    try:
+        with open("./examples/index.json") as f:
+            data = json.load(f)
+        for template_data in data:
+            template = db.query(Template).filter_by(id=template_data["id"]).first()
+            if template:
+                template.name = template_data["name"]
+                template.description = template_data["description"]
+                with open("./examples/"+template_data['dag']) as f:
+                    dag = json.load(f)
+                template.dag = dag
+            else:
+                with open("./examples/"+template_data["dag"]) as f:
+                    dag = json.load(f)
+                template = Template(name=template_data["name"], description=template_data["description"], dag=dag)
+                db.add(template)
+        db.commit()
+    except IntegrityError as e:
+        logger.info("Not adding default templates")
+
 
 
 def get_user_from_jwt(token):
