@@ -1,4 +1,4 @@
-# 🦋 ChainFury
+# ChainFury
 
 <img src="./docs/1.png" align="center"/>
 
