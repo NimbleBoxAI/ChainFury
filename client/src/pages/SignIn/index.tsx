@@ -78,6 +78,14 @@ const Login = () => {
           Sign In
         </Button>
       </div>
+      <span
+        onClick={() => {
+          navigate('/ui/signup');
+        }}
+        className="cursor-pointer z-10 relative text-light-primary-blue-600 semiBold300 mt-[8px]"
+      >
+        Don't have an account? Sign Up
+      </span>
 
       <div
         style={{

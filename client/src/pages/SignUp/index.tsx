@@ -1,9 +1,35 @@
 import { Button, CircularProgress } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSignupMutation } from '../../redux/services/auth';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [signup] = useSignupMutation();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('');
+
+  const isValidEmail = (email: string) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+  };
+
+  const handleSignup = () => {
+    signup({
+      username,
+      password,
+      email
+    })
+      .unwrap()
+      .then((res) => {
+        console.log(res);
+        navigate('/ui/login');
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   return (
     <div className={`flex relative flex-col prose-nbx items-center justify-center h-screen w-full`}>
@@ -17,11 +43,45 @@ const SignUp = () => {
             Some text here to describe the app
           </span>
         </div>
-        <input className="w-full h-[40px]" placeholder="Full name" />
-        <input className="w-full h-[40px]" placeholder="Username" />
-        <input className="w-full h-[40px]" placeholder="Email" />
-        <input className="w-full h-[40px]" placeholder="Password" type={'password'} />
-        <Button className="h-[40px] mt-[8px!important] block" variant="contained" color="primary">
+        <input
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+          }}
+          className="w-full h-[40px]"
+          placeholder="Username"
+        />
+        <input
+          onChange={(e) => {
+            setEmail(e.target.value);
+          }}
+          value={email}
+          className="w-full h-[40px]"
+          placeholder="Email"
+        />
+        <input
+          onChange={(e) => {
+            setPassword(e.target.value);
+          }}
+          value={password}
+          className="w-full h-[40px]"
+          placeholder="Password"
+          type={'password'}
+        />
+        <Button
+          disabled={
+            username.length === 0 ||
+            password.length === 0 ||
+            email.length === 0 ||
+            !isValidEmail(email)
+          }
+          onClick={() => {
+            handleSignup();
+          }}
+          className="h-[40px] mt-[8px!important] block"
+          variant="contained"
+          color="primary"
+        >
           Create Account
         </Button>
       </div>
