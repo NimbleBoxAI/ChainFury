@@ -6,11 +6,17 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './pages/Dashboard';
 import FlowViewer from './pages/FlowViewer';
 import Login from './pages/SignIn';
+import SignUp from './pages/SignUp';
 
 const AppRoutes = [
   {
     path: '/ui/login',
     element: <Login />,
+    isPrivate: false
+  },
+  {
+    path: '/ui/signup',
+    element: <SignUp />,
     isPrivate: false
   },
   {

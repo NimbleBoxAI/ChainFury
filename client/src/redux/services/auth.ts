@@ -30,6 +30,20 @@ export const authApi = createApi({
         body: credentials
       })
     }),
+    signup: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        username: string;
+        email: string;
+        password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: '/signup',
+        method: 'POST',
+        body: credentials
+      })
+    }),
     changePassword: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -233,6 +247,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useComponentsMutation,
   useCreateBotMutation,
   useGetBotsMutation,
