@@ -29,12 +29,13 @@ class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True)
+    email = Column(String(80), unique=True, nullable=False)
     username = Column(String(80), unique=True, nullable=False)
     password = Column(String(80), nullable=False)
     meta = Column(JSON)
 
     def __repr__(self):
-        return f"User(id={self.id}, username={self.username}, password={self.password}, meta={self.meta})"
+        return f"User(id={self.id}, username={self.username}, meta={self.meta})"
 
 
 class ChatBot(Base):

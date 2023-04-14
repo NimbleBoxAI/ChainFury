@@ -1,6 +1,7 @@
 import jwt
 import database
 from database import User
+from fastapi import HTTPException
 from typing import Annotated
 from passlib.hash import sha256_crypt
 from sqlalchemy.orm import Session
@@ -17,6 +18,12 @@ logger = c.get_logger(__name__)
 
 class AuthModel(BaseModel):
     username: str
+    password: str
+
+
+class SignUpModal(BaseModel):
+    username: str
+    email: str
     password: str
 
 
@@ -40,4 +47,31 @@ def decode_token(token: Annotated[str, Header()]):
         logger.exception(e)
         response = {"msg": "failed"}
     response = {"msg": "success", "username": username}
+    return response
+
+
+@auth_router.post("/signup", status_code=200)
+def sign_up(auth: SignUpModal, db: Session = Depends(database.db_session)):
+    user_exists = False
+    email_exists = False
+    user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
+    if user is not None:
+        user_exists = True
+    user: User = db.query(User).filter(User.email == auth.email).first()  # type: ignore
+    if user is not None:
+        email_exists = True
+    if user_exists and email_exists:
+        raise HTTPException(status_code=400, detail="Username and email already registered")
+    elif user_exists:
+        raise HTTPException(status_code=400, detail="Username is taken")
+    elif email_exists:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if not user_exists and not email_exists:  # type: ignore
+        user: User = User(username=auth.username, email=auth.email, password=sha256_crypt.hash(auth.password))  # type: ignore
+        db.add(user)
+        db.commit()
+        token = jwt.encode(payload={"username": auth.username}, key=c.JWT_SECRET)
+        response = {"msg": "success", "token": token}
+    else:
+        response = {"msg": "failed"}
     return response
