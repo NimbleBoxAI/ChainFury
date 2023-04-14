@@ -1,10 +1,15 @@
 import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
 import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
-import { setChatBots, setSelectedChatBot, setTemplates } from '../redux/slices/authSlice';
+import {
+  setChatBots,
+  setMetrics,
+  setSelectedChatBot,
+  setTemplates
+} from '../redux/slices/authSlice';
 import ChangePassword from './ChangePassword';
 import ChatBotCard from './ChatBotCard';
 import CollapsibleComponents from './CollapsibleComponents';
@@ -19,6 +24,7 @@ const Sidebar = () => {
   const dispatch = useAppDispatch();
   const [getTemplates] = useGetTemplatesMutation();
   const [changePassword, setChangePassword] = useState(false);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
@@ -29,36 +35,35 @@ const Sidebar = () => {
   }, []);
 
   const getBotList = () => {
-    try {
-      getBots({
-        token: auth?.accessToken
-      })
-        .unwrap()
-        .then((res) => {
-          dispatch(
-            setChatBots({
-              chatBots: res?.chatbots?.length ? res?.chatbots : []
-            })
-          );
+    getBots({
+      token: auth?.accessToken
+    })
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setChatBots({
+            chatBots: res?.chatbots?.length ? res?.chatbots : []
+          })
+        );
+        if (!searchParams?.get('id')) {
           dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      getTemplates({
-        token: localStorage.getItem('accessToken') ?? ''
+          navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id}`);
+        }
       })
-        .unwrap()
-        .then((res) => {
-          dispatch(
-            setTemplates({
-              templates: res?.templates?.length ? res?.templates : []
-            })
-          );
-        });
-    } catch (err) {
-      console.log(err);
-    }
+      .catch((err) => {
+        console.log(err);
+      });
+    getTemplates({
+      token: localStorage.getItem('accessToken') ?? ''
+    })
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setTemplates({
+            templates: res?.templates?.length ? res?.templates : []
+          })
+        );
+      });
   };
 
   const onDragStart = (
@@ -114,6 +119,7 @@ const Sidebar = () => {
                           chatBot: bot
                         })
                       );
+                      navigate(`/ui/dashboard/?id=${bot?.id}`);
                     }}
                   >
                     <ChatBotCard key={key} label={bot?.name} />

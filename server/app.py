@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from commons import config as c
-from commons.utils import add_default_user
+from commons.utils import add_default_user, add_default_templates
 
 # Routers
 from api.auth import auth_router
@@ -37,6 +37,7 @@ app.add_middleware(
 )
 
 add_default_user()
+add_default_templates()
 
 ####################################################
 ################ INITIALIZE ########################
@@ -75,7 +76,10 @@ if "static" not in os.listdir("./"):
 @app.get("/")
 async def serve_farmer():
     r = requests.get("https://chainfury.framer.website/")
-    return HTMLResponse(content=r.text, status_code=r.status_code)
+    modified_text = ''
+    if r.text:
+        modified_text = r.text.replace("https://alpaca-irregulardensity.byocawsv0.on.nimblebox.ai/ui/login", "/ui/login")
+    return HTMLResponse(content=modified_text, status_code=r.status_code)
 
 
 # add static files
