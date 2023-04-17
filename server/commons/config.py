@@ -17,8 +17,13 @@ def get_logger(name):
 
 logger = get_logger(__name__)
 
+
 DATABASE = "sqlite:///./chain.db"
-engine = create_engine(DATABASE, connect_args={"check_same_thread": False})
+if os.environ.get("DATABASE_URL", None) is not None:
+    logger.info("Using DATABASE_URL")
+    DATABASE = os.environ.get("DATABASE_URL")
+
+engine = create_engine(DATABASE)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 logger.info("Database opened successfully")
 

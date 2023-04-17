@@ -44,6 +44,14 @@ docker build . -f Dockerfile -t chainfury:latest
 docker run --env OPENAI_API_KEY=<your_key_here> -p 8000:8000 chainfury:latest
 ```
 
+You can also pass a Database URL to the docker container using the `DATABASE_URL` environment variable. If you do not pass a database URL, ChainFury will use a SQLite database.
+
+Example:
+
+```bash
+docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
+```
+
 ### **Method 2: Manual**
 
 For this, you will need to build the frontend and and then run the backend. The frontend can be built using the following command:
