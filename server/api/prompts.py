@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/chatbot/{chatbot_id}/prompt")
-def process_prompt(chatbot_id: int, prompt: Prompt, db: Session = Depends(db_session)):
+def process_prompt(chatbot_id: str, prompt: Prompt, db: Session = Depends(db_session)):
     return get_prompt(chatbot_id, prompt, db)
 
 

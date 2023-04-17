@@ -21,6 +21,7 @@ def add_default_user():
     except IntegrityError as e:
         logger.info("Not adding default user")
 
+
 def add_default_templates():
     db = db_session()
     try:
@@ -31,18 +32,17 @@ def add_default_templates():
             if template:
                 template.name = template_data["name"]
                 template.description = template_data["description"]
-                with open("./examples/"+template_data['dag']) as f:
+                with open("./examples/" + template_data["dag"]) as f:
                     dag = json.load(f)
                 template.dag = dag
             else:
-                with open("./examples/"+template_data["dag"]) as f:
+                with open("./examples/" + template_data["dag"]) as f:
                     dag = json.load(f)
                 template = Template(name=template_data["name"], description=template_data["description"], dag=dag)
                 db.add(template)
         db.commit()
     except IntegrityError as e:
         logger.info("Not adding default templates")
-
 
 
 def get_user_from_jwt(token):
@@ -66,7 +66,7 @@ def verify_user(username):
 
 
 def filter_prompts_by_date_range(
-    chatbot_id: int,
+    chatbot_id: str,
     from_date: str,
     to_date: str,
     page: int,
@@ -152,7 +152,7 @@ def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
     return prompt.user_rating
 
 
-def get_hourly_latency_metrics(chatbot_id: int):
+def get_hourly_latency_metrics(chatbot_id: str):
     db = db_session()
     hourly_average_latency = (
         db.query(Prompt)
@@ -172,7 +172,7 @@ def get_hourly_latency_metrics(chatbot_id: int):
     return latency_per_hour
 
 
-# def get_cost_metrics(chatbot_id: int):
+# def get_cost_metrics(chatbot_id: str):
 #     db = db_session()
 #     hourly_average_cost = (
 #         Prompt.query.filter(Prompt.chatbot_id == chatbot_id)
@@ -191,7 +191,7 @@ def get_hourly_latency_metrics(chatbot_id: int):
 #     return cost_per_hour
 
 
-def get_user_score_metrics(chatbot_id: int):
+def get_user_score_metrics(chatbot_id: str):
     db = db_session()
     one_count = ()
 
@@ -203,7 +203,7 @@ def get_user_score_metrics(chatbot_id: int):
     return user_ratings
 
 
-def get_chatbot_user_score_metrics(chatbot_id: int):
+def get_chatbot_user_score_metrics(chatbot_id: str):
     db = db_session()
     one_count = (
         db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.SAD)).count()
@@ -219,7 +219,7 @@ def get_chatbot_user_score_metrics(chatbot_id: int):
     return chatbot_user_ratings
 
 
-def get_gpt_rating_metrics(chatbot_id: int):
+def get_gpt_rating_metrics(chatbot_id: str):
     db = db_session()
     one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 1)).count()
     two_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 2)).count()

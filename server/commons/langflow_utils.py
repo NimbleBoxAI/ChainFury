@@ -99,7 +99,7 @@ def process_graph(message, chat_history, data_graph):
     return {"result": str(result), "thought": thought, "num_tokens": num_tokens}
 
 
-def get_prompt(chatbot_id: int, prompt: Prompt, db: Session):
+def get_prompt(chatbot_id: str, prompt: Prompt, db: Session):
     try:
         # start timer
         start = time.time()

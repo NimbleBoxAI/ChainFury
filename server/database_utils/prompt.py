@@ -8,12 +8,12 @@ from commons import config as c
 logger = c.get_logger(__name__)
 
 
-def get_prompts(db: Session, chatbot_id: int) -> List[Prompt]:
+def get_prompts(db: Session, chatbot_id: str) -> List[Prompt]:
     row = db.query(Prompt).filter(Prompt.chatbot_id == chatbot_id).all()
     return row
 
 
-def create_prompt(db: Session, chatbot_id: int, input_prompt: str, session_id: str) -> Prompt:
+def create_prompt(db: Session, chatbot_id: str, input_prompt: str, session_id: str) -> Prompt:
     logger.debug(f"Creating prompt for chatbot {chatbot_id} with input prompt {input_prompt}")
     db_prompt = Prompt(
         chatbot_id=chatbot_id,
