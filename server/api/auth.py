@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from commons import config as c
-from commons.utils import get_user_from_jwt
+from commons.utils import get_user_from_jwt, get_user_id_from_jwt
 
 
 auth_router = APIRouter(prefix="", tags=["authentication"])
@@ -31,7 +31,7 @@ class SignUpModal(BaseModel):
 def login(auth: AuthModel, db: Session = Depends(database.db_session)):
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
-        token = jwt.encode(payload={"username": auth.username}, key=c.JWT_SECRET)
+        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.JWT_SECRET)
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}
@@ -41,12 +41,14 @@ def login(auth: AuthModel, db: Session = Depends(database.db_session)):
 @auth_router.post("/get_user_info", status_code=200)
 def decode_token(token: Annotated[str, Header()]):
     username = None
+    userid = None
     try:
         username = get_user_from_jwt(token)
+        userid = get_user_id_from_jwt(token)
     except Exception as e:
         logger.exception(e)
         response = {"msg": "failed"}
-    response = {"msg": "success", "username": username}
+    response = {"msg": "success", "username": username, "user_id": userid}
     return response
 
 
@@ -70,7 +72,7 @@ def sign_up(auth: SignUpModal, db: Session = Depends(database.db_session)):
         user: User = User(username=auth.username, email=auth.email, password=sha256_crypt.hash(auth.password))  # type: ignore
         db.add(user)
         db.commit()
-        token = jwt.encode(payload={"username": auth.username}, key=c.JWT_SECRET)
+        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.JWT_SECRET)
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}

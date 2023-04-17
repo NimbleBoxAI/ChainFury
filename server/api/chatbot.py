@@ -4,7 +4,7 @@ from database import ChatBot
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
-from commons.utils import get_user_from_jwt, verify_user
+from commons.utils import get_user_from_jwt, verify_user, get_user_id_from_jwt
 from commons import config as c
 
 logger = c.get_logger(__name__)
@@ -21,8 +21,9 @@ class ChatBotModel(BaseModel):
 def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
     username = get_user_from_jwt(token)
     verify_user(username)
+    user_id = get_user_id_from_jwt(token)
     try:
-        chatbot = ChatBot(name=inputs.name, created_by=username, dag=inputs.dag)
+        chatbot = ChatBot(name=inputs.name, created_by=user_id, dag=inputs.dag)
         db.add(chatbot)
         db.commit()
         response = {"msg": "success", "chatbot": chatbot.to_dict()}
