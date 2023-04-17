@@ -3,6 +3,8 @@ import logging
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
+
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
@@ -23,7 +25,14 @@ if os.environ.get("DATABASE_URL", None) is not None:
     logger.info("Using DATABASE_URL")
     DATABASE = os.environ.get("DATABASE_URL")
 
-engine = create_engine(DATABASE)
+engine = create_engine(
+    DATABASE,
+    poolclass=QueuePool,
+    pool_size=10,
+    pool_recycle=30,
+    pool_pre_ping=True,
+)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 logger.info("Database opened successfully")
 
