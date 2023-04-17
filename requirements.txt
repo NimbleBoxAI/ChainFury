@@ -4,7 +4,7 @@ openai
 sqlalchemy
 pyjwt[crypto]
 jinja2
-langflow==0.0.54
+langflow==0.0.56
 black
 passlib
 pymysql
