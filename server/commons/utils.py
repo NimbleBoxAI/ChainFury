@@ -58,6 +58,19 @@ def get_user_from_jwt(token):
     return payload.get("username")
 
 
+def get_user_id_from_jwt(token):
+    try:
+        payload = jwt.decode(
+            token,
+            key=c.JWT_SECRET,
+            algorithms=["HS256"],
+        )
+    except Exception as e:
+        logger.exception("Could not decide JWT token")
+        raise HTTPException(status_code=401, detail="Could not decode JWT token")
+    return payload.get("userid")
+
+
 def verify_user(username):
     db = db_session()
     user = db.query(User).filter(User.username == username).first()
