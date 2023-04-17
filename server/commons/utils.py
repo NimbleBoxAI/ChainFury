@@ -13,7 +13,7 @@ logger = c.get_logger(__name__)
 
 def add_default_user():
     admin_password = sha256_crypt.hash("admin")
-    new_user = User(username="admin", password=admin_password, meta="")
+    new_user = User(username="admin", password=admin_password, email="admin@admin.com", meta="")
     db = db_session()
     try:
         db.add(new_user)
