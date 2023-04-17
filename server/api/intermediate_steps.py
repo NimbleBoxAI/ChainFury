@@ -11,7 +11,7 @@ intermediate_steps_router = APIRouter(prefix="", tags=["intermediate_steps"])
 
 @intermediate_steps_router.get("/chatbot/{id}/prompt/{prompt_id}/intermediate_steps", status_code=200)
 def get_intermediate_steps(
-    id: int,
+    id: str,
     prompt_id: int,
     token: Annotated[str, Header()],
     db: Session = Depends(database.db_session),
