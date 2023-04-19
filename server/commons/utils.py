@@ -5,7 +5,7 @@ from database import db_session, User, Prompt, IntermediateStep, Template
 from commons import config as c
 import database_constants as constants
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, cast, DateTime
 import json
 
 logger = c.get_logger(__name__)
@@ -171,10 +171,10 @@ def get_hourly_latency_metrics(chatbot_id: str):
         db.query(Prompt)
         .filter(Prompt.chatbot_id == chatbot_id)
         .with_entities(
-            func.strftime("%Y-%m-%d %H:00:00", Prompt.created_at).label("hour"),
+            cast(Prompt.created_at, DateTime).label("datetime"),
             func.avg(Prompt.time_taken).label("avg_time_taken"),
         )
-        .group_by("hour")
+        .group_by(func.date_trunc("hour", Prompt.created_at))
         .limit(24)
         .all()
     )
