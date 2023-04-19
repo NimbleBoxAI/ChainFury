@@ -7,6 +7,7 @@ class PromptRating(Enum):
     SAD = 1
     NEUTRAL = 2
     HAPPY = 3
+    UNRATED = -1
 
 
 SORT_BY_TIME_TAKEN = "time_taken"
