@@ -23,7 +23,6 @@ const SignUp = () => {
     })
       .unwrap()
       .then((res) => {
-        console.log(res);
         navigate('/ui/login');
       })
       .catch((err) => {
