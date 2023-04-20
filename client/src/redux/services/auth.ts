@@ -49,11 +49,10 @@ export const authApi = createApi({
       {
         old_password: string;
         new_password: string;
-        token: string;
       }
     >({
       query: (credentials) => ({
-        url: '/user/change_password?token=' + token,
+        url: '/user/change_password',
         method: 'POST',
         body: {
           old_password: credentials.old_password,
@@ -86,7 +85,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}&token=${token}`,
+        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}`,
         method: 'PUT',
         body: {
           score
@@ -136,7 +135,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1&token=` + credentials?.token,
+        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1`,
         method: 'GET'
       })
     }),
@@ -147,7 +146,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: '/chatbot/?token=' + credentials?.token,
+        url: '/chatbot/',
         method: 'GET'
       })
     }),
@@ -209,7 +208,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: '/chatbot/?token=' + token,
+        url: '/chatbot/',
         method: 'POST',
         body: {
           name: credentials.name,
