@@ -73,9 +73,11 @@ def get_user_id_from_jwt(token):
 
 def verify_user(username):
     db = db_session()
+    logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise Exception("User not found")
+    return user
 
 
 def filter_prompts_by_date_range(
