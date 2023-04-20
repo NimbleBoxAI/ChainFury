@@ -38,7 +38,7 @@ def add_default_templates():
             else:
                 with open("./examples/" + template_data["dag"]) as f:
                     dag = json.load(f)
-                template = Template(name=template_data["name"], description=template_data["description"], dag=dag)
+                template = Template(id=template_data["id"] ,name=template_data["name"], description=template_data["description"], dag=dag)
                 db.add(template)
         db.commit()
     except IntegrityError as e:
