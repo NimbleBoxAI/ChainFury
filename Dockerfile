@@ -12,6 +12,7 @@ COPY ./requirements.txt /app
 # Setting up the working directory
 WORKDIR /app
 RUN python3 -m pip install -r requirements.txt
+RUN pip install --no-deps langflow==0.0.54
 
 # Bundle app source
 RUN rm -rf /app/static
