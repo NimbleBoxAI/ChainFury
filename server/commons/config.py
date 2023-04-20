@@ -24,14 +24,16 @@ DATABASE = "sqlite:///./chain.db"
 if os.environ.get("DATABASE_URL", None) is not None:
     logger.info("Using DATABASE_URL")
     DATABASE = os.environ.get("DATABASE_URL")
-
-engine = create_engine(
-    DATABASE,
-    poolclass=QueuePool,
-    pool_size=10,
-    pool_recycle=30,
-    pool_pre_ping=True,
-)
+    engine = create_engine(
+        DATABASE,
+        poolclass=QueuePool,
+        pool_size=10,
+        pool_recycle=30,
+        pool_pre_ping=True,
+    )
+else:
+    logger.info("Using sqlite database")
+    engine = create_engine(DATABASE, connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 logger.info("Database opened successfully")
