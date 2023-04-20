@@ -136,7 +136,7 @@ def update_chatbot_user_rating(prompt_id: int, rating: constants.PromptRating):
     db = db_session()
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
-        if prompt.chatbot_user_rating is not None:
+        if prompt.chatbot_user_rating is not constants.PromptRating.UNRATED:
             raise HTTPException(
                 status_code=400,
                 detail=f"Chatbot user rating already exists",

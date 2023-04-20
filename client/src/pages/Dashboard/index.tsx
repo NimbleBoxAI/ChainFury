@@ -265,7 +265,7 @@ const Dashboard = () => {
                   prompt?.id,
                   prompt?.input_prompt,
                   prompt?.response,
-                  prompt?.user_rating ?? '',
+                  prompt?.user_rating > 1 ? prompt?.user_rating : '',
                   prompt?.gpt_rating ?? '',
                   prompt?.num_tokens ?? '',
                   Math.round(prompt?.time_taken) + 's'
