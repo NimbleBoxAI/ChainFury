@@ -16,7 +16,7 @@ export const authApi = createApi({
       token = (getState() as RootState)?.auth?.accessToken;
       headers.set('content-type', 'application/json;charset=UTF-8');
       if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
+        headers.set('token', `${token}`);
       }
       return headers;
     },
@@ -159,8 +159,8 @@ export const authApi = createApi({
         prompt_id: string;
       }
     >({
-      query: ({ token, id, prompt_id }) => ({
-        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps?token=` + token,
+      query: ({ id, prompt_id }) => ({
+        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps`,
         method: 'GET'
       })
     }),
@@ -170,8 +170,8 @@ export const authApi = createApi({
         token: string;
       }
     >({
-      query: ({ token }) => ({
-        url: `/templates?token=` + token,
+      query: () => ({
+        url: `/templates`,
         method: 'GET'
       })
     }),
@@ -183,8 +183,8 @@ export const authApi = createApi({
         metric_type: string;
       }
     >({
-      query: ({ token, id, metric_type }) => ({
-        url: `/chatbot/${id}/metrics?metric_type=${metric_type}&token=` + token,
+      query: ({ id, metric_type }) => ({
+        url: `/chatbot/${id}/metrics?metric_type=${metric_type}`,
         method: 'GET'
       })
     }),
@@ -194,8 +194,8 @@ export const authApi = createApi({
         token: string;
       }
     >({
-      query: ({ token }) => ({
-        url: `/chatbots/metrics?token=` + token,
+      query: () => ({
+        url: `/chatbots/metrics`,
         method: 'GET'
       })
     }),
@@ -231,7 +231,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}?token=` + token,
+        url: `/chatbot/${credentials?.id}`,
         method: 'PUT',
         body: {
           name: credentials.name,

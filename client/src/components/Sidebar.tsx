@@ -47,7 +47,7 @@ const Sidebar = () => {
         );
         if (!searchParams?.get('id')) {
           dispatch(setSelectedChatBot({ chatBot: res?.chatbots[0] }));
-          navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id}`);
+          navigate(`/ui/dashboard/?id=${res?.chatbots[0]?.id ?? ''}`);
         }
       })
       .catch((err) => {
@@ -119,7 +119,7 @@ const Sidebar = () => {
                           chatBot: bot
                         })
                       );
-                      navigate(`/ui/dashboard/?id=${bot?.id}`);
+                      navigate(`/ui/dashboard/?id=${bot?.id ?? ''}`);
                     }}
                   >
                     <ChatBotCard key={key} label={bot?.name} />
