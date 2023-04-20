@@ -58,7 +58,7 @@ export const authApi = createApi({
         body: {
           old_password: credentials.old_password,
           new_password: credentials.new_password,
-          username: 'admin'
+          username: ''
         }
       })
     }),
