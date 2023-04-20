@@ -13,7 +13,7 @@ from commons.utils import (
 )
 import database_constants as constants
 from typing import Annotated
-from commons.utils import get_user_from_jwt, verify_user
+from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access
 from database_utils.dashboard import get_chatbots_from_username, get_prompts_from_chatbot_id
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
@@ -60,8 +60,10 @@ def get_chatbot_metrics(
     db: Session = Depends(database.db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(username)
-    metrics = None
+    user: database.User = verify_user(username)
+    is_chatbot_creator = have_chatbot_access(id, user.id)  # type: ignore
+    if(is_chatbot_creator is False):
+        raise HTTPException(status_code=401, detail="Unauthorized access")
     if metric_type == constants.LATENCY_METRIC:
         metrics = get_hourly_latency_metrics(id)
     # elif metric_type == "cost":
