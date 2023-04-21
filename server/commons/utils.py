@@ -1,7 +1,7 @@
 import jwt
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
-from database import db_session, User, Prompt, IntermediateStep, Template
+from database import db_session, User, Prompt, IntermediateStep, Template, ChatBot
 from commons import config as c
 import database_constants as constants
 from fastapi import HTTPException
@@ -73,9 +73,11 @@ def get_user_id_from_jwt(token):
 
 def verify_user(username):
     db = db_session()
+    logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise Exception("User not found")
+    return user
 
 
 def filter_prompts_by_date_range(
@@ -240,3 +242,11 @@ def get_gpt_rating_metrics(chatbot_id: str):
     gpt_ratings = []
     gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return gpt_ratings
+
+def have_chatbot_access(chatbot_id: str, user_id: str):
+    db = db_session()
+    chatbot = db.query(ChatBot).filter(ChatBot.id == chatbot_id and ChatBot.created_by == user_id).first()
+    if chatbot is not None:
+        return True
+    else:
+        return False

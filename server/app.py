@@ -78,7 +78,7 @@ async def serve_farmer():
     r = requests.get("https://chainfury.framer.website/")
     modified_text = ''
     if r.text:
-        modified_text = r.text.replace("https://alpaca-irregulardensity.byocawsv0.on.nimblebox.ai/ui/login", "/ui/login")
+        modified_text = r.text.replace("https://chainfury.nbox.ai/ui/dashboard", "/ui/dashboard")
     return HTMLResponse(content=modified_text, status_code=r.status_code)
 
 
