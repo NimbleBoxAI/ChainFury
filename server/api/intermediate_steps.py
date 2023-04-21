@@ -14,7 +14,7 @@ def get_intermediate_steps(
     id: str,
     prompt_id: int,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
     verify_user(username)

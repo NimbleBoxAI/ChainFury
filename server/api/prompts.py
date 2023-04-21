@@ -10,7 +10,7 @@ from commons.utils import get_user_from_jwt, verify_user
 
 from commons.langflow_utils import get_prompt
 from commons.utils import update_internal_user_rating
-from database import db_session
+from database import fastapi_db_session
 from database_constants import PromptRating
 
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/chatbot/{chatbot_id}/prompt")
-def process_prompt(chatbot_id: str, prompt: Prompt, db: Session = Depends(db_session)):
+def process_prompt(chatbot_id: str, prompt: Prompt, db: Session = Depends(fastapi_db_session)):
     return get_prompt(chatbot_id, prompt, db)
 
 
@@ -35,7 +35,7 @@ class InternalFeedbackModel(BaseModel):
 
 @router.put("/chatbot/{chatbot_id}/prompt")
 def update_internal_user_feedback(
-    inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(db_session)
+    inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(fastapi_db_session)
 ):
     username = get_user_from_jwt(token)
     verify_user(username)
