@@ -11,8 +11,7 @@ const ChangePassword = ({ onClose }: { onClose: () => void }) => {
   const handlePasswordChange = () => {
     changePassword({
       old_password: oldPassword,
-      new_password: password,
-      token: localStorage.getItem('accessToken') ?? ''
+      new_password: password
     })
       .unwrap()
       .then((res) => {

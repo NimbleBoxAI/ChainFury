@@ -1,24 +1,48 @@
 import jwt
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
-from database import db_session, User, Prompt, IntermediateStep
+from database import db_session, User, Prompt, IntermediateStep, Template, ChatBot
 from commons import config as c
 import database_constants as constants
 from fastapi import HTTPException
-from sqlalchemy import func
+from sqlalchemy import func, cast, DateTime
+import json
 
 logger = c.get_logger(__name__)
 
 
 def add_default_user():
     admin_password = sha256_crypt.hash("admin")
-    new_user = User(username="admin", password=admin_password, meta="")
+    new_user = User(username="admin", password=admin_password, email="admin@admin.com", meta="")
     db = db_session()
     try:
         db.add(new_user)
         db.commit()
     except IntegrityError as e:
         logger.info("Not adding default user")
+
+
+def add_default_templates():
+    db = db_session()
+    try:
+        with open("./examples/index.json") as f:
+            data = json.load(f)
+        for template_data in data:
+            template = db.query(Template).filter_by(id=template_data["id"]).first()
+            if template:
+                template.name = template_data["name"]
+                template.description = template_data["description"]
+                with open("./examples/" + template_data["dag"]) as f:
+                    dag = json.load(f)
+                template.dag = dag
+            else:
+                with open("./examples/" + template_data["dag"]) as f:
+                    dag = json.load(f)
+                template = Template(id=template_data["id"] ,name=template_data["name"], description=template_data["description"], dag=dag)
+                db.add(template)
+        db.commit()
+    except IntegrityError as e:
+        logger.info("Not adding default templates")
 
 
 def get_user_from_jwt(token):
@@ -34,15 +58,30 @@ def get_user_from_jwt(token):
     return payload.get("username")
 
 
+def get_user_id_from_jwt(token):
+    try:
+        payload = jwt.decode(
+            token,
+            key=c.JWT_SECRET,
+            algorithms=["HS256"],
+        )
+    except Exception as e:
+        logger.exception("Could not decide JWT token")
+        raise HTTPException(status_code=401, detail="Could not decode JWT token")
+    return payload.get("userid")
+
+
 def verify_user(username):
     db = db_session()
+    logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
         raise Exception("User not found")
+    return user
 
 
 def filter_prompts_by_date_range(
-    chatbot_id: int,
+    chatbot_id: str,
     from_date: str,
     to_date: str,
     page: int,
@@ -99,7 +138,7 @@ def update_chatbot_user_rating(prompt_id: int, rating: constants.PromptRating):
     db = db_session()
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
-        if prompt.chatbot_user_rating is not None:
+        if prompt.chatbot_user_rating is not constants.PromptRating.UNRATED:
             raise HTTPException(
                 status_code=400,
                 detail=f"Chatbot user rating already exists",
@@ -128,16 +167,16 @@ def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
     return prompt.user_rating
 
 
-def get_hourly_latency_metrics(chatbot_id: int):
+def get_hourly_latency_metrics(chatbot_id: str):
     db = db_session()
     hourly_average_latency = (
         db.query(Prompt)
         .filter(Prompt.chatbot_id == chatbot_id)
         .with_entities(
-            func.strftime("%Y-%m-%d %H:00:00", Prompt.created_at).label("hour"),
+            cast(Prompt.created_at, DateTime).label("datetime"),
             func.avg(Prompt.time_taken).label("avg_time_taken"),
         )
-        .group_by("hour")
+        .group_by(func.date_trunc("hour", Prompt.created_at))
         .limit(24)
         .all()
     )
@@ -148,7 +187,7 @@ def get_hourly_latency_metrics(chatbot_id: int):
     return latency_per_hour
 
 
-# def get_cost_metrics(chatbot_id: int):
+# def get_cost_metrics(chatbot_id: str):
 #     db = db_session()
 #     hourly_average_cost = (
 #         Prompt.query.filter(Prompt.chatbot_id == chatbot_id)
@@ -167,7 +206,7 @@ def get_hourly_latency_metrics(chatbot_id: int):
 #     return cost_per_hour
 
 
-def get_user_score_metrics(chatbot_id: int):
+def get_user_score_metrics(chatbot_id: str):
     db = db_session()
     one_count = ()
 
@@ -179,7 +218,7 @@ def get_user_score_metrics(chatbot_id: int):
     return user_ratings
 
 
-def get_chatbot_user_score_metrics(chatbot_id: int):
+def get_chatbot_user_score_metrics(chatbot_id: str):
     db = db_session()
     one_count = (
         db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.SAD)).count()
@@ -195,7 +234,7 @@ def get_chatbot_user_score_metrics(chatbot_id: int):
     return chatbot_user_ratings
 
 
-def get_gpt_rating_metrics(chatbot_id: int):
+def get_gpt_rating_metrics(chatbot_id: str):
     db = db_session()
     one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 1)).count()
     two_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 2)).count()
@@ -203,3 +242,11 @@ def get_gpt_rating_metrics(chatbot_id: int):
     gpt_ratings = []
     gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return gpt_ratings
+
+def have_chatbot_access(chatbot_id: str, user_id: str):
+    db = db_session()
+    chatbot = db.query(ChatBot).filter(ChatBot.id == chatbot_id and ChatBot.created_by == user_id).first()
+    if chatbot is not None:
+        return True
+    else:
+        return False

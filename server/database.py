@@ -3,8 +3,9 @@ from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from commons.config import Base, SessionLocal, engine
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, JSON, Text
-from database_constants import PromptRating
+from database_constants import PromptRating, ID_LENGTH
 from sqlalchemy import Float, DateTime, Enum
+from database_utils import general_utils
 
 
 def db_session() -> Session:  # type: ignore
@@ -25,24 +26,49 @@ def fastapi_db_session():
         db.close()
 
 
+def unique_string(Table, row_reference):
+    """
+    Gets Random Unique String for Primary key and makes sure its unique for the table.
+    """
+    db = db_session()
+    random_string = general_utils.get_random_alphanumeric_string(ID_LENGTH).lower()
+    while db.query(Table).filter(row_reference == random_string).limit(1).first() is not None:
+        random_string = general_utils.get_random_alphanumeric_string(ID_LENGTH).lower()
+
+    return random_string
+
+
+def unique_number(Table, row_reference):
+    """
+    Gets Random Unique Number for Primary key and makes sure its unique for the table.
+    """
+    db = db_session()
+    random_number = general_utils.get_random_number(ID_LENGTH)
+    while db.query(Table).filter(row_reference == random_number).limit(1).first() is not None:
+        random_number = general_utils.get_random_number(ID_LENGTH)
+
+    return random_number
+
+
 class User(Base):
     __tablename__ = "user"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String(8), default=lambda: unique_string(User, User.id), primary_key=True)
+    email = Column(String(80), unique=True, nullable=False)
     username = Column(String(80), unique=True, nullable=False)
     password = Column(String(80), nullable=False)
     meta = Column(JSON)
 
     def __repr__(self):
-        return f"User(id={self.id}, username={self.username}, password={self.password}, meta={self.meta})"
+        return f"User(id={self.id}, username={self.username}, meta={self.meta})"
 
 
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String(8), default=lambda: unique_string(ChatBot, ChatBot.id), primary_key=True)
     name = Column(String(80), unique=True)
-    created_by = Column(Integer, ForeignKey("user.id"), nullable=False)
+    created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
     dag = Column(JSON)
     meta = Column(JSON)
 
@@ -62,15 +88,15 @@ class ChatBot(Base):
 class Prompt(Base):
     __tablename__ = "prompt"
 
-    id = Column(Integer, primary_key=True)
-    chatbot_id = Column(Integer, ForeignKey("chatbot.id"), nullable=False)
+    id = Column(Integer, default=lambda: unique_number(Prompt, Prompt.id), primary_key=True)
+    chatbot_id = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
     input_prompt = Column(Text, nullable=False)
-    response = Column(Text, nullable=False)
+    response = Column(Text, nullable=True)
     gpt_rating = Column(String(5), nullable=True)
-    user_rating = Column(Enum(PromptRating), nullable=True)
-    chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
-    time_taken = Column(Float, nullable=False)
-    num_tokens = Column(Integer, nullable=False)
+    user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
+    chatbot_user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
+    time_taken = Column(Float, nullable=True)
+    num_tokens = Column(Integer, nullable=True)
     created_at = Column(DateTime, nullable=False)
     session_id = Column(String(80), nullable=False)
     meta = Column(JSON)
@@ -78,7 +104,7 @@ class Prompt(Base):
 
 class IntermediateStep(Base):
     __tablename__ = "intermediate_step"
-    id = Column(Integer, primary_key=True)
+    id = Column(String(8), default=lambda: unique_string(IntermediateStep, IntermediateStep.id), primary_key=True)
     prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
     intermediate_prompt = Column(Text, nullable=False)
     intermediate_response = Column(Text, nullable=False)
@@ -90,7 +116,7 @@ class IntermediateStep(Base):
 
 class Template(Base):
     __tablename__ = "template"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, default=lambda: unique_number(Template, Template.id), primary_key=True)
     name = Column(Text, nullable=False)
     dag = Column(JSON, nullable=False)
     description = Column(Text)

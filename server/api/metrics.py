@@ -13,7 +13,7 @@ from commons.utils import (
 )
 import database_constants as constants
 from typing import Annotated
-from commons.utils import get_user_from_jwt, verify_user
+from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access
 from database_utils.dashboard import get_chatbots_from_username, get_prompts_from_chatbot_id
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
@@ -21,9 +21,9 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 
 @metrics_router.get("/chatbot/{id}/prompts", status_code=200)
 def get_chatbot_prompts(
-    id: int,
+    id: str,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
     from_date: str = None,  # type: ignore
     to_date: str = None,  # type: ignore
     page: int = 1,
@@ -54,14 +54,16 @@ def get_chatbot_prompts(
 
 @metrics_router.get("/chatbot/{id}/metrics", status_code=200)
 def get_chatbot_metrics(
-    id: int,
+    id: str,
     metric_type: str,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(username)
-    metrics = None
+    user: database.User = verify_user(username)
+    is_chatbot_creator = have_chatbot_access(id, user.id)  # type: ignore
+    if(is_chatbot_creator is False):
+        raise HTTPException(status_code=401, detail="Unauthorized access")
     if metric_type == constants.LATENCY_METRIC:
         metrics = get_hourly_latency_metrics(id)
     # elif metric_type == "cost":
@@ -80,7 +82,7 @@ def get_chatbot_metrics(
 
 
 @metrics_router.get("/chatbots/metrics", status_code=200)
-def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     #     - Average user rating per bot
     #     - Average developer rating per bot
     #     - Average openai rating per bot

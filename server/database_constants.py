@@ -7,6 +7,7 @@ class PromptRating(Enum):
     SAD = 1
     NEUTRAL = 2
     HAPPY = 3
+    UNRATED = -1
 
 
 SORT_BY_TIME_TAKEN = "time_taken"
@@ -22,3 +23,4 @@ COST_METRIC = "cost"
 USER_SCORE_METRIC = "user_score"
 INTERNAL_REVIEW_SCORE_METRIC = "internal_review_score"
 GPT_REVIEW_SCORE_METRIC = "gpt_review_score"
+ID_LENGTH = 8

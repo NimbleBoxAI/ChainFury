@@ -44,9 +44,6 @@ const Dashboard = () => {
   const [getAllMetrics] = useGetAllBotMetricsMutation();
 
   useEffect(() => {
-    console.log({
-      auth
-    });
     if (searchParams?.get('id') && auth?.chatBots?.[searchParams?.get('id') ?? '']) {
       dispatch(setSelectedChatBot({ chatBot: auth?.chatBots?.[searchParams?.get('id') ?? ''] }));
     }
@@ -268,7 +265,7 @@ const Dashboard = () => {
                   prompt?.id,
                   prompt?.input_prompt,
                   prompt?.response,
-                  prompt?.user_rating ?? '',
+                  prompt?.user_rating > 1 ? prompt?.user_rating : '',
                   prompt?.gpt_rating ?? '',
                   prompt?.num_tokens ?? '',
                   Math.round(prompt?.time_taken) + 's'
@@ -291,9 +288,13 @@ const Dashboard = () => {
       ) : (
         ''
       )}
-      <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
-        <ChatComp chatId={auth?.selectedChatBot?.id} />
-      </div>
+      {auth?.selectedChatBot?.id ? (
+        <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
+          <ChatComp chatId={auth?.selectedChatBot?.id} />
+        </div>
+      ) : (
+        ''
+      )}
     </div>
   );
 };

@@ -1,16 +1,43 @@
 import { Alert, Snackbar } from '@mui/material';
-import { useState } from 'react';
+import { ComponentType, lazy, Suspense, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
-import ChatComp from './components/ChatComp';
-import Sidebar from './components/Sidebar';
-import Dashboard from './pages/Dashboard';
-import FlowViewer from './pages/FlowViewer';
-import Login from './pages/SignIn';
+
+function retry(fn: any, retriesLeft?: any, interval?: any) {
+  if (!retriesLeft) retriesLeft = 10;
+  if (!interval) interval = 1000;
+  return new Promise((resolve, reject) => {
+    fn()
+      .then(resolve)
+      .catch((error: any) => {
+        setTimeout(() => {
+          if (retriesLeft === 1) {
+            // reject('maximum retries exceeded');
+            reject(error);
+            return;
+          }
+          // Passing on "reject" is the important part
+          retry(fn, retriesLeft - 1, interval).then(resolve, reject);
+        }, interval);
+      });
+  }) as Promise<{ default: ComponentType<any> }>;
+}
+
+const ChatComp = lazy(() => retry(() => import('./components/ChatComp')));
+const Sidebar = lazy(() => retry(() => import('./components/Sidebar')));
+const Dashboard = lazy(() => retry(() => import('./pages/Dashboard')));
+const FlowViewer = lazy(() => retry(() => import('./pages/FlowViewer')));
+const Login = lazy(() => retry(() => import('./pages/SignIn')));
+const SignUp = lazy(() => retry(() => import('./pages/SignUp')));
 
 const AppRoutes = [
   {
     path: '/ui/login',
     element: <Login />,
+    isPrivate: false
+  },
+  {
+    path: '/ui/signup',
+    element: <SignUp />,
     isPrivate: false
   },
   {
@@ -51,25 +78,27 @@ function App() {
       >
         <Alert severity={'info'}>{alertMessage}</Alert>
       </Snackbar>{' '}
-      <Routes>
-        {AppRoutes.map((route, key) => (
-          <Route
-            key={key}
-            path={route.path}
-            element={
-              route?.isPrivate ? (
-                <div className="flex overflow-hidden">
-                  <Sidebar />
-                  {route.element}
-                </div>
-              ) : (
-                route.element
-              )
-            }
-          />
-        ))}
-        <Route path="*" element={<Navigate to="/ui/login" />} />
-      </Routes>
+      <Suspense fallback={<div>Loading...</div>}>
+        <Routes>
+          {AppRoutes.map((route, key) => (
+            <Route
+              key={key}
+              path={route.path}
+              element={
+                route?.isPrivate ? (
+                  <div className="flex overflow-hidden">
+                    <Sidebar />
+                    {route.element}
+                  </div>
+                ) : (
+                  route.element
+                )
+              }
+            />
+          ))}
+          <Route path="*" element={<Navigate to="/ui/login" />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }

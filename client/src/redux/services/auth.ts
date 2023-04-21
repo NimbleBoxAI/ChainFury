@@ -16,7 +16,7 @@ export const authApi = createApi({
       token = (getState() as RootState)?.auth?.accessToken;
       headers.set('content-type', 'application/json;charset=UTF-8');
       if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
+        headers.set('token', `${token}`);
       }
       return headers;
     },
@@ -30,21 +30,34 @@ export const authApi = createApi({
         body: credentials
       })
     }),
+    signup: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        username: string;
+        email: string;
+        password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: '/signup',
+        method: 'POST',
+        body: credentials
+      })
+    }),
     changePassword: builder.mutation<
       DEFAULT_RESPONSE,
       {
         old_password: string;
         new_password: string;
-        token: string;
       }
     >({
       query: (credentials) => ({
-        url: '/user/change_password?token=' + token,
+        url: '/user/change_password',
         method: 'POST',
         body: {
           old_password: credentials.old_password,
           new_password: credentials.new_password,
-          username: 'admin'
+          username: ''
         }
       })
     }),
@@ -72,7 +85,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}&token=${token}`,
+        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}`,
         method: 'PUT',
         body: {
           score
@@ -122,7 +135,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1&token=` + credentials?.token,
+        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1`,
         method: 'GET'
       })
     }),
@@ -133,7 +146,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: '/chatbot/?token=' + credentials?.token,
+        url: '/chatbot/',
         method: 'GET'
       })
     }),
@@ -145,8 +158,8 @@ export const authApi = createApi({
         prompt_id: string;
       }
     >({
-      query: ({ token, id, prompt_id }) => ({
-        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps?token=` + token,
+      query: ({ id, prompt_id }) => ({
+        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps`,
         method: 'GET'
       })
     }),
@@ -156,8 +169,8 @@ export const authApi = createApi({
         token: string;
       }
     >({
-      query: ({ token }) => ({
-        url: `/templates?token=` + token,
+      query: () => ({
+        url: `/templates`,
         method: 'GET'
       })
     }),
@@ -169,8 +182,8 @@ export const authApi = createApi({
         metric_type: string;
       }
     >({
-      query: ({ token, id, metric_type }) => ({
-        url: `/chatbot/${id}/metrics?metric_type=${metric_type}&token=` + token,
+      query: ({ id, metric_type }) => ({
+        url: `/chatbot/${id}/metrics?metric_type=${metric_type}`,
         method: 'GET'
       })
     }),
@@ -180,8 +193,8 @@ export const authApi = createApi({
         token: string;
       }
     >({
-      query: ({ token }) => ({
-        url: `/chatbots/metrics?token=` + token,
+      query: () => ({
+        url: `/chatbots/metrics`,
         method: 'GET'
       })
     }),
@@ -195,7 +208,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: '/chatbot/?token=' + token,
+        url: '/chatbot/',
         method: 'POST',
         body: {
           name: credentials.name,
@@ -217,7 +230,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}?token=` + token,
+        url: `/chatbot/${credentials?.id}`,
         method: 'PUT',
         body: {
           name: credentials.name,
@@ -233,6 +246,7 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
+  useSignupMutation,
   useComponentsMutation,
   useCreateBotMutation,
   useGetBotsMutation,

@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from database import ChatBot
 
 
-def get_chatbot(db: Session, chatbot_id: int) -> ChatBot:
+def get_chatbot(db: Session, chatbot_id: str) -> ChatBot:
     row = db.query(ChatBot).filter(ChatBot.id == chatbot_id).first()
 
     if row is None:

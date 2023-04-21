@@ -156,7 +156,6 @@ const FlowViewer = () => {
   };
 
   const createNodesForExistingBot = () => {
-    alert(variant);
     (variant === 'edit'
       ? auth.chatBots?.[flow_id]
       : auth?.templates?.[templateId]
@@ -248,7 +247,7 @@ const FlowViewer = () => {
       ) : (
         ''
       )}
-      {flow_id ? (
+      {flow_id && variant === 'edit' ? (
         <div className="h-[450px] w-[350px] absolute bottom-0 right-0">
           <ChatComp chatId={flow_id} />
         </div>
