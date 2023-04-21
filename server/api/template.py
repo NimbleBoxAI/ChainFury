@@ -16,7 +16,7 @@ class TemplateModel(BaseModel):
 
 
 @template_router.get("/templates", status_code=200)
-def get_all_templates(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def get_all_templates(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     verify_user(get_user_from_jwt(token))
     templates = db.query(Template).all()
     response = {"msg": "success", "templates": [template.to_dict() for template in templates]}
@@ -24,7 +24,7 @@ def get_all_templates(token: Annotated[str, Header()], db: Session = Depends(dat
 
 
 @template_router.get("/template/{id}", status_code=200)
-def get_template_by_id(id: int, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def get_template_by_id(id: int, token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     verify_user(get_user_from_jwt(token))
     template: Template = db.query(Template).filter(Template.id == id).first()  # type: ignore
     response = {"msg": "success", "template": template.to_dict()}
@@ -32,7 +32,7 @@ def get_template_by_id(id: int, token: Annotated[str, Header()], db: Session = D
 
 
 @template_router.post("/template", status_code=200)
-def create_template(inputs: TemplateModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def create_template(inputs: TemplateModel, token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     verify_user(get_user_from_jwt(token))
     template = Template(name=inputs.name, description=inputs.description, dag=inputs.dag)
     db.add(template)

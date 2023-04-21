@@ -16,7 +16,7 @@ class FeedbackModel(BaseModel):
 def post_chatbot_user_feedback(
     inputs: FeedbackModel,
     prompt_id: int,
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
 ):
     feedback = update_chatbot_user_rating(prompt_id, inputs.score)
     return {"message": "Chatbot user rating updated", "rating": inputs.score}

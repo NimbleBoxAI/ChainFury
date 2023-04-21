@@ -23,7 +23,7 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 def get_chatbot_prompts(
     id: str,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
     from_date: str = None,  # type: ignore
     to_date: str = None,  # type: ignore
     page: int = 1,
@@ -57,7 +57,7 @@ def get_chatbot_metrics(
     id: str,
     metric_type: str,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.db_session),
+    db: Session = Depends(database.fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
     user: database.User = verify_user(username)
@@ -82,7 +82,7 @@ def get_chatbot_metrics(
 
 
 @metrics_router.get("/chatbots/metrics", status_code=200)
-def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     #     - Average user rating per bot
     #     - Average developer rating per bot
     #     - Average openai rating per bot
