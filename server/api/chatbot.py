@@ -18,7 +18,7 @@ class ChatBotModel(BaseModel):
 
 
 @chatbot_router.post("/", status_code=200)
-def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     username = get_user_from_jwt(token)
     verify_user(username)
     user_id = get_user_id_from_jwt(token)
@@ -37,7 +37,7 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
 
 
 @chatbot_router.put("/{id}", status_code=200)
-def update_chatbot(id: str, token: Annotated[str, Header()], inputs: ChatBotModel, db: Session = Depends(database.db_session)):
+def update_chatbot(id: str, token: Annotated[str, Header()], inputs: ChatBotModel, db: Session = Depends(database.fastapi_db_session)):
     verify_user(get_user_from_jwt(token))
     chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first()  # type: ignore
     # logger.debug(chatbot)
@@ -54,7 +54,7 @@ def update_chatbot(id: str, token: Annotated[str, Header()], inputs: ChatBotMode
 
 
 @chatbot_router.get("/", status_code=200)
-def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     verify_user(get_user_from_jwt(token))
     chatbots = db.query(ChatBot).all()
     # logger.debug(chatbots)
@@ -63,4 +63,4 @@ def list_chatbots(token: Annotated[str, Header()], db: Session = Depends(databas
 
 
 # @chatbot_router.delete("/", status_code=200)
-# def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.db_session)):
+# def update_chatbot(inputs: ChatBotModel, db: Session = Depends(database.fastapi_db_session)):

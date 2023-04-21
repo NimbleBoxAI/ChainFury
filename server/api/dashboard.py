@@ -16,7 +16,7 @@ dashboard_router = APIRouter(prefix="", tags=["dashboard"])
 
 
 @dashboard_router.get("/dashboard", status_code=200)
-def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depends(database.db_session)):
+def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
     user_metrics = []
     total_conversations = 0
     total_internal_feedback = 0

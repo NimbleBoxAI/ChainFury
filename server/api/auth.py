@@ -28,7 +28,7 @@ class SignUpModal(BaseModel):
 
 
 @auth_router.post("/login", status_code=200)
-def login(auth: AuthModel, db: Session = Depends(database.db_session)):
+def login(auth: AuthModel, db: Session = Depends(database.fastapi_db_session)):
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
         token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.JWT_SECRET)
@@ -53,7 +53,7 @@ def decode_token(token: Annotated[str, Header()]):
 
 
 @auth_router.post("/signup", status_code=200)
-def sign_up(auth: SignUpModal, db: Session = Depends(database.db_session)):
+def sign_up(auth: SignUpModal, db: Session = Depends(database.fastapi_db_session)):
     user_exists = False
     email_exists = False
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
