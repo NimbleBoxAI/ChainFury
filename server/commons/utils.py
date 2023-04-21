@@ -7,6 +7,7 @@ import database_constants as constants
 from fastapi import HTTPException
 from sqlalchemy import func, cast, DateTime
 import json
+from sqlalchemy.orm import Session
 
 logger = c.get_logger(__name__)
 
@@ -38,7 +39,7 @@ def add_default_templates():
             else:
                 with open("./examples/" + template_data["dag"]) as f:
                     dag = json.load(f)
-                template = Template(id=template_data["id"] ,name=template_data["name"], description=template_data["description"], dag=dag)
+                template = Template(id=template_data["id"], name=template_data["name"], description=template_data["description"], dag=dag)
                 db.add(template)
         db.commit()
     except IntegrityError as e:
@@ -71,8 +72,7 @@ def get_user_id_from_jwt(token):
     return payload.get("userid")
 
 
-def verify_user(username):
-    db = db_session()
+def verify_user(db: Session, username):
     logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
@@ -81,6 +81,7 @@ def verify_user(username):
 
 
 def filter_prompts_by_date_range(
+    db: Session,
     chatbot_id: str,
     from_date: str,
     to_date: str,
@@ -89,7 +90,6 @@ def filter_prompts_by_date_range(
     sort_by: str,
     sort_order: str,
 ):
-    db = db_session()
     order_query = Prompt.created_at.desc() if sort_order == constants.SORT_ORDER_DESC else Prompt.created_at.asc()
     if sort_by == constants.SORT_BY_TIME_TAKEN:
         order_query = Prompt.time_taken.desc() if sort_order == constants.SORT_ORDER_DESC else Prompt.time_taken.asc()
@@ -116,8 +116,7 @@ def filter_prompts_by_date_range(
     return prompts
 
 
-def get_prompt_intermediate_data(prompt_id: int):
-    db = db_session()
+def get_prompt_intermediate_data(db: Session, prompt_id: int):
     intermediate_prompts = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt_id).all()
     if intermediate_prompts is not None:
         return intermediate_prompts
@@ -125,8 +124,7 @@ def get_prompt_intermediate_data(prompt_id: int):
         return None
 
 
-def get_prompt_from_prompt_id(prompt_id: int):
-    db = db_session()
+def get_prompt_from_prompt_id(db: Session, prompt_id: int):
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
         return prompt
@@ -134,8 +132,7 @@ def get_prompt_from_prompt_id(prompt_id: int):
         return None
 
 
-def update_chatbot_user_rating(prompt_id: int, rating: constants.PromptRating):
-    db = db_session()
+def update_chatbot_user_rating(db: Session, prompt_id: int, rating: constants.PromptRating):
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
         if prompt.chatbot_user_rating is not constants.PromptRating.UNRATED:
@@ -153,8 +150,7 @@ def update_chatbot_user_rating(prompt_id: int, rating: constants.PromptRating):
     return prompt.chatbot_user_rating
 
 
-def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
-    db = db_session()
+def update_internal_user_rating(db: Session, prompt_id: int, rating: constants.PromptRating):
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     if prompt is not None:
         prompt.user_rating = rating
@@ -167,8 +163,7 @@ def update_internal_user_rating(prompt_id: int, rating: constants.PromptRating):
     return prompt.user_rating
 
 
-def get_hourly_latency_metrics(chatbot_id: str):
-    db = db_session()
+def get_hourly_latency_metrics(db: Session, chatbot_id: str):
     hourly_average_latency = (
         db.query(Prompt)
         .filter(Prompt.chatbot_id == chatbot_id)
@@ -187,8 +182,7 @@ def get_hourly_latency_metrics(chatbot_id: str):
     return latency_per_hour
 
 
-# def get_cost_metrics(chatbot_id: str):
-#     db = db_session()
+# def get_cost_metrics(db: Session, chatbot_id: str):
 #     hourly_average_cost = (
 #         Prompt.query.filter(Prompt.chatbot_id == chatbot_id)
 #         .with_entities(
@@ -206,8 +200,7 @@ def get_hourly_latency_metrics(chatbot_id: str):
 #     return cost_per_hour
 
 
-def get_user_score_metrics(chatbot_id: str):
-    db = db_session()
+def get_user_score_metrics(db: Session, chatbot_id: str):
     one_count = ()
 
     one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.user_rating == constants.PromptRating.SAD)).count()
@@ -218,8 +211,7 @@ def get_user_score_metrics(chatbot_id: str):
     return user_ratings
 
 
-def get_chatbot_user_score_metrics(chatbot_id: str):
-    db = db_session()
+def get_chatbot_user_score_metrics(db: Session, chatbot_id: str):
     one_count = (
         db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.chatbot_user_rating == constants.PromptRating.SAD)).count()
     )
@@ -234,8 +226,7 @@ def get_chatbot_user_score_metrics(chatbot_id: str):
     return chatbot_user_ratings
 
 
-def get_gpt_rating_metrics(chatbot_id: str):
-    db = db_session()
+def get_gpt_rating_metrics(db: Session, chatbot_id: str):
     one_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 1)).count()
     two_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 2)).count()
     three_count = db.query(Prompt).filter((Prompt.chatbot_id == chatbot_id) & (Prompt.gpt_rating == 3)).count()
@@ -243,8 +234,8 @@ def get_gpt_rating_metrics(chatbot_id: str):
     gpt_ratings.append({"bad_count": one_count, "neutral_count": two_count, "good_count": three_count})
     return gpt_ratings
 
-def have_chatbot_access(chatbot_id: str, user_id: str):
-    db = db_session()
+
+def have_chatbot_access(db: Session, chatbot_id: str, user_id: str):
     chatbot = db.query(ChatBot).filter(ChatBot.id == chatbot_id and ChatBot.created_by == user_id).first()
     if chatbot is not None:
         return True

@@ -17,8 +17,8 @@ def get_intermediate_steps(
     db: Session = Depends(database.fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(username)
-    intermediate_steps = get_prompt_intermediate_data(prompt_id)
+    verify_user(db, username)
+    intermediate_steps = get_prompt_intermediate_data(db, prompt_id)
     if intermediate_steps is not None:
         response = {"msg": "success", "data": intermediate_steps}
     else:

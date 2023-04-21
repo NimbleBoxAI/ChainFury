@@ -23,17 +23,17 @@ def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depe
     total_chatbot_user_feedback = 0
     total_openAI_feedback = 0
     username = get_user_from_jwt(token)
-    chatbots = get_chatbots_from_username(username)
+    chatbots = get_chatbots_from_username(db, username)
 
     for chatbot in chatbots:
         chatbot_id = chatbot.id
-        prompts = get_prompts_from_chatbot_id(chatbot_id)
+        prompts = get_prompts_from_chatbot_id(db, chatbot_id)
         total_conversations += len(prompts)
-        prompts_with_user_rating = get_prompts_with_user_rating_from_chatbot_id(chatbot_id)
+        prompts_with_user_rating = get_prompts_with_user_rating_from_chatbot_id(db, chatbot_id)
         total_internal_feedback += len(prompts_with_user_rating)
-        prompts_with_chatbot_user_rating = get_prompts_with_chatbot_user_rating_from_chatbot_id(chatbot_id)
+        prompts_with_chatbot_user_rating = get_prompts_with_chatbot_user_rating_from_chatbot_id(db, chatbot_id)
         total_chatbot_user_feedback += len(prompts_with_chatbot_user_rating)
-        prompts_with_openai_rating = get_prompts_with_openai_rating_from_chatbot_id(chatbot_id)
+        prompts_with_openai_rating = get_prompts_with_openai_rating_from_chatbot_id(db, chatbot_id)
         total_openAI_feedback += len(prompts_with_openai_rating)
     total_chatbots = len(chatbots)
     user_metrics.append(
