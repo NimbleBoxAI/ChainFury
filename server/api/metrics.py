@@ -62,7 +62,7 @@ def get_chatbot_metrics(
     metrics = None
     username = get_user_from_jwt(token)
     user: database.User = verify_user(db, username)
-    is_chatbot_creator = have_chatbot_access(id, user.id)  # type: ignore
+    is_chatbot_creator = have_chatbot_access(db, id, user.id)  # type: ignore
     if is_chatbot_creator is False:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     if metric_type == constants.LATENCY_METRIC:
