@@ -77,7 +77,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cd server
-uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
+python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 
 ```
 ---
