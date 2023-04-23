@@ -11,6 +11,7 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (localStorage.getItem('accessToken')) {
@@ -19,6 +20,7 @@ const Login = () => {
   }, []);
 
   const handleLogin = () => {
+    setLoading(true);
     loginMutation({ username, password })
       .unwrap()
       .then((res) => {
@@ -35,6 +37,9 @@ const Login = () => {
       })
       .catch(() => {
         alert('Invalid Credentials');
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -70,12 +75,12 @@ const Login = () => {
         />
         <Button
           onClick={handleLogin}
-          disabled={username.length === 0 || password.length === 0}
+          disabled={username.length === 0 || password.length === 0 || loading}
           className="h-[40px] mt-[8px!important] block"
           variant="contained"
           color="primary"
         >
-          Sign In
+          {loading ? 'Please wait' : 'Sign In'}
         </Button>
       </div>
       <span

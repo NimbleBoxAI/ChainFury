@@ -39,7 +39,7 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
 @chatbot_router.put("/{id}", status_code=200)
 def update_chatbot(id: str, token: Annotated[str, Header()], inputs: ChatBotModel, db: Session = Depends(database.fastapi_db_session)):
     verify_user(db, get_user_from_jwt(token))
-    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id).first()  # type: ignore
+    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id and ChatBot.created_by == user.id).first()  # type: ignore
     # logger.debug(chatbot)
     if chatbot is not None:
         if inputs.name is not None:

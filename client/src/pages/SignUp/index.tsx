@@ -9,6 +9,7 @@ const SignUp = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const isValidEmail = (email: string) => {
     const re = /\S+@\S+\.\S+/;
@@ -16,6 +17,7 @@ const SignUp = () => {
   };
 
   const handleSignup = () => {
+    setLoading(true);
     signup({
       username,
       password,
@@ -26,7 +28,10 @@ const SignUp = () => {
         navigate('/ui/login');
       })
       .catch((err) => {
-        console.log(err);
+        alert(err?.data?.detail ?? 'Something went wrong');
+      })
+      .finally(() => {
+        setLoading(false);
       });
   };
 
@@ -69,6 +74,7 @@ const SignUp = () => {
         />
         <Button
           disabled={
+            loading ||
             username.length === 0 ||
             password.length === 0 ||
             email.length === 0 ||
@@ -81,7 +87,7 @@ const SignUp = () => {
           variant="contained"
           color="primary"
         >
-          Create Account
+          {loading ? 'Please wait' : 'Create Account'}
         </Button>
       </div>
       <span
