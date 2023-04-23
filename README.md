@@ -52,6 +52,8 @@ Example:
 docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
 ```
 
+Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
+
 ### **Method 2: Manual**
 
 For this, you will need to build the frontend and and then run the backend. The frontend can be built using the following command:
@@ -67,6 +69,7 @@ To copy the frontend to the backend, run the following command:
 ```bash
 cd ..
 cp -r client/dist/ server/static/
+mkdir -p ./server/templates
 cp ./client/dist/index.html ./server/templates/index.html
 ```
 
@@ -77,9 +80,11 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 cd server
-uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
-
+python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 ```
+
+Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
+
 ---
 
 <img src="./docs/3.png" align="center"/>

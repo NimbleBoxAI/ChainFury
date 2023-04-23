@@ -38,6 +38,6 @@ def update_internal_user_feedback(
     inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(fastapi_db_session)
 ):
     username = get_user_from_jwt(token)
-    verify_user(username)
-    feedback = update_internal_user_rating(prompt_id, inputs.score)
+    verify_user(db, username)
+    feedback = update_internal_user_rating(db, prompt_id, inputs.score)
     return {"message": "Internal user rating updated", "rating": inputs.score}

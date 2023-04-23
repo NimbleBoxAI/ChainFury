@@ -18,5 +18,5 @@ def post_chatbot_user_feedback(
     prompt_id: int,
     db: Session = Depends(database.fastapi_db_session),
 ):
-    feedback = update_chatbot_user_rating(prompt_id, inputs.score)
+    feedback = update_chatbot_user_rating(db, prompt_id, inputs.score)
     return {"message": "Chatbot user rating updated", "rating": inputs.score}

@@ -32,7 +32,7 @@ def get_chatbot_prompts(
     sort_order: str = constants.SORT_ORDER_DESC,
 ):
     username = get_user_from_jwt(token)
-    verify_user(username)
+    verify_user(db, username)
     if from_date is None:
         parsed_from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     else:
@@ -44,7 +44,7 @@ def get_chatbot_prompts(
 
     if parsed_to_date < parsed_from_date:
         raise HTTPException(status_code=400, detail="Invalid date range")
-    metrics = filter_prompts_by_date_range(id, parsed_from_date, parsed_to_date, page, page_size, sort_by, sort_order)  # type: ignore
+    metrics = filter_prompts_by_date_range(db, id, parsed_from_date, parsed_to_date, page, page_size, sort_by, sort_order)  # type: ignore
     if metrics is not None:
         response = {"msg": "success", "data": metrics}
     else:
@@ -59,21 +59,22 @@ def get_chatbot_metrics(
     token: Annotated[str, Header()],
     db: Session = Depends(database.fastapi_db_session),
 ):
+    metrics = None
     username = get_user_from_jwt(token)
-    user: database.User = verify_user(username)
-    is_chatbot_creator = have_chatbot_access(id, user.id)  # type: ignore
-    if(is_chatbot_creator is False):
+    user: database.User = verify_user(db, username)
+    is_chatbot_creator = have_chatbot_access(db, chatbot_id=id, user_id=user.id)  # type: ignore
+    if is_chatbot_creator is False:
         raise HTTPException(status_code=401, detail="Unauthorized access")
     if metric_type == constants.LATENCY_METRIC:
-        metrics = get_hourly_latency_metrics(id)
+        metrics = get_hourly_latency_metrics(db, id)
     # elif metric_type == "cost":
-    #     metrics = get_cost_metrics(id)
+    #     metrics = get_cost_metrics(db, id)
     elif metric_type == constants.USER_SCORE_METRIC:
-        metrics = get_chatbot_user_score_metrics(id)
+        metrics = get_chatbot_user_score_metrics(db, id)
     elif metric_type == constants.INTERNAL_REVIEW_SCORE_METRIC:
-        metrics = get_user_score_metrics(id)
+        metrics = get_user_score_metrics(db, id)
     elif metric_type == constants.GPT_REVIEW_SCORE_METRIC:
-        metrics = get_gpt_rating_metrics(id)
+        metrics = get_gpt_rating_metrics(db, id)
     if metrics is not None:
         response = {"msg": "success", "data": metrics}
     else:
@@ -95,9 +96,9 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
     # bot1 |       1.135         |         2.67          |             2.07                 |      /\  24 %
     # bot2 |       1.114         |         2.75          |             1.05                 |      \/.  10%
     username = get_user_from_jwt(token)
-    verify_user(username)
+    verify_user(db, username)
     metrics = []
-    chatbots = get_chatbots_from_username(username)  # type: ignore
+    chatbots = get_chatbots_from_username(db, username)  # type: ignore
 
     for chatbot in chatbots:
         chatbot_user_ratings = []
@@ -117,7 +118,7 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
         total_developer_ratings = 0
         total_openai_ratings = 0
         chatbot_id = chatbot.id
-        prompts = get_prompts_from_chatbot_id(chatbot_id)
+        prompts = get_prompts_from_chatbot_id(db, chatbot_id)
         for prompt in prompts:
             if prompt.chatbot_user_rating is not None:
                 chatbot_user_ratings.append(PromptRating(prompt.chatbot_user_rating).value)
