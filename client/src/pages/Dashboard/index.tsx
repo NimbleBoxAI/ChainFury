@@ -143,7 +143,11 @@ const Dashboard = () => {
               ''
             )}
             <div className="flex gap-[8px] mt-[32px] flex-col">
-              <span>Embed the bot on your website by adding the following code to your HTML</span>
+              <span className="medium300">
+                Try out the bot by clicking on <span className="semiBold300">The Bot</span> in the
+                bottom right corner of your screen. Or embed the bot on your website by adding the
+                following code to your HTML
+              </span>
               <div className="relative">
                 <SvgCopy
                   className="stroke-light-neutral-grey-700 absolute right-[8px] top-[8px] cursor-pointer"
