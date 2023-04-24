@@ -39,12 +39,11 @@ const SignUp = () => {
     <div className={`flex relative flex-col prose-nbx items-center justify-center h-screen w-full`}>
       <div className=" w-full flex flex-col max-w-[500px] border border-light-neutral-grey-200 shadow-lg rounded-md p-[16px] gap-[8px]">
         <div className="mb-[8px] flex flex-col items-center text-center w-full">
-          <div className="rounded-md w-[64px] h-[64px] bg-slate-300 mb-[8px]"></div>
+          <div className="w-[64px] h-[64px] mb-[8px]">
+            <img src="/chainfury.png" alt="logo" />
+          </div>
           <span className="semiBold700 text-light-neutral-grey-700 ">
             Create an account on ChainFury
-          </span>
-          <span className="text-light-neutral-grey-400 medium300">
-            Some text here to describe the app
           </span>
         </div>
         <input
