@@ -9,7 +9,6 @@ ENV NODE_ENV production
 FROM python:3.9
 RUN mkdir /app
 COPY ./requirements.txt /app
-COPY ./plugins /app
 
 # Setting up the working directory
 WORKDIR /app
