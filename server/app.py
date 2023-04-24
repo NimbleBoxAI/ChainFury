@@ -21,8 +21,8 @@ from api.template import template_router
 from api.user import user_router
 from api.dashboard import dashboard_router
 
-# plugins
-from plugin_handler import initialise_plugin_handler
+from plugins import get_phandler
+
 
 logger = c.get_logger(__name__)
 
@@ -56,9 +56,6 @@ app.include_router(langflow_router, prefix=c.API_URL)
 app.include_router(prompts_router, prefix=c.API_URL)
 app.include_router(template_router, prefix=c.API_URL)
 app.include_router(dashboard_router, prefix=c.API_URL)
-
-
-# Registering plugin handler
 ####################################################
 ################ APIs ##############################
 ####################################################
@@ -90,3 +87,6 @@ async def serve_farmer():
 
 # add static files
 app.mount("/", StaticFiles(directory="static"), name="assets")
+
+# warmup and initialize plugins
+get_phandler()

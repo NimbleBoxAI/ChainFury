@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import List
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -42,3 +43,8 @@ Base = declarative_base()
 
 JWT_SECRET = os.environ.get("JWT_SECRET", "my_secret")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", None)
+
+
+# Things that are user definable: user will configure this file below manually or pass via the CLI
+class PluginsConfig:
+    plugins_list: List[str] = []  # "echo" is a good starting point

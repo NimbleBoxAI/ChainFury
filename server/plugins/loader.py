@@ -2,7 +2,7 @@ import os
 import sys
 from importlib.util import spec_from_file_location, module_from_spec
 
-from plugins.base import CFPluginMetadata
+from plugins.base import CFPluginMetadata, logger
 
 #
 name_to_module = {}
@@ -13,13 +13,14 @@ for f in os.listdir(os.path.dirname(__file__)):
         if "__init__.py" in os.listdir(_fp):
             name_to_module[f] = _fp
 
-print(name_to_module)
+logger.info(f"{name_to_module}")
 
 
 #
 
 
 def load_module_from_path(mod_name, fn_name, file_path):
+    logger.debug(f"Loding module: '{fn_name}' from '{file_path}' storing as '{mod_name}")
     spec = spec_from_file_location(fn_name, file_path)
     foo = module_from_spec(spec)
     sys.modules[mod_name] = foo

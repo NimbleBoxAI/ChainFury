@@ -27,3 +27,4 @@ fake-useragent
 docstring-parser
 psycopg2-binary
 pyarrow
+fire==0.5.0

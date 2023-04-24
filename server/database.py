@@ -135,4 +135,15 @@ class Template(Base):
         return f"Template(id={self.id}, name={self.name}, description={self.description}, dag={self.dag}, meta={self.meta})"
 
 
+# A true plugin architecture allows for plugins to be able to CRUDL some state via a simple mechanism
+# so that they can become more powerful, however we don't want to plugins to be very heavy on the DB
+# thus the plugins must build a simple key-value based state management system.
+
+
+# class PluginKeyValue(Base):
+#     __tablename__ = "plugin_kv"
+#     key = Column(String, primary_key=True)
+#     value = Column(String, nullable=False)
+
+
 Base.metadata.create_all(bind=engine)

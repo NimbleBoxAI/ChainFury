@@ -1,5 +1,7 @@
 import traceback
 import time
+from dataclasses import dataclass
+from typing import Dict, Any, List
 from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
@@ -10,8 +12,18 @@ from database_utils.intermediate_step import insert_intermediate_steps
 from database_utils.prompt import create_prompt
 from schemas.prompt_schema import Prompt
 from commons.gpt_rating import ask_for_rating
+from database import Prompt as PromptModel
 
 logger = c.get_logger(__name__)
+
+
+@dataclass
+class CFPromptResult:
+    result: str
+    thought: list[dict[str, Any]]
+    num_tokens: int
+    prompt_id: int
+    prompt: PromptModel
 
 
 def format_intermediate_steps(intermediate_steps):
@@ -96,10 +108,11 @@ def process_graph(message, chat_history, data_graph):
     logger.debug("Saving langchain object to cache")
     # save_cache(computed_hash, langchain_object, is_first_message)
     logger.debug("Saved langchain object to cache")
-    return {"result": str(result), "thought": thought, "num_tokens": num_tokens}
+    # return {"result": str(result), "thought": thought, "num_tokens": num_tokens}
+    return str(result), thought, num_tokens
 
 
-def get_prompt(chatbot_id: str, prompt: Prompt, db: Session):
+def get_prompt(chatbot_id: str, prompt: Prompt, db: Session) -> CFPromptResult:
     try:
         # start timer
         start = time.time()
@@ -107,18 +120,19 @@ def get_prompt(chatbot_id: str, prompt: Prompt, db: Session):
         logger.debug("Adding prompt to database")
         prompt_row = create_prompt(db, chatbot_id, prompt.new_message, prompt.session_id)
 
-        result = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
+        _result, thought, num_tokens = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
+        result = CFPromptResult(result=str(_result), thought=thought, num_tokens=num_tokens, prompt=prompt_row, prompt_id=prompt_row.id)  # type: ignore
 
-        prompt_row.response = result["result"]
+        prompt_row.response = result.result  # type: ignore
         prompt_row.time_taken = float(time.time() - start)  # type: ignore
-        insert_intermediate_steps(db, prompt_row.id, result["thought"])  # type: ignore
+        insert_intermediate_steps(db, prompt_row.id, result.thought)  # type: ignore
 
-        message = f"User: {prompt.new_message}\nBot: {result['result']}"
+        message = f"User: {prompt.new_message}\nBot: {result.result}"
         prompt_row.gpt_rating = ask_for_rating(message)  #  type: ignore
-        prompt_row.num_tokens = result["num_tokens"]  # type: ignore
+        prompt_row.num_tokens = result.num_tokens  # type: ignore
         db.commit()
 
-        result["prompt_id"] = prompt_row.id
+        # result["prompt_id"] = prompt_row.id
         logger.debug("Processed graph")
         return result
 
