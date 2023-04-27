@@ -21,6 +21,9 @@ from api.template import template_router
 from api.user import user_router
 from api.dashboard import dashboard_router
 
+from plugins import get_phandler
+
+
 logger = c.get_logger(__name__)
 
 app = FastAPI(
@@ -76,7 +79,7 @@ if "static" not in os.listdir("./"):
 @app.get("/")
 async def serve_farmer():
     r = requests.get("https://chainfury.framer.website/")
-    modified_text = ''
+    modified_text = ""
     if r.text:
         modified_text = r.text.replace("https://chainfury.nbox.ai/ui/dashboard", "/ui/dashboard")
     return HTMLResponse(content=modified_text, status_code=r.status_code)
@@ -84,3 +87,6 @@ async def serve_farmer():
 
 # add static files
 app.mount("/", StaticFiles(directory="static"), name="assets")
+
+# warmup and initialize plugins
+get_phandler()

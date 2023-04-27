@@ -22,6 +22,7 @@ ChainFury supports a range of features, including:
 - Recording all prompts and responses and storing them in a database
 - Collecting metrics like latency to provide an easy-to-use scoring mechanism for end-users
 - Querying OpenAI's API to obtain a rating for the response, which it stores in the database.
+- [Plugins](./server/plugins/) to extend the functionality of ChainFury with callbacks
 
 ## Components
 From the LangChain documentation, there are six main areas that LangChain is designed to help with. ChainFury consists of the same concepts to build LLM ChatBots. The components are, in increasing order of complexity:
@@ -90,6 +91,18 @@ pip install -r requirements.txt
 cd server
 python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 ```
+
+<!-- collapsable -->
+
+<details>
+<summary>Script mode</summary>
+
+Assuming you are in `server` directory, you can run the server using the following command:
+
+```bash
+python3 server.py --port 8000 --config_plugins='["echo"]'
+```
+</details>
 
 Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
 
