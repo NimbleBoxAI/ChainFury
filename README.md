@@ -1,7 +1,8 @@
 # 🦋 ChainFury
 
-[![linkcheck](https://img.shields.io/badge/Site-🦋ChainFury-yellowgreen)](https://chainfury.nbox.ai)
+[![linkcheck](https://img.shields.io/badge/Workflow-Passing-darkgreen)](https://github.com/NimbleBoxAI/ChainFury/actions)
 [![Downloads](https://static.pepy.tech/badge/chainfury)](https://pepy.tech/project/chainfury)
+[![linkcheck](https://img.shields.io/badge/Site-🦋ChainFury-lightblue)](https://chainfury.nbox.ai)
 [![License: Apache](https://img.shields.io/badge/License-Apache%20v2.0-red)](https://github.com/NimbleBoxAI/ChainFury/blob/main/LICENSE) 
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NimbleBoxAI.svg?style=social&label=Follow%20%40NimbleBoxAI)](https://twitter.com/NimbleBoxAI)
 [![](https://dcbadge.vercel.app/api/server/WXU6XkA3?compact=true&style=flat)](https://discord.gg/WXU6XkA3)
