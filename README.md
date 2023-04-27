@@ -1,7 +1,14 @@
 # 🦋 ChainFury
 
+[![linkcheck](https://img.shields.io/badge/Site-🦋ChainFury-yellowgreen)](https://chainfury.nbox.ai)
+[![Downloads](https://static.pepy.tech/badge/chainfury)](https://pepy.tech/project/chainfury)
+[![License: Apache](https://img.shields.io/badge/License-Apache%20v2.0-red)](https://github.com/NimbleBoxAI/ChainFury/blob/main/LICENSE) 
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NimbleBoxAI.svg?style=social&label=Follow%20%40NimbleBoxAI)](https://twitter.com/NimbleBoxAI)
+[![](https://dcbadge.vercel.app/api/server/WXU6XkA3?compact=true&style=flat)](https://discord.gg/WXU6XkA3)
+
 <img src="./docs/1.png" align="center"/>
 
+🦋 Build complex chat apps using LLMs in 4 clicks ⚡️
 
 ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
 
