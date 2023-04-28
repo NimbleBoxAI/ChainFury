@@ -20,7 +20,7 @@ export const authApi = createApi({
       }
       return headers;
     },
-    credentials: 'include'
+    credentials: 'omit'
   }),
   endpoints: (builder) => ({
     login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
