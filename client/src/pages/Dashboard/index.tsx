@@ -135,7 +135,7 @@ const Dashboard = () => {
 
   return (
     <div className="relative w-full h-full">
-      <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full overflow-hidden">
+      <div className="bg-light-system-bg-primary prose-nbx p-[24px] w-full h-full overflow-hidden">
         {auth?.selectedChatBot?.name || showDummyData ? (
           <>
             <div className="flex justify-between items-center w-full">
