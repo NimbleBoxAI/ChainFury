@@ -1,11 +1,11 @@
-from commons.utils import get_user_from_jwt
+from commons.utils import get_user_id_from_jwt
 from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from typing import Annotated
 
 import database
 from database_utils.dashboard import (
-    get_chatbots_from_username,
+    get_chatbots_from_user_id,
     get_prompts_from_chatbot_id,
     get_prompts_with_chatbot_user_rating_from_chatbot_id,
     get_prompts_with_user_rating_from_chatbot_id,
@@ -22,8 +22,8 @@ def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depe
     total_internal_feedback = 0
     total_chatbot_user_feedback = 0
     total_openAI_feedback = 0
-    username = get_user_from_jwt(token)
-    chatbots = get_chatbots_from_username(db, username)
+    user_id = get_user_id_from_jwt(token)
+    chatbots = get_chatbots_from_user_id(db, user_id)
 
     for chatbot in chatbots:
         chatbot_id = chatbot.id
