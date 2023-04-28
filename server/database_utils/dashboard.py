@@ -2,9 +2,9 @@ from database import db_session, ChatBot, Prompt
 from sqlalchemy.orm import Session
 
 
-def get_chatbots_from_username(db: Session, username: str):
+def get_chatbots_from_user_id(db: Session, user_id: str):
     chatbots = []
-    chatbots = db.query(ChatBot).filter(ChatBot.created_by == username).all()
+    chatbots = db.query(ChatBot).filter(ChatBot.created_by == user_id).all()
     return chatbots
 
 
