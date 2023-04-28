@@ -3,6 +3,43 @@ import { ReactFlowInstance } from 'reactflow';
 const BASE_URL = window?.location?.host?.includes('localhost:5173')
   ? 'http://127.0.0.1:8000/api/v1'
   : '/api/v1';
+
+const DummyMetricsData = {
+  data: [
+    {
+      '': {
+        total_conversations: 10,
+        total_tokens_processed: 6950,
+        no_of_conversations_rated_by_developer: 7,
+        no_of_conversations_rated_by_end_user: 5,
+        no_of_conversations_rated_by_openai: 10,
+        average_rating: 2.5,
+        average_chatbot_user_ratings: 2,
+        average_developer_ratings: 3,
+        average_openai_ratings: 2
+      }
+    }
+  ]
+};
+
+const DummyMetricsInfo = {
+  user_score: {
+    bad_count: 2,
+    good_count: 9,
+    neutral_count: 10
+  },
+  internal_review_score: {
+    bad_count: 4,
+    good_count: 7,
+    neutral_count: 10
+  },
+  gpt_review_score: {
+    bad_count: 3,
+    good_count: 8,
+    neutral_count: 10
+  }
+};
+
 type DEFAULT_RESPONSE = any;
 type TemplateVariableType = {
   type: string;
@@ -93,7 +130,7 @@ type ParameterComponentType = {
   tooltipTitle: string;
 };
 
-export { BASE_URL };
+export { BASE_URL, DummyMetricsData, DummyMetricsInfo };
 export type {
   DEFAULT_RESPONSE,
   NodeDataType,
