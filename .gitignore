@@ -138,3 +138,4 @@ server/templates/*
 # MacOS
 .DS_Store
 private_env.sh
+langflow

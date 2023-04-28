@@ -146,4 +146,14 @@ class Template(Base):
 #     value = Column(String, nullable=False)
 
 
+# class Components(Base):
+#     __tablename__ = "components"
+#     id: str = Column(String(8), default=lambda: unique_string(Components, Components.id), primary_key=True)
+#     name: str = Column(String(80), unique=True)
+#     description: str = Column(String(80))
+#     component_type: str = Column(String(80), nullable=False)
+#     inputs: list[dict] = Column(JSON)
+#     outputs: list[dict] = Column(JSON)
+
+
 Base.metadata.create_all(bind=engine)
