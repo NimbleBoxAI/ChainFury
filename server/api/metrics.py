@@ -13,8 +13,8 @@ from commons.utils import (
 )
 import database_constants as constants
 from typing import Annotated
-from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access
-from database_utils.dashboard import get_chatbots_from_username, get_prompts_from_chatbot_id
+from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access,get_user_id_from_jwt
+from database_utils.dashboard import get_chatbots_from_user_id, get_prompts_from_chatbot_id
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
 
@@ -95,11 +95,9 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
     # ----------------------------------------------------------------------------------------------------
     # bot1 |       1.135         |         2.67          |             2.07                 |      /\  24 %
     # bot2 |       1.114         |         2.75          |             1.05                 |      \/.  10%
-    username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user_id = get_user_id_from_jwt(token)
     metrics = []
-    chatbots = get_chatbots_from_username(db, username)  # type: ignore
-
+    chatbots = get_chatbots_from_user_id(db, user_id)  # type: ignore
     for chatbot in chatbots:
         chatbot_user_ratings = []
         developer_ratings = []
