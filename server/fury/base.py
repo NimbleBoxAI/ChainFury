@@ -1,6 +1,7 @@
 import json
+import inspect
 from hashlib import sha256
-from typing import Any, Union, Optional, Dict, List
+from typing import Any, Union, Optional, Dict, List, Tuple
 from collections import deque, defaultdict
 
 from commons.config import get_logger
@@ -8,144 +9,147 @@ from commons.config import get_logger
 logger = get_logger("fury-core")
 
 
+class Secret(str):
+    """This class just means that in TemplateField it will be taken as a password field"""
+
+
+#
+# TemplateFields: this is teh base class for all the fields that the user can provide from the front end
+#
+
+
 class TemplateField:
     def __init__(
         self,
+        type: Union[str, List["TemplateField"]],
+        format: str = None,
+        items: List["TemplateField"] = None,
+        additionalProperties: Union[Dict, "TemplateField"] = None,
+        password: bool = False,
+        #
         required: bool = False,
         placeholder: str = "",
-        show: bool = True,
-        multiline: bool = False,
-        value: Any = None,
-        password: bool = False,
+        show: bool = False,
         name: str = "",
-        type: str = "str",
-        is_list: bool = False,
-        suffixes: list[str] = [],
-        file_types: list[str] = [],
-        content: Union[str, None] = None,
-        options: list[str] = [],
-        display_name: Optional[str] = None,
-        **kwargs,
     ):
         self.type = type
+        self.format = format
+        self.items = items or []
+        self.additionalProperties = additionalProperties
+        self.password = password
+        #
         self.required = required
         self.placeholder = placeholder
-        self.is_list = is_list
         self.show = show
-        self.multiline = multiline
-        self.value = value
-        self.suffixes = suffixes
-        self.file_types = file_types
-        self.content = content
-        self.password = password
-        self.options = options
         self.name = name
-        self.display_name = display_name
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
-        return cls(
-            type=data.get("type", "str"),
-            required=data.get("required", False),
-            placeholder=data.get("placeholder", ""),
-            is_list=data.get("list", False),
-            show=data.get("show", True),
-            multiline=data.get("multiline", False),
-            value=data.get("value", None),
-            suffixes=data.get("suffixes", []),
-            file_types=data.get("fileTypes", []),
-            content=data.get("content", None),
-            password=data.get("password", False),
-            options=data.get("options", []),
-            name=data.get("name", ""),
-            display_name=data.get("display_name", None),
-        )
 
     def __repr__(self) -> str:
-        return f"TemplateField('{self.type}', '{self.name}', '{self.password}')"
+        return (
+            f"TemplateField(type={self.type}, format={self.format}, items={self.items}, additionalProperties={self.additionalProperties})"
+        )
 
     def to_dict(self):
-        data = {
-            "required": self.required,
-            "placeholder": self.placeholder,
-            "is_list": self.is_list,
-            "show": self.show,
-            "multiline": self.multiline,
-            "value": self.value,
-            "suffixes": self.suffixes,
-            "file_types": self.file_types,
-            # self.fileTypes = file_types
-            "content": self.content,
-            "password": self.password,
-            "options": self.options,
-            "name": self.name,
-            "display_name": self.display_name,
-            "type": self.type,
-            "list": self.is_list,
-        }
-        return data
+        d = {"type": self.type}
+        if type(self.type) == list and len(self.type) and type(self.type[0]) == TemplateField:
+            d["type"] = [x.to_dict() for x in self.type]
+        if self.format is not None:
+            d["format"] = self.format
+        if self.items:
+            d["items"] = [item.to_dict() for item in self.items]
+        if self.additionalProperties is not None:
+            if isinstance(self.additionalProperties, TemplateField):
+                d["additionalProperties"] = self.additionalProperties.to_dict()
+            else:
+                d["additionalProperties"] = self.additionalProperties
+        if self.password:
+            d["password"] = self.password
+        #
+        if self.required:
+            d["required"] = self.required
+        if self.placeholder:
+            d["placeholder"] = self.placeholder
+        if self.show:
+            d["show"] = self.show
+        if self.name:
+            d["name"] = self.name
+        return d
 
-    def process_field(self, key: str, value: Dict[str, Any], name: Optional[str] = None) -> None:
-        _type = value["type"]
 
-        # Remove 'Optional' wrapper
-        if "Optional" in _type:
-            _type = _type.replace("Optional[", "")[:-1]
+def pyannotation_to_json_schema(x) -> TemplateField:
+    if isinstance(x, type):
+        if x == str:
+            return TemplateField(type="string")
+        elif x == int:
+            return TemplateField(type="integer")
+        elif x == float:
+            return TemplateField(type="number")
+        elif x == bool:
+            return TemplateField(type="boolean")
+        elif x == bytes:
+            return TemplateField(type="string", format="byte")
+        elif x == list:
+            return TemplateField(type="array", items=[TemplateField(type="string")])
+        elif x == dict:
+            return TemplateField(type="object", additionalProperties=TemplateField(type="string"))
+        elif x == Secret:
+            return TemplateField(type="string", password=True)
+        else:
+            raise ValueError(f"i0: Unsupported type: {x}")
+    elif isinstance(x, str):
+        return TemplateField(type="string")
+    elif hasattr(x, "__origin__") and hasattr(x, "__args__"):
+        if x.__origin__ == list:
+            return TemplateField(type="array", items=[pyannotation_to_json_schema(x.__args__[0])])
+        elif x.__origin__ == dict:
+            if len(x.__args__) == 2 and x.__args__[0] == str:
+                return TemplateField(type="object", additionalProperties=pyannotation_to_json_schema(x.__args__[1]))
+            else:
+                raise ValueError(f"i2: Unsupported type: {x}")
+        elif x.__origin__ == tuple:
+            return TemplateField(type="array", items=[pyannotation_to_json_schema(arg) for arg in x.__args__])
+        elif x.__origin__ == Union:
+            # Unwrap union types with None type
+            types = [arg for arg in x.__args__ if arg is not None]
+            if len(types) == 1:
+                return pyannotation_to_json_schema(types[0])
+            else:
+                return TemplateField(type=[pyannotation_to_json_schema(typ) for typ in types])
+        else:
+            print(x.__origin__)
+            raise ValueError(f"i3: Unsupported type: {x}")
+    elif isinstance(x, tuple):
+        return TemplateField(type="array", items=[TemplateField(type="string"), pyannotation_to_json_schema(x[1])] * len(x))
+    else:
+        raise ValueError(f"i4: Unsupported type: {x}")
 
-        # Check for list type
-        if "List" in _type:
-            _type = _type.replace("List[", "")[:-1]
-            self.is_list = True
 
-        # Replace 'Mapping' with 'dict'
-        if "Mapping" in _type:
-            _type = _type.replace("Mapping", "dict")
+def func_to_template_fields(func) -> List[TemplateField]:
+    """
+    Extracts the signature of a function and converts it to an array of TemplateField objects.
+    """
+    signature = inspect.signature(func)
+    fields = []
+    for param in signature.parameters.values():
+        schema = pyannotation_to_json_schema(param.annotation)
+        schema.required = param.default is inspect.Parameter.empty
+        schema.name = param.name
+        schema.placeholder = str(param.default) if param.default is not inspect.Parameter.empty else ""
+        if not schema.name.startswith("_"):
+            schema.show = True
+        fields.append(schema)
+    return fields
 
-        # Change type from str to Tool
-        self.field_type = "Tool" if key in {"allowed_tools"} else self.field_type
 
-        self.field_type = "int" if key in {"max_value_length"} else self.field_type
+#
+# Node: Each box that is drag and dropped in the UI is a Node, it will tell what kind of things are
+#       its inputs, outputs and fields that are shown in the UI. It can be of different types and
+#       it only wraps teh
+#
 
-        # Show or not field
-        self.show = bool((self.required and key not in ["input_variables"]) or key in FORCE_SHOW_FIELDS or "api_key" in key)
 
-        # Add password field
-        self.password = any(text in key.lower() for text in {"password", "token", "api", "key"})
-
-        # Add multline
-        self.multiline = key in {
-            "suffix",
-            "prefix",
-            "template",
-            "examples",
-            "code",
-            "headers",
-        }
-
-        # Replace dict type with str
-        if "dict" in self.field_type.lower():
-            self.field_type = "code"
-
-        if key == "dict_":
-            self.field_type = "file"
-            self.suffixes = [".json", ".yaml", ".yml"]
-            self.file_types = ["json", "yaml", "yml"]
-
-        # Replace default value with actual value
-        if "default" in value:
-            self.value = value["default"]
-
-        if key == "headers":
-            self.value = """{'Authorization':
-            'Bearer <token>'}"""
-
-        # Add options to openai
-        if name == "OpenAI" and key == "model_name":
-            self.options = constants.OPENAI_MODELS
-            self.is_list = True
-        elif name == "ChatOpenAI" and key == "model_name":
-            self.options = constants.CHAT_OPENAI_MODELS
-            self.is_list = True
+class NodeType:
+    MODEL = "nodetype__model"
+    MEMORY = "nodetype__memory"
 
 
 class NodeConnection:
@@ -157,6 +161,8 @@ class NodeConnection:
 
 
 class Node:
+    types = NodeType
+
     def __init__(
         self,
         id: str,
@@ -213,6 +219,11 @@ class Node:
         }
 
 
+#
+# Edge: Each connection between two boxes on the UI is called an Edge, it is only a dataclass without any methods.
+#
+
+
 class Edge:
     def __init__(self, source: str, target: str):
         self.source = source
@@ -235,7 +246,12 @@ class Edge:
         }
 
 
-class Dag:
+#
+# Dag: An entire flow is called the Chain
+#
+
+
+class Chain:
     def __init__(
         self,
         nodes: List[Node] = [],
