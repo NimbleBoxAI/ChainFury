@@ -20,6 +20,7 @@ from api.prompts import router as prompts_router
 from api.template import template_router
 from api.user import user_router
 from api.dashboard import dashboard_router
+from api.components import components_router
 
 from plugins import get_phandler
 
@@ -56,6 +57,7 @@ app.include_router(langflow_router, prefix=c.API_URL)
 app.include_router(prompts_router, prefix=c.API_URL)
 app.include_router(template_router, prefix=c.API_URL)
 app.include_router(dashboard_router, prefix=c.API_URL)
+app.include_router(components_router, prefix=c.API_URL)
 ####################################################
 ################ APIs ##############################
 ####################################################
@@ -90,3 +92,6 @@ app.mount("/", StaticFiles(directory="static"), name="assets")
 
 # warmup and initialize plugins
 get_phandler()
+
+# warmup and initialize components
+import components

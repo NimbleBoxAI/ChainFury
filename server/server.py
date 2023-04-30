@@ -16,5 +16,5 @@ def main(
 
     uvicorn.run(app, host=host, port=port)
 
-
-fire.Fire(main)
+if __name__ == "__main__":
+    fire.Fire(main)

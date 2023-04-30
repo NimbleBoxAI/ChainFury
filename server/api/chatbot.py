@@ -23,7 +23,10 @@ def create_chatbot(inputs: ChatBotModel, token: Annotated[str, Header()], db: Se
     verify_user(db, username)
     user_id = get_user_id_from_jwt(token)
     try:
-        chatbot = ChatBot(name=inputs.name, created_by=user_id, dag=inputs.dag)
+        chatbot = ChatBot(name=inputs.name, created_by=user_id)
+        if inputs.dag:
+            # TODO: @yashbonde add dag check here
+            chatbot.dag = inputs.dag  # type: ignore
         db.add(chatbot)
         db.commit()
         response = {"msg": "success", "chatbot": chatbot.to_dict()}
@@ -45,6 +48,7 @@ def update_chatbot(id: str, token: Annotated[str, Header()], inputs: ChatBotMode
         if inputs.name is not None:
             chatbot.name = inputs.name  # type: ignore
         if inputs.dag is not None:
+            # TODO: @yashbonde add dag check here
             chatbot.dag = inputs.dag  # type: ignore
         db.commit()
         response = {"msg": "success"}

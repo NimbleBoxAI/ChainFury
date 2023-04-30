@@ -139,3 +139,4 @@ server/templates/*
 .DS_Store
 private_env.sh
 langflow
+pyproject.toml

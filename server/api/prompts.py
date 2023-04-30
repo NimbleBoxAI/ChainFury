@@ -15,7 +15,6 @@ from database import fastapi_db_session
 from database_constants import PromptRating
 
 from plugins import get_phandler, Event
-from fury import get_prompt as get_prompt_fury
 
 # build router
 router = APIRouter(tags=["prompts"])
@@ -29,17 +28,8 @@ logger = logging.getLogger(__name__)
 
 @router.post("/chatbot/{chatbot_id}/prompt")
 def process_prompt(request: Request, chatbot_id: str, prompt: Prompt, db: Session = Depends(fastapi_db_session)):
+    # TODO: @yashbonde process dag here
     result = get_prompt(chatbot_id, prompt, db)
-
-    print("=" * 120)
-    try:
-        out = get_prompt_fury(chatbot_id, prompt, db)
-    except:
-        import traceback
-
-        traceback.print_exc()
-    print("-" * 120)
-
     # manage any callbacks
     ph = get_phandler()
     ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))

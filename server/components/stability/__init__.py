@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Tuple
 
-from fury.base import Secret
+from fury import Secret, model_registry
 
 
 def stability_text_to_image(
@@ -45,6 +45,18 @@ def stability_text_to_image(
     pass
 
 
+model_registry.register(
+    fn=stability_text_to_image,
+    collection_name="stabilityai",
+    model_id="stability-text-to-image",
+    description="Generate a new image from a text prompt",
+    tags=[
+        model_registry.tags_types.VISION,
+        model_registry.tags_types.OPENSOURCE,
+    ],
+)
+
+
 def stability_image_to_image(
     stability_api_key: Secret,
     text_prompts: List[Tuple[str, float]],
@@ -83,6 +95,18 @@ def stability_image_to_image(
     pass
 
 
+model_registry.register(
+    fn=stability_image_to_image,
+    collection_name="stabilityai",
+    model_id="stability-image-to-image",
+    description="Modify an image based on a text prompt",
+    tags=[
+        model_registry.tags_types.VISION,
+        model_registry.tags_types.OPENSOURCE,
+    ],
+)
+
+
 def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, width: int = None, height: int = None) -> bytes:
     """
     Upscales an image to a specified width or height.
@@ -96,6 +120,21 @@ def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, wi
     bytes: The upscaled image.
     """
     pass
+
+
+model_registry.register(
+    fn=stability_image_to_image,
+    collection_name="stabilityai",
+    model_id="stability-image-to-image-upscale",
+    description="Create a higher resolution version of an input image. This operation outputs an image with a maximum pixel "
+    "count of 4,194,304. This is equivalent to dimensions such as 2048x2048 and 4096x1024. By default, the input "
+    "image will be upscaled by a factor of 2. For additional control over the output dimensions, a width or height "
+    "parameter may be specified.",
+    tags=[
+        model_registry.tags_types.VISION,
+        model_registry.tags_types.OPENSOURCE,
+    ],
+)
 
 
 def stability_image_to_image_masking(
@@ -136,3 +175,15 @@ def stability_image_to_image_masking(
         bytes: The generated image.
     """
     pass
+
+
+model_registry.register(
+    fn=stability_image_to_image,
+    collection_name="stabilityai",
+    model_id="stability-image-to-image-masking",
+    description="Selectively modify portions of an image using a mask",
+    tags=[
+        model_registry.tags_types.VISION,
+        model_registry.tags_types.OPENSOURCE,
+    ],
+)
