@@ -9,41 +9,28 @@
 
 <img src="./docs/1.png" align="center"/>
 
-🦋 Build complex chat apps using LLMs in 4 clicks ⚡️
+🦋 Build complex chat apps using LLMs in 4 clicks ⚡️ [Try it out here](https://chainfury.nbox.ai/)
 
-ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
+ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. 
 
-You can try out ChainFury [here](https://chainfury.nbox.ai/).
+With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
 
-
-## Features
-ChainFury supports a range of features, including:
+ChainFury supports a range of features, including but not limited to:
 
 - Recording all prompts and responses and storing them in a database
-- Collecting metrics like latency to provide an easy-to-use scoring mechanism for end-users
-- Querying OpenAI's API to obtain a rating for the response, which it stores in the database.
+- Collecting metrics like response latency
+- Querying OpenAI's API to obtain a rating for the response, which it stores in the database
+- Separate scoring mechanism per ChatBot to easily view performance in a dashboard
 - [Plugins](./server/plugins/) to extend the functionality of ChainFury with callbacks
-
-## Components
-From the LangChain documentation, there are six main areas that LangChain is designed to help with. ChainFury consists of the same concepts to build LLM ChatBots. The components are, in increasing order of complexity:
-
-| Glossary | LangChain    | ChainFury    |
-| --- | --- | --- |
-| 📃 LLMs and Prompts | Prompt management, prompt optimization, generic interface for all LLMs, and common utilities for working with LLMs   | Easy prompt management with GUI elements
-| 🔗 Chains | Chains are sequences of calls (whether to an LLM or a different utility). LangChain provides a standard interface for chains, lots of integrations with other tools, and end-to-end chains for common applications | Easy chain management with GUI |
-| 📚 Data Augmented Generation | Data Augmented Generation involves specific types of chains that first interact with an external datasource to fetch data to use in the generation step. Examples of this include summarization of long pieces of text and question/answering over specific data sources | Coming soon |
-| 🤖 Agents | Agents involve an LLM making decisions about which Actions to take, taking that Action, seeing an Observation, and repeating that until done. LangChain provides a standard interface for agents, a selection of agents to choose from, and examples of end to end agents| Easy agent management with GUI |
-| 🧠 Memory | Memory is the concept of persisting state between calls of a chain/agent. LangChain provides a standard interface for memory, a collection of memory implementations, and examples of chains/agents that use memory | Memory modules are supported, persistant memory coming soon |
-| 🧐 Evaluation | [BETA] Generative models are notoriously hard to evaluate with traditional metrics. One new way of evaluating them is using language models themselves to do the evaluation. LangChain provides some prompts/chains for assisting in this | Auto evaluation of all prompts though OpenAI APIs |
 
 ---
 
 <img src="./docs/2.png" align="center"/>
 
 ---
-Installing ChainFury is easy, with two methods available.
+Installing ChainFury is easy, with two methods available. We suggest using **the Docker method.**
 
-### **Method 1: Docker**
+## Method 1: Docker
 
 The easiest way to install ChainFury is to use Docker. You can use the following command to run ChainFury:
 
@@ -53,6 +40,10 @@ docker build . -f Dockerfile -t chainfury:latest
 docker run --env OPENAI_API_KEY=<your_key_here> -p 8000:8000 chainfury:latest
 ```
 
+Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
+
+<details>
+<summary>Optional environment variable for Database</summary>
 You can also pass a Database URL to the docker container using the `DATABASE_URL` environment variable. If you do not pass a database URL, ChainFury will use a SQLite database.
 
 Example:
@@ -60,12 +51,13 @@ Example:
 ```bash
 docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
 ```
+</details>
 
-Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
 
-### **Method 2: Manual**
-
-For this, you will need to build the frontend and and then run the backend. The frontend can be built using the following command:
+---
+## Method 2: Manual
+<details>
+<summary>For this, you will need to build the frontend and and then run the backend. The frontend can be built using the following command:</summary>
 
 ```bash
 cd client
@@ -91,11 +83,11 @@ pip install -r requirements.txt
 cd server
 python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
 ```
-
+</details>
 <!-- collapsable -->
 
 <details>
-<summary>Script mode</summary>
+<summary>How to run</summary>
 
 Assuming you are in `server` directory, you can run the server using the following command:
 
@@ -122,10 +114,41 @@ Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
 
 5. Save & create your chatbot and start chatting with it by clicking the chat on the bottom-right. You can see chatbot statistics and feedback metrics in your ChainFury dashboard.
 
+
+---
+
+<img src="./docs/5.png" align="center"/>
+
+---
+
+There are six main areas that LangChain is designed to help with.
+
+ChainFury consists of the same concepts to build LLM ChatBots. The components are, in increasing order of complexity:
+
+| Glossary | LangChain    | ChainFury    |
+| --- | --- | --- |
+| 📃 LLMs and Prompts | Prompt management, prompt optimization, generic interface for all LLMs, and common utilities for working with LLMs   | Easy prompt management with GUI elements
+| 🔗 Chains | Chains are sequences of calls (whether to an LLM or a different utility). LangChain provides a standard interface for chains, lots of integrations with other tools, and end-to-end chains for common applications | Easy chain management with GUI |
+| 📚 Data Augmented Generation | Data Augmented Generation involves specific types of chains that first interact with an external datasource to fetch data to use in the generation step. Examples of this include summarization of long pieces of text and question/answering over specific data sources | Coming soon |
+| 🤖 Agents | Agents involve an LLM making decisions about which Actions to take, taking that Action, seeing an Observation, and repeating that until done. LangChain provides a standard interface for agents, a selection of agents to choose from, and examples of end to end agents| Easy agent management with GUI |
+| 🧠 Memory | Memory is the concept of persisting state between calls of a chain/agent. LangChain provides a standard interface for memory, a collection of memory implementations, and examples of chains/agents that use memory | Memory modules are supported, persistant memory coming soon |
+| 🧐 Evaluation | [BETA] Generative models are notoriously hard to evaluate with traditional metrics. One new way of evaluating them is using language models themselves to do the evaluation. LangChain provides some prompts/chains for assisting in this | Auto evaluation of all prompts though OpenAI APIs |
+
+
 ---
 
 <img src="./docs/4.png" align="center"/>
 
 ---
-ChainFury is a work in progress, and is currently in the alpha stage. Please feel free to contribute to the project in any form!
+ChainFury is an open-source project, and is currently in the alpha stage. We are open to contributions to the project in the form of features, infrastructure or documentation.
+
+- To contribute to this project, please follow a ["fork and pull request"](https://docs.github.com/en/get-started/quickstart/contributing-to-projects) workflow. Please do not try to push directly to this repo unless you are maintainer.
+
+- Our [issues](https://github.com/NimbleBoxAI/ChainFury/issues) page is kept up to date with bugs, improvements, and feature requests.
+
+- If you're looking for help with your code, consider posting a question on the [GitHub Discussions board](https://github.com/NimbleBoxAI/ChainFury/discussions), so that more people can benefit from it.
+
+- **Describing your issue:** Try to provide as many details as possible. What exactly goes wrong? How is it failing? Is there an error? "XY doesn't work" usually isn't that helpful for tracking down problems. Always remember to include the code you ran and if possible, extract only the relevant parts and don't just dump your entire script. This will make it easier for us to reproduce the error.
+
+- **Sharing long blocks of code or logs:** If you need to include long code, logs or tracebacks, you can wrap them in `<details>` and `</details>`. This [collapses the content](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details) so it only becomes visible on click, making the issue easier to read and follow.
 
