@@ -119,19 +119,7 @@ const Dashboard = () => {
     });
   };
 
-  const embeddedScript = `<script type="text/javascript" >
-  window.onload = function () {
-    const iframe = document.createElement("iframe");
-    iframe.src = "${window?.location?.protocol}//${window?.location?.host}/ui/chat/${auth?.selectedChatBot?.id}";
-    iframe.style.position = "absolute";
-    iframe.style.zIndex = "10000";
-    iframe.style.bottom = "0";
-    iframe.style.right = "0";
-    iframe.style.width = "350px";
-    iframe.style.height = "450px";
-    document.body.appendChild(iframe);
-  };
-  </script>`;
+  const embeddedScript = `<script src="${window?.location?.origin}/ui/embedBot.js?chatBotId=${auth?.selectedChatBot?.id}" type="text/javascript"></script>`;
 
   return (
     <div className="relative w-full h-full">

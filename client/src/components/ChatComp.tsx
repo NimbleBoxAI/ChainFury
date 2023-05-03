@@ -1,7 +1,9 @@
 import { useEffect, useId, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { useAddUserFeedBackMutation, useProcessPromptMutation } from '../redux/services/auth';
 import { makeid } from '../utils';
+import chatImg from '../assets/chatBox.png';
+import closeImg from '../assets/close.png';
 
 interface ChatInterface {
   id: number;
@@ -20,6 +22,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
   const [enableFeedback, setEnableFeedback] = useState(false);
   const [addFeedback] = useAddUserFeedBackMutation();
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     if (chatId) {
@@ -29,6 +32,15 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
       setIsChatOpen(false);
     }
   }, [chatId]);
+
+  useEffect(() => {
+    console.log('location changed', location.hash);
+    if (location.hash === '#open') {
+      setIsChatOpen(true);
+    } else {
+      setIsChatOpen(false);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (currentMessage?.trim()) handleProcessPrompt();
@@ -88,35 +100,26 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
   };
 
   return (
-    <div className="absolute bg-light-system-bg-primary z-[100000] right-0 bottom-0 ">
+    <div
+      className={`absolute z-[100000] right-0 bottom-0 pt-[8px] px-[4px] ${
+        chat_id ? 'w-screen' : ''
+      } overflow-hidden`}
+    >
       <div
-        className={`flex flex-col ${isChatOpen && !chatId ? 'w-screen' : ''} ${
-          chatId ? 'max-h-[450px]' : 'max-h-screen'
-        } border border-light-neutral-grey-200 shadow-sm rounded-md  regular250 overflow-hidden`}
+        className={`flex flex-col ${
+          isChatOpen && !chatId ? (chat_id ? 'w-[98vw]' : 'w-[350px]') : ''
+        } ${chatId ? 'max-h-[450px]' : 'max-h-screen'} ${
+          isChatOpen ? 'border shadow-md overflow-hidden mr-[4px]' : ''
+        } border-light-neutral-grey-200 rounded-md  regular250 `}
       >
-        <div
-          onClick={() => {
-            if (!isChatOpen) setIsChatOpen(true);
-          }}
-          className="cursor-pointer flex justify-between chatHeader semiBold400 p-[8px] border-b bg-light-primary-blue-400 text-white"
-        >
-          The Bot
-          {isChatOpen ? (
-            <span
-              onClick={() => {
-                setIsChatOpen(false);
-              }}
-              className="cursor-pointer"
-            >
-              ----
-            </span>
-          ) : (
-            ''
-          )}
-        </div>
         {isChatOpen ? (
           <>
-            <div className="overflow-scroll h-[420px] min-w-[350px] p-[16px] pb-[40px] chatContainer">
+            <div className="overflow-scroll  bg-light-system-bg-primary h-[420px] min-w-[350px] p-[16px] pb-[40px] chatContainer">
+              <div className="chat nbx-chat-start">
+                <div className={`flex flex-col `}>
+                  <div className={`chat-bubble`}>Hi there! How can I help?</div>
+                </div>
+              </div>
               {chat.map((chatVal, key) => (
                 <div
                   key={key}
@@ -171,7 +174,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
                 </div>
               ))}
             </div>
-            <div className="p-[8px]">
+            <div className="p-[8px] bg-light-system-bg-primary ">
               <input
                 value={waiting ? 'Thinking...' : currentMessage}
                 disabled={waiting}
@@ -196,6 +199,29 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
               />
             </div>
           </>
+        ) : (
+          <div className="flex justify-end">
+            <div
+              onClick={() => {
+                setIsChatOpen(true);
+              }}
+              className={`w-fit rounded-full m-[16px] border-0 cursor-pointer p-[8px] bg-light-primary-blue-400`}
+            >
+              <img src={chatImg} alt="chat_box" className="w-[30px] h-[30px]" />
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex justify-end">
+        {isChatOpen ? (
+          <div
+            onClick={() => {
+              setIsChatOpen(false);
+            }}
+            className={`w-fit rounded-full m-[16px] mt-[8px] border-0 cursor-pointer p-[8px] bg-light-critical-red-600`}
+          >
+            <img src={closeImg} alt="chat_box" className="w-[30px] h-[30px]" />
+          </div>
         ) : (
           ''
         )}
