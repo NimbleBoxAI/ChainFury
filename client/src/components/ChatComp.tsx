@@ -205,7 +205,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
               onClick={() => {
                 setIsChatOpen(true);
               }}
-              className={`w-fit rounded-full m-[16px] border-0 cursor-pointer p-[8px] bg-light-primary-blue-400`}
+              className={`w-fit rounded-full m-[8px] border-0 cursor-pointer p-[8px] bg-light-primary-blue-400`}
             >
               <img src={chatImg} alt="chat_box" className="w-[30px] h-[30px]" />
             </div>
@@ -218,7 +218,7 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
             onClick={() => {
               setIsChatOpen(false);
             }}
-            className={`w-fit rounded-full m-[16px] mt-[8px] border-0 cursor-pointer p-[8px] bg-light-critical-red-600`}
+            className={`w-fit rounded-full m-[8px] border-0 cursor-pointer p-[8px] bg-light-critical-red-600`}
           >
             <img src={closeImg} alt="chat_box" className="w-[30px] h-[30px]" />
           </div>
