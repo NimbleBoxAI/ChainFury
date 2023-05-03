@@ -164,20 +164,20 @@ def update_internal_user_rating(db: Session, prompt_id: int, rating: constants.P
 
 
 def get_hourly_latency_metrics(db: Session, chatbot_id: str):
-    query = text(
-        """
-        SELECT 
-            substr(created_at, 1, 14) || '00:00' AS datetime,
-            AVG(time_taken) AS avg_time_taken
-        FROM prompt
-        WHERE chatbot_id = :chatbot_id
-        GROUP BY substr(created_at, 1, 14)
-        LIMIT 24
-    """
+    hourly_average_latency = (
+        db.query(Prompt)
+        .filter(Prompt.chatbot_id == chatbot_id)
+        .with_entities(
+            (func.substr(Prompt.created_at, 1, 14)).label("hour"),
+            func.avg(Prompt.time_taken).label("avg_time_taken"),
+        )
+        .group_by((func.substr(Prompt.created_at, 1, 14)))
+        .limit(24)
+        .all()
     )
-
-    result = db.execute(query, {"chatbot_id": chatbot_id}).fetchall()
-    latency_per_hour = [{"created_at": item[0], "time": item[1]} for item in result]
+    latency_per_hour = []
+    for item in hourly_average_latency:
+        latency_per_hour.append({"created_at": item[0], "time": item[1]})
     return latency_per_hour
 
 
