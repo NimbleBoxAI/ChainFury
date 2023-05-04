@@ -3,7 +3,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import { useAddUserFeedBackMutation, useProcessPromptMutation } from '../redux/services/auth';
 import { makeid } from '../utils';
 import chatImg from '../assets/chatBox.png';
-import closeImg from '../assets/close.png';
+import closeImg from '../assets/closeIcon.png';
 
 interface ChatInterface {
   id: number;
