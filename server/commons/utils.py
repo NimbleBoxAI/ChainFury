@@ -177,7 +177,8 @@ def get_hourly_latency_metrics(db: Session, chatbot_id: str):
     )
     latency_per_hour = []
     for item in hourly_average_latency:
-        latency_per_hour.append({"created_at": item[0], "time": item[1]})
+        created_datetime = item[0] + "00:00"
+        latency_per_hour.append({"created_at": created_datetime, "time": item[1]})
     return latency_per_hour
 
 
