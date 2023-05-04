@@ -119,7 +119,7 @@ const Dashboard = () => {
     });
   };
 
-  const embeddedScript = `<script src="${window?.location?.origin}/ui/embedBot.js?chatBotId=${auth?.selectedChatBot?.id}" type="text/javascript"></script>`;
+  const embeddedScript = `<script src="${window?.location?.origin}/script/embedBot.js?chatBotId=${auth?.selectedChatBot?.id}" type="text/javascript"></script>`;
 
   return (
     <div className="relative w-full h-full">
