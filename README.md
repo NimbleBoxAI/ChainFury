@@ -5,7 +5,7 @@
 [![linkcheck](https://img.shields.io/badge/Site-🦋ChainFury-lightblue)](https://chainfury.nbox.ai)
 [![License: Apache](https://img.shields.io/badge/License-Apache%20v2.0-red)](https://github.com/NimbleBoxAI/ChainFury/blob/main/LICENSE) 
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NimbleBoxAI.svg?style=social&label=Follow%20%40NimbleBoxAI)](https://twitter.com/NimbleBoxAI)
-[![](https://dcbadge.vercel.app/api/server/WXU6XkA3?compact=true&style=flat)](https://discord.gg/WXU6XkA3)
+[![](https://dcbadge.vercel.app/api/server/WXU6XkA3?compact=true&style=flat)](https://discord.com/invite/KhF38hrAJ2)
 
 <img src="./docs/1.png" align="center"/>
 
