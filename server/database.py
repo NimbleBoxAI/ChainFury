@@ -154,6 +154,7 @@ class Template(Base):
 #     component_type: str = Column(String(80), nullable=False)
 #     inputs: list[dict] = Column(JSON)
 #     outputs: list[dict] = Column(JSON)
+#     tags: list[str] = Column(JSON)
 
 
 Base.metadata.create_all(bind=engine)

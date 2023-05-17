@@ -1,7 +1,7 @@
 import json
 import inspect
 from hashlib import sha256
-from typing import Any, Union, Optional, Dict, List, Tuple
+from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
 
 from commons.config import get_logger
@@ -14,7 +14,7 @@ class Secret(str):
 
 
 #
-# TemplateFields: this is teh base class for all the fields that the user can provide from the front end
+# TemplateFields: this is the base class for all the fields that the user can provide from the front end
 #
 
 
@@ -22,9 +22,9 @@ class TemplateField:
     def __init__(
         self,
         type: Union[str, List["TemplateField"]],
-        format: str = None,
-        items: List["TemplateField"] = None,
-        additionalProperties: Union[Dict, "TemplateField"] = None,
+        format: str = "",
+        items: List["TemplateField"] = [],
+        additionalProperties: Union[Dict, "TemplateField"] = {},
         password: bool = False,
         #
         required: bool = False,
@@ -48,15 +48,15 @@ class TemplateField:
             f"TemplateField(type={self.type}, format={self.format}, items={self.items}, additionalProperties={self.additionalProperties})"
         )
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         d = {"type": self.type}
         if type(self.type) == list and len(self.type) and type(self.type[0]) == TemplateField:
             d["type"] = [x.to_dict() for x in self.type]
-        if self.format is not None:
+        if self.format:
             d["format"] = self.format
         if self.items:
             d["items"] = [item.to_dict() for item in self.items]
-        if self.additionalProperties is not None:
+        if self.additionalProperties:
             if isinstance(self.additionalProperties, TemplateField):
                 d["additionalProperties"] = self.additionalProperties.to_dict()
             else:
@@ -148,8 +148,8 @@ def func_to_template_fields(func) -> List[TemplateField]:
 
 
 class NodeType:
-    MODEL = "nodetype__model"
-    MEMORY = "nodetype__memory"
+    PROGRAMATIC = "programatic"
+    LLM = "llm"
 
 
 class NodeConnection:
@@ -167,6 +167,7 @@ class Node:
         self,
         id: str,
         type: str,
+        fn: Callable = None,
         description: str = "",
         inputs: List[NodeConnection] = [],
         fields: List[TemplateField] = [],
@@ -178,11 +179,10 @@ class Node:
         self.inputs = inputs
         self.fields = fields
         self.outputs = outputs
+        self.fn = fn
 
     def __repr__(self) -> str:
-        out = (
-            f"CFNode('{self.id}', '{self.type}', fields: ["  # {len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
-        )
+        out = f"CFNode('{self.id}', '{self.type}', fields: [{len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
         for f in self.fields:
             out += f"\n      {f},"
         out += "])"
