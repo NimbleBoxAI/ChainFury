@@ -1,10 +1,16 @@
 import json
 import inspect
+import logging
 from hashlib import sha256
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
 
-from commons.config import get_logger
+
+def get_logger(name):
+    temp_logger = logging.getLogger(name)
+    temp_logger.setLevel(logging.DEBUG)
+    return temp_logger
+
 
 logger = get_logger("fury-core")
 

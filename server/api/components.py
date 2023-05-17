@@ -19,20 +19,23 @@ components_router.__doc__ = """
 
 logger = logging.getLogger(__name__)
 
-@lru_cache()
+
+@lru_cache(1)
 def _components():
     return {
         "models": {"items": model_registry.get_models()},
     }
 
+
 @components_router.get("/")
-def get_components_resoruce_data(req: Request, token: Annotated[str, Header()], resp: Response):
-    return _components()
+def get_components_resource_data(req: Request, token: Annotated[str, Header()], resp: Response):
+    return {"components": list(_components().keys())}
 
 
 @components_router.get("/{component_type}")
-def list_components(req: Request, component_type: str, token: Annotated[str, Header()], resp: Response, db: Session = Depends(fastapi_db_session)):
+def list_components(
+    req: Request, component_type: str, token: Annotated[str, Header()], resp: Response, db: Session = Depends(fastapi_db_session)
+):
     # username = get_user_from_jwt(token)
     # verify_user(db, username)
     return _components().get(component_type, {"items": []})
-

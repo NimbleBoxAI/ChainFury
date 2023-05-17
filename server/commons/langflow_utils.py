@@ -2,7 +2,7 @@ import traceback
 import time
 from dataclasses import dataclass
 from typing import Dict, Any, List
-from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
+from langflow.interface.run import fix_memory_inputs, load_langchain_object
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
