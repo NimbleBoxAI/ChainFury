@@ -1,6 +1,7 @@
 import json
 import inspect
 import logging
+import traceback
 from hashlib import sha256
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
@@ -50,13 +51,15 @@ class TemplateField:
         self.name = name
 
     def __repr__(self) -> str:
-        return (
-            f"TemplateField(type={self.type}, format={self.format}, items={self.items}, additionalProperties={self.additionalProperties})"
-        )
+        return f"TemplateField(type={self.type}, format={self.format}, items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
         d = {"type": self.type}
-        if type(self.type) == list and len(self.type) and type(self.type[0]) == TemplateField:
+        if (
+            type(self.type) == list
+            and len(self.type)
+            and type(self.type[0]) == TemplateField
+        ):
             d["type"] = [x.to_dict() for x in self.type]
         if self.format:
             d["format"] = self.format
@@ -96,7 +99,9 @@ def pyannotation_to_json_schema(x) -> TemplateField:
         elif x == list:
             return TemplateField(type="array", items=[TemplateField(type="string")])
         elif x == dict:
-            return TemplateField(type="object", additionalProperties=TemplateField(type="string"))
+            return TemplateField(
+                type="object", additionalProperties=TemplateField(type="string")
+            )
         elif x == Secret:
             return TemplateField(type="string", password=True)
         else:
@@ -105,26 +110,40 @@ def pyannotation_to_json_schema(x) -> TemplateField:
         return TemplateField(type="string")
     elif hasattr(x, "__origin__") and hasattr(x, "__args__"):
         if x.__origin__ == list:
-            return TemplateField(type="array", items=[pyannotation_to_json_schema(x.__args__[0])])
+            return TemplateField(
+                type="array", items=[pyannotation_to_json_schema(x.__args__[0])]
+            )
         elif x.__origin__ == dict:
             if len(x.__args__) == 2 and x.__args__[0] == str:
-                return TemplateField(type="object", additionalProperties=pyannotation_to_json_schema(x.__args__[1]))
+                return TemplateField(
+                    type="object",
+                    additionalProperties=pyannotation_to_json_schema(x.__args__[1]),
+                )
             else:
                 raise ValueError(f"i2: Unsupported type: {x}")
         elif x.__origin__ == tuple:
-            return TemplateField(type="array", items=[pyannotation_to_json_schema(arg) for arg in x.__args__])
+            return TemplateField(
+                type="array",
+                items=[pyannotation_to_json_schema(arg) for arg in x.__args__],
+            )
         elif x.__origin__ == Union:
             # Unwrap union types with None type
             types = [arg for arg in x.__args__ if arg is not None]
             if len(types) == 1:
                 return pyannotation_to_json_schema(types[0])
             else:
-                return TemplateField(type=[pyannotation_to_json_schema(typ) for typ in types])
+                return TemplateField(
+                    type=[pyannotation_to_json_schema(typ) for typ in types]
+                )
         else:
             print(x.__origin__)
             raise ValueError(f"i3: Unsupported type: {x}")
     elif isinstance(x, tuple):
-        return TemplateField(type="array", items=[TemplateField(type="string"), pyannotation_to_json_schema(x[1])] * len(x))
+        return TemplateField(
+            type="array",
+            items=[TemplateField(type="string"), pyannotation_to_json_schema(x[1])]
+            * len(x),
+        )
     else:
         raise ValueError(f"i4: Unsupported type: {x}")
 
@@ -139,11 +158,64 @@ def func_to_template_fields(func) -> List[TemplateField]:
         schema = pyannotation_to_json_schema(param.annotation)
         schema.required = param.default is inspect.Parameter.empty
         schema.name = param.name
-        schema.placeholder = str(param.default) if param.default is not inspect.Parameter.empty else ""
+        schema.placeholder = (
+            str(param.default) if param.default is not inspect.Parameter.empty else ""
+        )
         if not schema.name.startswith("_"):
             schema.show = True
         fields.append(schema)
     return fields
+
+
+#
+# Model: Each model is the processing engine of the AI actions. It is responsible for keeping
+#        the state of each of the wrapped functions for different API calls.
+#
+
+
+class ModelTags:
+    TEXT_TO_TEXT = "text_to_text"
+    TEXT_TO_IMAGE = "text_to_image"
+    IMAGE_TO_IMAGE = "image_to_image"
+
+
+class Model:
+    model_tags = ModelTags
+
+    def __init__(
+        self,
+        collection_name,
+        model_id,
+        fn: object,
+        description,
+        template_fields: List[TemplateField],
+        tags=[],
+    ):
+        self.collection_name = collection_name
+        self.model_id = model_id
+        self.fn = fn
+        self.description = description
+        self.template_fields = template_fields
+        self.tags = tags
+
+    def __repr__(self) -> str:
+        return f"Model('{self.collection_name}', '{self.model_id}')"
+
+    def to_dict(self):
+        return {
+            "collection_name": self.collection_name,
+            "model_id": self.model_id,
+            "description": self.description,
+            "tags": self.tags,
+            "template_fields": [x.to_dict() for x in self.template_fields],
+        }
+
+    def __call__(self, model_data: Dict[str, Any]):
+        try:
+            out = self.fn(**model_data)  # type: ignore
+            return out, None
+        except Exception as e:
+            return traceback.format_exc(), e
 
 
 #
@@ -155,11 +227,13 @@ def func_to_template_fields(func) -> List[TemplateField]:
 
 class NodeType:
     PROGRAMATIC = "programatic"
-    LLM = "llm"
+    AI = "ai-powered"
 
 
 class NodeConnection:
-    def __init__(self, id: str, name: str = "", required: bool = False, description: str = ""):
+    def __init__(
+        self, id: str, name: str = "", required: bool = False, description: str = ""
+    ):
         self.id = id
         self.name = name
         self.required = required
@@ -167,18 +241,41 @@ class NodeConnection:
 
 
 class Node:
-    types = NodeType
+    types = NodeType()
 
     def __init__(
         self,
         id: str,
         type: str,
-        fn: Callable = None,
+        fn: object,  # the function to call
         description: str = "",
         inputs: List[NodeConnection] = [],
         fields: List[TemplateField] = [],
         outputs: List[NodeConnection] = [],
+        #
+        # things for when procesing engine is a model
+        model: Model = None,
+        model_params: Dict[str, Any] = {},
     ):
+        # when this is a Model processed action things are a bit more complicated. The main problems are:
+        # - state management of the inputs to the model which can come from model_params, fields or user
+        #   defined function
+        if type == NodeType.AI:
+            if model is None:
+                raise ValueError("Model node requires a model")
+
+        # when action is programatic then it is pretty simple to use, there are no extra arguments
+        # we know all the things that might be needed via the fields
+        elif type == NodeType.PROGRAMATIC:
+            if model is not None or model_params:
+                raise ValueError("Cannot pass AI actions arguments in programatic node")
+
+        else:
+            raise ValueError(
+                f"Invalid node type: {type}, see Node.types for valid types"
+            )
+
+        # set the values
         self.id = id
         self.type = type
         self.description = description
@@ -191,30 +288,8 @@ class Node:
         out = f"CFNode('{self.id}', '{self.type}', fields: [{len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
         for f in self.fields:
             out += f"\n      {f},"
-        out += "])"
+        out += "\n])"
         return out
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any], use_langflow_dag: bool = True):
-        # inputs = ([NodeConnection(**input) for input in data["inputs"]],)
-        # fields=[TemplateField(**field) for field in data["fields"]],
-        # outputs=[NodeConnection(**output) for output in data["outputs"]],
-        if use_langflow_dag:
-            node_data = data.get("data", {})
-            # fields = [TemplateField.from_dict(x) .values()]
-            fields = []
-            for k, v in node_data.get("node", {}).get("template", {}).items():
-                if type(v) == dict:
-                    fields.append(TemplateField.from_dict(v))
-        else:
-            node_data = data
-            fields = [TemplateField.from_dict(x) for x in node_data.get("template", [])]
-        return cls(
-            id=data.pop("id", ""),
-            type=data.pop("type", ""),
-            description=node_data.pop("description", ""),
-            fields=fields,
-        )
 
     def to_dict(self):
         return {
@@ -223,6 +298,37 @@ class Node:
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
         }
+
+    def __call__(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], Exception]:
+        # this is the ultimate function that will make the node usable, there are
+        # three seperate parts this function will do:
+        # 1. it will validate the input that it is getting
+        # 2. based on the type call the underlying function:
+        #  - for programatic function we will simple pass all the values to the
+        #    self.fn and return the result
+        #  - for the AI functions we need to see which the model_id in the input
+        #    and then call that one specific item from the registry
+        #  * in both the cases raise appropriate errors and inform the user who
+        #    f-ed up
+        # 3. serialise the result and return it, note the job of this function is
+        #    not related with anything in the larger chainfury ecosystem, it is
+        #    the API functions responsibility to store it in the DB and all that
+
+        # logger.info(f"node called: {self.id}")
+        # logger.info(f"Calling node with data: {data}")
+        # logger.info(f"function is: {self.fn}")
+
+        if self.type == NodeType.PROGRAMATIC:
+            fn_to_call = self.fn
+        elif self.type == NodeType.AI:
+            pass
+
+        try:
+            out = fn_to_call(**data)
+            return {"out": out}, None
+        except Exception as e:
+            tb = traceback.format_exc()
+            return tb, e
 
 
 #

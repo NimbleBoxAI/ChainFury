@@ -7,10 +7,18 @@ This file contains methods and functions that are used to create an agent, i.e.
 - functional node registry
 """
 
+import traceback
 from functools import lru_cache
 from typing import Any, List, Optional, Union, Dict
 
-from fury.base import func_to_template_fields, Node, logger, TemplateField
+from fury.base import (
+    logger,
+    func_to_template_fields,
+    Node,
+    Model,
+    ModelTags,
+    Chain,
+)
 
 """
 ## Models
@@ -18,32 +26,6 @@ from fury.base import func_to_template_fields, Node, logger, TemplateField
 All the things below are for the models that are registered in the model registry, so that they can be used as inputs
 in the chain. There can be several models that can put as inputs in a single chatbot.
 """
-
-
-class Model:
-    def __init__(self, collection_name, model_id, fn: object, description, template_fields: List[TemplateField], tags=[]):
-        self.collection_name = collection_name
-        self.model_id = model_id
-        self.fn = fn
-        self.description = description
-        self.template_fields = template_fields
-        self.tags = tags
-
-    def to_dict(self):
-        return {
-            "collection_name": self.collection_name,
-            "model_id": self.model_id,
-            "description": self.description,
-            "tags": self.tags,
-            "template_fields": [x.to_dict() for x in self.template_fields],
-        }
-
-
-class ModelTags:
-    LLM = "llm"
-    OPENSOURCE = "opensource"
-    GPT = "gpt"
-    VISION = "vision"
 
 
 class ModelRegistry:
@@ -54,8 +36,18 @@ class ModelRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_models: Dict[str, List[str]] = {}
 
-    def register(self, fn: object, collection_name: str, model_id: str, description: str, tags: List[str] = []):
-        id = f"cf-model-{model_id}"
+    def has(self, model_id: str):
+        return model_id in self.models
+
+    def register(
+        self,
+        fn: object,
+        collection_name: str,
+        model_id: str,
+        description: str,
+        tags: List[str] = [],
+    ):
+        id = f"{model_id}"
         logger.info(f"Registering model {model_id} at {id}")
         if id in self.models:
             raise Exception(f"Model {model_id} already registered")
@@ -105,19 +97,21 @@ class ProgramaticActionsRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_nodes: Dict[str, List[str]] = {}
 
-    def register(self, fn: object, node_id: str, description: str, tags: List[str] = []):
-        id = f"cf-node-programatic-{node_id}"
-        logger.info(f"Registering node {node_id} at {id}")
-        if id in self.nodes:
-            raise Exception(f"Node {node_id} already registered")
-        self.nodes[id] = Node(
+    def register(
+        self, fn: object, node_id: str, description: str, tags: List[str] = []
+    ):
+        logger.info(f"Registering p-node '{node_id}'")
+        if node_id in self.nodes:
+            raise Exception(f"Node '{node_id}' already registered")
+        self.nodes[node_id] = Node(
             id=node_id,
             type=Node.types.PROGRAMATIC,
+            fn=fn,
             description=description,
             fields=func_to_template_fields(fn),
         )
         for tag in tags:
-            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [id]
+            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
 
     def get_tags(self) -> List[str]:
         return list(self.tags_to_nodes.keys())
@@ -129,7 +123,7 @@ class ProgramaticActionsRegistry:
         self.counter[node_id] = self.counter.get(node_id, 0) + 1
         out = self.nodes.get(node_id, None)
         if out is None:
-            logger.warning(f"Node {node_id} not found")
+            logger.warning(f"p-node '{node_id}' not found")
         return out
 
     def get_count_for_nodes(self, node_id: str) -> int:
@@ -138,6 +132,67 @@ class ProgramaticActionsRegistry:
 
 programatic_actions_registry = ProgramaticActionsRegistry()
 
+
+"""
+## AI Actions Registry
+
+For everything that cannot be done by we have the AI powered actions Registry. This registry
+will not include all the things that are available to the outer service, but those that are
+hardcoded in the entire thing somewhere.
+"""
+
+
+def ai_action_fn():
+    return None
+
+
+class AIActionsRegistry:
+    def __init__(self):
+        self.nodes: Dict[str, Node] = {}
+        self.counter: Dict[str, int] = {}
+        self.tags_to_nodes: Dict[str, List[str]] = {}
+
+    def register(
+        self,
+        node_id: str,
+        description: str,
+        model_id: str,
+        model_params: Dict[str, Any],
+        fn: object = None,
+        tags: List[str] = [],
+    ):
+        if not model_registry.has(model_id):
+            raise Exception(f"Model {model_id} not registered")
+        logger.info(f"Registering ai-node '{node_id}'")
+        self.nodes[node_id] = Node(
+            id=node_id,
+            fn=ai_action_fn if fn is None else fn,
+            type=Node.types.MODEL,
+            description=description,
+            model=model_registry.get(model_id),
+            model_params=model_params,
+        )
+        for tag in tags:
+            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+
+    def get_tags(self) -> List[str]:
+        return list(self.tags_to_nodes.keys())
+
+    def get_nodes(self, tag: str = "") -> List[Dict[str, Any]]:
+        return [{k: v.to_dict()} for k, v in self.nodes.items()]
+
+    def get(self, node_id: str) -> Optional[Node]:
+        self.counter[node_id] = self.counter.get(node_id, 0) + 1
+        out = self.nodes.get(node_id, None)
+        if out is None:
+            logger.warning(f"ai-node '{node_id}' not found")
+        return out
+
+    def get_count_for_nodes(self, node_id: str) -> int:
+        return self.counter.get(node_id, 0)
+
+
+ai_actions_registry = AIActionsRegistry()
 
 # class Memory:
 #     def __init__(self, memory_id):
@@ -151,27 +206,23 @@ programatic_actions_registry = ProgramaticActionsRegistry()
 #         ...
 
 
-# class Chain:
-#     def __init__(self, agent: "Agent"):
-#         # so the chain can access all the underlying elements of Agent including:
-#         # - models
-#         # - memories
-#         self.agent = Agent
-
-#     # user can subclass this and override the __call__
-#     def __call__(self):
-#         ...
-
-
 # # the main class, user can either subclass this or prvide the chain
 # class Agent:
-#     def __init__(self, models: List[Model], memories: List[Memory], chain: Chain):
+#     def __init__(self, models: List[Model], chain: Chain):
 #         self.models = models
-#         self.memories = memories
 #         self.chain = chain
 
 #     def __call__(self, user_input: Any):
 #         return self.chain(user_input)
+
+
+# # we LRU cache this to save time on ser / deser
+# @lru_cache(128)
+# def get_agent(models: List[Model], chain: Chain) -> Agent:
+#     return Agent(
+#         models=models,
+#         chain=chain,
+#     )
 
 
 if __name__ == "__main__":

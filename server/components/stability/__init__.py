@@ -50,10 +50,6 @@ model_registry.register(
     collection_name="stabilityai",
     model_id="stability-text-to-image",
     description="Generate a new image from a text prompt",
-    tags=[
-        model_registry.tags_types.VISION,
-        model_registry.tags_types.OPENSOURCE,
-    ],
 )
 
 
@@ -100,14 +96,12 @@ model_registry.register(
     collection_name="stabilityai",
     model_id="stability-image-to-image",
     description="Modify an image based on a text prompt",
-    tags=[
-        model_registry.tags_types.VISION,
-        model_registry.tags_types.OPENSOURCE,
-    ],
 )
 
 
-def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, width: int = None, height: int = None) -> bytes:
+def stability_image_to_image_upscale(
+    stability_api_key: Secret, image: bytes, width: int = None, height: int = None
+) -> bytes:
     """
     Upscales an image to a specified width or height.
 
@@ -130,10 +124,6 @@ model_registry.register(
     "count of 4,194,304. This is equivalent to dimensions such as 2048x2048 and 4096x1024. By default, the input "
     "image will be upscaled by a factor of 2. For additional control over the output dimensions, a width or height "
     "parameter may be specified.",
-    tags=[
-        model_registry.tags_types.VISION,
-        model_registry.tags_types.OPENSOURCE,
-    ],
 )
 
 
@@ -182,8 +172,4 @@ model_registry.register(
     collection_name="stabilityai",
     model_id="stability-image-to-image-masking",
     description="Selectively modify portions of an image using a mask",
-    tags=[
-        model_registry.tags_types.VISION,
-        model_registry.tags_types.OPENSOURCE,
-    ],
 )
