@@ -84,8 +84,15 @@ class TemplateField:
         return d
 
 
-def pyannotation_to_json_schema(x) -> TemplateField:
+def pyannotation_to_json_schema(
+    x, allow_any, allow_exc, allow_none, *, trace: bool = False
+) -> TemplateField:
+    """Function to convert the given annotation from python to a TemplateField which can then be
+    JSON serialised and sent to the clients."""
     if isinstance(x, type):
+        if trace:
+            print("t0")
+
         if x == str:
             return TemplateField(type="string")
         elif x == int:
@@ -102,51 +109,98 @@ def pyannotation_to_json_schema(x) -> TemplateField:
             return TemplateField(
                 type="object", additionalProperties=TemplateField(type="string")
             )
+
+        # there are some types that are unique to the fury system
         elif x == Secret:
             return TemplateField(type="string", password=True)
         elif x == Model:
             return TemplateField(type=Model.type_name, required=False, show=False)
+        if x == Exception and allow_exc:
+            return TemplateField(type="exception", required=False, show=False)
+        elif x == type(None) and allow_none:
+            return TemplateField(type="null", required=False, show=False)
         else:
             raise ValueError(f"i0: Unsupported type: {x}")
     elif isinstance(x, str):
+        if trace:
+            print("t1")
         return TemplateField(type="string")
     elif hasattr(x, "__origin__") and hasattr(x, "__args__"):
+        if trace:
+            print("t2")
         if x.__origin__ == list:
+            if trace:
+                print("t2.1")
             return TemplateField(
-                type="array", items=[pyannotation_to_json_schema(x.__args__[0])]
+                type="array",
+                items=[
+                    pyannotation_to_json_schema(
+                        x.__args__[0], allow_any, allow_exc, allow_none
+                    )
+                ],
             )
         elif x.__origin__ == dict:
             if len(x.__args__) == 2 and x.__args__[0] == str:
+                if trace:
+                    print("t2.2")
                 return TemplateField(
                     type="object",
-                    additionalProperties=pyannotation_to_json_schema(x.__args__[1]),
+                    additionalProperties=pyannotation_to_json_schema(
+                        x.__args__[1], allow_any, allow_exc, allow_none
+                    ),
                 )
             else:
                 raise ValueError(f"i2: Unsupported type: {x}")
         elif x.__origin__ == tuple:
+            if trace:
+                print("t2.3")
             return TemplateField(
                 type="array",
-                items=[pyannotation_to_json_schema(arg) for arg in x.__args__],
+                items=[
+                    pyannotation_to_json_schema(arg, allow_any, allow_exc, allow_none)
+                    for arg in x.__args__
+                ],
             )
         elif x.__origin__ == Union:
             # Unwrap union types with None type
             types = [arg for arg in x.__args__ if arg is not None]
             if len(types) == 1:
-                return pyannotation_to_json_schema(types[0])
+                if trace:
+                    print("t2.4")
+                return pyannotation_to_json_schema(
+                    types[0], allow_any, allow_exc, allow_none
+                )
             else:
+                if trace:
+                    print("t2.5")
                 return TemplateField(
-                    type=[pyannotation_to_json_schema(typ) for typ in types]
+                    type=[
+                        pyannotation_to_json_schema(
+                            typ, allow_any, allow_exc, allow_none
+                        )
+                        for typ in types
+                    ]
                 )
         else:
-            print(x.__origin__)
             raise ValueError(f"i3: Unsupported type: {x}")
     elif isinstance(x, tuple):
+        if trace:
+            print("t4")
         return TemplateField(
             type="array",
-            items=[TemplateField(type="string"), pyannotation_to_json_schema(x[1])]
+            items=[
+                TemplateField(type="string"),
+                pyannotation_to_json_schema(x[1], allow_any, allow_exc, allow_none),
+            ]
             * len(x),
         )
+    elif x == Any and allow_any:
+        if trace:
+            print("t5")
+        return TemplateField(type="string")
     else:
+        if trace:
+            print("t6")
         raise ValueError(f"i4: Unsupported type: {x}")
 
 
@@ -157,7 +211,9 @@ def func_to_template_fields(func) -> List[TemplateField]:
     signature = inspect.signature(func)
     fields = []
     for param in signature.parameters.values():
-        schema = pyannotation_to_json_schema(param.annotation)
+        schema = pyannotation_to_json_schema(
+            param.annotation, allow_any=False, allow_exc=False, allow_none=False
+        )
         schema.required = param.default is inspect.Parameter.empty
         schema.name = param.name
         schema.placeholder = (
@@ -167,6 +223,26 @@ def func_to_template_fields(func) -> List[TemplateField]:
             schema.show = True
         fields.append(schema)
     return fields
+
+
+def func_to_return_template_fields(func) -> TemplateField:
+    """
+    Analyses the return annotation type of the signature of a function and converts it to an array of TemplateField objects.
+    """
+    signature = inspect.signature(func)
+    schema = pyannotation_to_json_schema(
+        signature.return_annotation, allow_any=True, allow_exc=True, allow_none=True
+    )
+    if not (
+        schema.type == "array"
+        and len(schema.items) == 2
+        and type(schema.items[1].type) == list
+        and any(x.type == "exception" for x in schema.items[1].type)
+    ):
+        raise ValueError(
+            "Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable"
+        )
+    return schema.items[0]
 
 
 #
@@ -251,10 +327,9 @@ class Node:
         id: str,
         type: str,
         fn: object,  # the function to call
+        fields: List[TemplateField],
+        output: TemplateField,
         description: str = "",
-        inputs: List[NodeConnection] = [],
-        fields: List[TemplateField] = [],
-        outputs: List[NodeConnection] = [],
         #
         # things for when procesing engine is a model
         model: Model = None,
@@ -277,17 +352,18 @@ class Node:
                 f"Invalid node type: {type}, see Node.types for valid types"
             )
 
+        # check if the output signature of the function is the valid `(data, err)` format
+
         # set the values
         self.id = id
         self.type = type
         self.description = description
-        self.inputs = inputs
         self.fields = fields
-        self.outputs = outputs
+        self.output = output
         self.fn = fn
 
     def __repr__(self) -> str:
-        out = f"CFNode('{self.id}', '{self.type}', fields: {len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
+        out = f"CFNode('{self.id}', '{self.type}', fields: {len(self.fields)}, output.type:{self.output.type})"
         for f in self.fields:
             out += f"\n      {f},"
         out += "\n])"

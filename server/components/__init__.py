@@ -11,7 +11,7 @@ from components.functional import (
     regex_substitute,
 )
 
-from components.ai_agents import hello_world, write_a_poem
+from components.ai_actions import hello_world, write_a_poem
 
 ___all__ = [
     # all the included models

@@ -14,6 +14,7 @@ from typing import Any, List, Optional, Union, Dict, Tuple
 from fury.base import (
     logger,
     func_to_template_fields,
+    func_to_return_template_fields,
     Node,
     Model,
     ModelTags,
@@ -109,6 +110,7 @@ class ProgramaticActionsRegistry:
             fn=fn,
             description=description,
             fields=func_to_template_fields(fn),
+            output=func_to_return_template_fields(fn),
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
@@ -225,6 +227,7 @@ class AIActionsRegistry:
             type=Node.types.AI,
             description=description,
             fields=ai_action.fields + model.template_fields,
+            output=func_to_return_template_fields(ai_action.__call__),
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
