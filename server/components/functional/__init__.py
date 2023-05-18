@@ -6,7 +6,7 @@ unique components into programatic_action_registry.
 
 import re
 import requests
-from typing import Any, List, Union, Tuple, Optional
+from typing import Any, List, Dict, Tuple, Optional
 
 from fury import programatic_actions_registry
 
@@ -16,12 +16,12 @@ from fury import programatic_actions_registry
 def call_api_requests(
     method: str,
     url: str,
-    params: dict = {},
-    data: dict = {},
-    json: dict = {},
-    headers: dict = {},
-    cookies: dict = {},
-    auth: dict = {},
+    params: Dict[str, Any] = {},
+    data: Dict[str, Any] = {},
+    json: Dict[str, Any] = {},
+    headers: Dict[str, Any] = {},
+    cookies: Dict[str, Any] = {},
+    auth: Dict[str, Any] = {},
     timeout: float = 0,
 ) -> Tuple[Tuple[str, int], Optional[Exception]]:
     with requests.Session() as sess:
@@ -44,6 +44,7 @@ programatic_actions_registry.register(
     call_api_requests,
     "call_api_requests",
     "Call an API using the requests library",
+    returns=["text", "status_code"],
 )
 
 
@@ -58,6 +59,7 @@ programatic_actions_registry.register(
     regex_search,
     "regex_search",
     "Perform a regex search on the text and get items in an array",
+    returns=["items"],
 )
 
 
@@ -71,4 +73,5 @@ programatic_actions_registry.register(
     regex_substitute,
     "regex_substitute",
     "Perform a regex substitution on the text and get the result",
+    returns=["text"],
 )

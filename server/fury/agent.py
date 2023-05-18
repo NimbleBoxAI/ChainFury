@@ -99,7 +99,12 @@ class ProgramaticActionsRegistry:
         self.tags_to_nodes: Dict[str, List[str]] = {}
 
     def register(
-        self, fn: object, node_id: str, description: str, tags: List[str] = []
+        self,
+        fn: object,
+        node_id: str,
+        description: str,
+        returns: List[str],
+        tags: List[str] = [],
     ):
         logger.info(f"Registering p-node '{node_id}'")
         if node_id in self.nodes:
@@ -110,7 +115,7 @@ class ProgramaticActionsRegistry:
             fn=fn,
             description=description,
             fields=func_to_template_fields(fn),
-            output=func_to_return_template_fields(fn),
+            output=func_to_return_template_fields(func=fn, returns=returns),
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
@@ -176,7 +181,7 @@ class AIAction:
                 if f.name in data:
                     _data[f.name] = data.pop(f.name)
 
-            fn_out = self.fn(**_data)
+            fn_out = self.fn(**_data)  # type: ignore
             if not type(fn_out) == dict:
                 raise Exception(
                     f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
@@ -211,10 +216,10 @@ class AIActionsRegistry:
         fn: object = None,
         tags: List[str] = [],
     ):
-        if not model_registry.has(model_id):
-            raise Exception(f"Model {model_id} not registered")
         logger.info(f"Registering ai-node '{node_id}'")
         model = model_registry.get(model_id)
+        if model is None:
+            raise Exception(f"Model {model_id} not found")
         ai_action = AIAction(
             node_id=node_id,
             model=model,
@@ -227,7 +232,9 @@ class AIActionsRegistry:
             type=Node.types.AI,
             description=description,
             fields=ai_action.fields + model.template_fields,
-            output=func_to_return_template_fields(ai_action.__call__),
+            output=func_to_return_template_fields(
+                func=ai_action.__call__, returns=["model_output"]
+            ),
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]

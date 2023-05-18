@@ -54,7 +54,7 @@ class TemplateField:
         return f"TemplateField('{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
-        d = {"type": self.type}
+        d: Dict[str, Any] = {"type": self.type}
         if (
             type(self.type) == list
             and len(self.type)
@@ -225,9 +225,10 @@ def func_to_template_fields(func) -> List[TemplateField]:
     return fields
 
 
-def func_to_return_template_fields(func) -> TemplateField:
+def func_to_return_template_fields(func, returns: List[str]) -> TemplateField:
     """
-    Analyses the return annotation type of the signature of a function and converts it to an array of TemplateField objects.
+    Analyses the return annotation type of the signature of a function and converts it to an array of
+    named TemplateField objects.
     """
     signature = inspect.signature(func)
     schema = pyannotation_to_json_schema(
@@ -242,6 +243,8 @@ def func_to_return_template_fields(func) -> TemplateField:
         raise ValueError(
             "Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable"
         )
+
+    # TODO: @yashbonde add support for parsing the return names and match with types
     return schema.items[0]
 
 
@@ -330,29 +333,16 @@ class Node:
         fields: List[TemplateField],
         output: TemplateField,
         description: str = "",
-        #
-        # things for when procesing engine is a model
-        model: Model = None,
-        model_params: Dict[str, Any] = {},
     ):
-        # when this is a Model processed action things are a bit more complicated. The main problems are:
-        # - state management of the inputs to the model which can come from model_params, fields or user
-        #   defined function
+        # some bacic checks
         if type == NodeType.AI:
             pass
-
-        # when action is programatic then it is pretty simple to use, there are no extra arguments
-        # we know all the things that might be needed via the fields
         elif type == NodeType.PROGRAMATIC:
-            if model is not None or model_params:
-                raise ValueError("Cannot pass AI actions arguments in programatic node")
-
+            pass
         else:
             raise ValueError(
                 f"Invalid node type: {type}, see Node.types for valid types"
             )
-
-        # check if the output signature of the function is the valid `(data, err)` format
 
         # set the values
         self.id = id
@@ -375,27 +365,10 @@ class Node:
             "type": self.type,
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
+            "output": self.output.to_dict(),
         }
 
-    def __call__(self, data: Dict[str, Any]) -> Tuple[Dict[str, Any], Exception]:
-        # this is the ultimate function that will make the node usable, there are
-        # three seperate parts this function will do:
-        # 1. it will validate the input that it is getting
-        # 2. based on the type call the underlying function:
-        #  - for programatic function we will simple pass all the values to the
-        #    self.fn and return the result
-        #  - for the AI functions we need to see which the model_id in the input
-        #    and then call that one specific item from the registry
-        #  * in both the cases raise appropriate errors and inform the user who
-        #    f-ed up
-        # 3. serialise the result and return it, note the job of this function is
-        #    not related with anything in the larger chainfury ecosystem, it is
-        #    the API functions responsibility to store it in the DB and all that
-
-        # logger.info(f"node called: {self.id}")
-        # logger.info(f"Calling node with data: {data}")
-        # logger.info(f"function is: {self.fn}")
-
+    def __call__(self, data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
         template_keys = set([x.name for x in self.fields])
         try:
@@ -403,10 +376,9 @@ class Node:
                 raise ValueError(
                     f"Invalid keys passed to node: {data_keys - template_keys}"
                 )
-            out = self.fn(**data)
-            if len(out) == 2:
-                out, err = out
-                return {"out": out}, err
+            out, err = self.fn(**data)  # type: ignore
+            if err:
+                raise err
             return {"out": out}, None
         except Exception as e:
             tb = traceback.format_exc()
@@ -467,10 +439,7 @@ class Chain:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
-        return cls(
-            nodes=[Node.from_dict(x) for x in data.get("nodes", [])],
-            edges=[Edge.from_dict(x) for x in data.get("edges", [])],
-        )
+        return cls()
 
     def to_dict(self):
         return {
