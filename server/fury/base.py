@@ -353,7 +353,7 @@ class Node:
         self.fn = fn
 
     def __repr__(self) -> str:
-        out = f"CFNode('{self.id}', '{self.type}', fields: {len(self.fields)}, output.type:{self.output.type})"
+        out = f"FuryNode('{self.id}', '{self.type}', , output.type:{self.output.type}), fields: [{len(self.fields)},"
         for f in self.fields:
             out += f"\n      {f},"
         out += "\n])"
@@ -396,7 +396,7 @@ class Edge:
         self.target = target
 
     def __repr__(self) -> str:
-        return f"CFEdge('{self.source}', '{self.target}')"
+        return f"FuryEdge('{self.source}', '{self.target}')"
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
@@ -427,8 +427,8 @@ class Chain:
         self.edges = edges
 
     def __repr__(self) -> str:
-        # return f"CFDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})"
-        out = "CFDag(\n  nodes: ["
+        # return f"FuryDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})"
+        out = "FuryDag(\n  nodes: ["
         for n in self.nodes:
             out += f"\n    {n},"
         out += "\n  ],\n  edges: ["

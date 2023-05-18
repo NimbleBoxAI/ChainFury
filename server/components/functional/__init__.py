@@ -16,12 +16,12 @@ from fury import programatic_actions_registry
 def call_api_requests(
     method: str,
     url: str,
-    params: Dict[str, Any] = {},
-    data: Dict[str, Any] = {},
-    json: Dict[str, Any] = {},
-    headers: Dict[str, Any] = {},
-    cookies: Dict[str, Any] = {},
-    auth: Dict[str, Any] = {},
+    params: Dict[str, str] = {},
+    data: Dict[str, str] = {},
+    json: Dict[str, str] = {},
+    headers: Dict[str, str] = {},
+    cookies: Dict[str, str] = {},
+    auth: Dict[str, str] = {},
     timeout: float = 0,
 ) -> Tuple[Tuple[str, int], Optional[Exception]]:
     with requests.Session() as sess:

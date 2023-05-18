@@ -73,14 +73,18 @@ class _Nodes:
             action = ai_actions_registry.get("write-a-poem")
         print(action)
 
-        out = action(
+        out, err = action(
             {
                 "openai_api_key": _get_openai_token(),
                 "message": "hello world",
                 "temperature": 0.12,
             }
         )
-        print(out)
+        if err:
+            print("ERROR:", err)
+            print("TRACE:", out)
+            return
+        print("OUT:", out)
 
     def buildai(self):
         """Build an AI powered action"""
