@@ -9,7 +9,7 @@ This file contains methods and functions that are used to create an agent, i.e.
 
 import traceback
 from functools import lru_cache
-from typing import Any, List, Optional, Union, Dict
+from typing import Any, List, Optional, Union, Dict, Tuple
 
 from fury.base import (
     logger,
@@ -142,8 +142,56 @@ hardcoded in the entire thing somewhere.
 """
 
 
-def ai_action_fn():
-    return None
+class AIAction:
+    def __init__(
+        self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object
+    ):
+        # do some basic checks that we can do before anything else like checking if model_params
+        # is a subset of the model.template_fields
+        fields = set(x.name for x in model.template_fields)
+        mp_set = set(model_params.keys())
+        if not mp_set.issubset(fields):
+            raise Exception(f"Model params {mp_set} not a subset of {fields}")
+
+        self.node_id = node_id
+        self.model = model
+        self.model_params = model_params
+        self.fn = fn
+        self.fields = func_to_template_fields(fn)
+
+    def __call__(self, **data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
+        # we can check again if the incoming keys in the message data are actualyl present in the fields
+        # or not for the model
+        try:
+            # we need to create a sub dict that only contains the fields that are needed by the preprocessor
+            # function and pass the rest of the data to the model call
+            _data = {}
+            for f in self.fields:
+                if f.required and f.name not in data:
+                    raise Exception(
+                        f"Field {f.name} is required in {self.node_id} but not present"
+                    )
+                if f.name in data:
+                    _data[f.name] = data.pop(f.name)
+
+            fn_out = self.fn(**_data)
+            if not type(fn_out) == dict:
+                raise Exception(
+                    f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
+                )
+        except Exception as e:
+            return "", e
+
+        # print(">> model_params:", self.model_params)
+        # print(">> preprocessor:", fn_out)
+        model_final_params = {**self.model_params}
+        model_final_params.update(data)
+        model_final_params.update(fn_out)
+        # print(model_final_params)
+        out, err = self.model(model_final_params)
+        if err != None:
+            return "", err
+        return out, err
 
 
 class AIActionsRegistry:
@@ -164,13 +212,19 @@ class AIActionsRegistry:
         if not model_registry.has(model_id):
             raise Exception(f"Model {model_id} not registered")
         logger.info(f"Registering ai-node '{node_id}'")
+        model = model_registry.get(model_id)
+        ai_action = AIAction(
+            node_id=node_id,
+            model=model,
+            model_params=model_params,
+            fn=fn,
+        )
         self.nodes[node_id] = Node(
             id=node_id,
-            fn=ai_action_fn if fn is None else fn,
-            type=Node.types.MODEL,
+            fn=ai_action,
+            type=Node.types.AI,
             description=description,
-            model=model_registry.get(model_id),
-            model_params=model_params,
+            fields=ai_action.fields + model.template_fields,
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]

@@ -1,5 +1,5 @@
 import requests
-from typing import Any, List, Union
+from typing import Any, List, Union, Dict
 
 from fury import Secret, model_registry
 
@@ -22,7 +22,7 @@ def openai_completion(
     user: str = "",
     *,
     raw: bool = False,
-) -> List[str]:
+) -> Dict[str, Any]:
     """
     Generate text completion using OpenAI's GPT-3 API.
 
@@ -85,7 +85,10 @@ def openai_completion(
         raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
     if raw:
         return r.json()
-    return [x.get("text", "") for x in r.json()["choices"]]
+    return {
+        "prompt": prompt,
+        "choices": [x.get("text", "") for x in r.json()["choices"]],
+    }
 
 
 model_registry.register(

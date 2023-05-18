@@ -69,7 +69,18 @@ class _Nodes:
     def callai(self, fail: bool = False):
         """Call the AI action"""
         action = ai_actions_registry.get("hello-world")
+        if fail:
+            action = ai_actions_registry.get("write-a-poem")
         print(action)
+
+        out = action(
+            {
+                "openai_api_key": _get_openai_token(),
+                "message": "hello world",
+                "temperature": 0.12,
+            }
+        )
+        print(out)
 
     def buildai(self):
         """Build an AI powered action"""

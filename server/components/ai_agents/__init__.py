@@ -2,14 +2,10 @@ from fury import ai_actions_registry, Model
 
 
 # this is a super generic function to reply funnily to something
-def hello_world(message: str, model: Model):
-    prompt = f"Give a witty response for this: 'Hello dear AI agent, {message}'\n\nWitty Response:"
-    options = model(
-        {
-            "prompt": prompt,
-        }
-    )
-    return options
+def hello_world(message: str):
+    return {
+        "prompt": f"Give a witty response for this: 'Hello dear AI agent, {message}'\n\nWitty Response:",
+    }
 
 
 ai_actions_registry.register(
@@ -25,13 +21,11 @@ ai_actions_registry.register(
 
 
 # a generic function to write a poem from the given message
-def write_a_poem(message: str, model: Model):
-    prompt = f"Write a poem for this: '{message}'\n\nPoem:"
-    options = model(
-        {
-            "prompt": prompt,
-        }
-    )
+def write_a_poem(message: str, style: str):
+    options = {
+        "prompt": f"Write a poem for this: '{message}' in the style of {style}\n\nPoem:",
+        "max_tokens": 1024,
+    }
     return options
 
 

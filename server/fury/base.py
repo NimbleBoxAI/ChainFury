@@ -51,7 +51,7 @@ class TemplateField:
         self.name = name
 
     def __repr__(self) -> str:
-        return f"TemplateField(type={self.type}, format={self.format}, items={self.items}, additionalProperties={self.additionalProperties})"
+        return f"TemplateField('{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
         d = {"type": self.type}
@@ -104,6 +104,8 @@ def pyannotation_to_json_schema(x) -> TemplateField:
             )
         elif x == Secret:
             return TemplateField(type="string", password=True)
+        elif x == Model:
+            return TemplateField(type=Model.type_name, required=False, show=False)
         else:
             raise ValueError(f"i0: Unsupported type: {x}")
     elif isinstance(x, str):
@@ -181,6 +183,7 @@ class ModelTags:
 
 class Model:
     model_tags = ModelTags
+    type_name = "model"
 
     def __init__(
         self,
@@ -210,7 +213,7 @@ class Model:
             "template_fields": [x.to_dict() for x in self.template_fields],
         }
 
-    def __call__(self, model_data: Dict[str, Any]):
+    def __call__(self, model_data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
         try:
             out = self.fn(**model_data)  # type: ignore
             return out, None
@@ -261,8 +264,7 @@ class Node:
         # - state management of the inputs to the model which can come from model_params, fields or user
         #   defined function
         if type == NodeType.AI:
-            if model is None:
-                raise ValueError("Model node requires a model")
+            pass
 
         # when action is programatic then it is pretty simple to use, there are no extra arguments
         # we know all the things that might be needed via the fields
@@ -285,7 +287,7 @@ class Node:
         self.fn = fn
 
     def __repr__(self) -> str:
-        out = f"CFNode('{self.id}', '{self.type}', fields: [{len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
+        out = f"CFNode('{self.id}', '{self.type}', fields: {len(self.fields)}, inputs:{len(self.inputs)}, outputs:{len(self.outputs)})"
         for f in self.fields:
             out += f"\n      {f},"
         out += "\n])"
@@ -318,13 +320,17 @@ class Node:
         # logger.info(f"Calling node with data: {data}")
         # logger.info(f"function is: {self.fn}")
 
-        if self.type == NodeType.PROGRAMATIC:
-            fn_to_call = self.fn
-        elif self.type == NodeType.AI:
-            pass
-
+        data_keys = set(data.keys())
+        template_keys = set([x.name for x in self.fields])
         try:
-            out = fn_to_call(**data)
+            if not data_keys.issubset(template_keys):
+                raise ValueError(
+                    f"Invalid keys passed to node: {data_keys - template_keys}"
+                )
+            out = self.fn(**data)
+            if len(out) == 2:
+                out, err = out
+                return {"out": out}, err
             return {"out": out}, None
         except Exception as e:
             tb = traceback.format_exc()
