@@ -14,9 +14,9 @@ We have added [openai](./openai/) and [stability](./stability/) as providers for
 
 As mentioned in [our blog](https://gist.github.com/yashbonde/885ef52dd69b44c46b4655a116d25d4c) AI actions are powered using models. Each AI action has an associated `model` which processes the inputs provided. There are two different ways to build AI actions.
 - One strategy is to provide preprocessing function that takes in a bunch of JSON-serialisable arguments and returns a dictionary that is eventually passed to the underlying model.
-- In another strategy we can build the preprocessing function completely using a JSON based message.
+- In another strategy we can build the preprocessing function completely using a JSON based message. The prompting engine can be `jinja2`
 
-The folder [ai_actions](./ai_actions/) contains code for both of them.
+The folder [ai_actions](./ai_actions/) contains code for both of them. Actually the former is a really bad strategy because it hides from the user what are the things that the black box is going to do, which is against the idea of being open. However ther are several complex things that cannot be done with just jinja, ex. chat APIs which require an array of chat objects.
 
 ## Challenges
 

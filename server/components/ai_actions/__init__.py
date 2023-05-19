@@ -39,3 +39,38 @@ ai_actions_registry.register(
     },
     fn=write_a_poem,
 )
+
+
+# a generic function that talks to the chatGPT model
+def sum_of_two_numbers(num1: str, num2: str):
+    return {
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are a sarcastic but helful chatbot trying to answer questions that the user has",
+            },
+            {
+                "role": "user",
+                "content": "Hello there, can you add these two numbers for me? 123, 456",
+            },
+            {
+                "role": "assistant",
+                "content": "Sure I can help with that, as if I don't have anything better to do",
+            },
+            {
+                "role": "user",
+                "content": f"Can you add these two numbers for me? {num1}, {num2}",
+            },
+        ]
+    }
+
+
+ai_actions_registry.register(
+    node_id="chat-sum-numbers",
+    description="AI will add two numbers and give a sarscastic response.",
+    model_id="openai-chat",
+    model_params={
+        "model": "gpt-3.5-turbo",
+    },
+    fn=sum_of_two_numbers,
+)

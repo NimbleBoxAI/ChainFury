@@ -86,6 +86,24 @@ class _Nodes:
             return
         print("OUT:", out)
 
+    def callai_chat(self, fail: bool = False):
+        """Call the AI action"""
+        action = ai_actions_registry.get("chat-sum-numbers")
+        print(action)
+
+        out, err = action(
+            {
+                "openai_api_key": _get_openai_token(),
+                "num1": 123,
+                "num2": 456,
+            }
+        )
+        if err:
+            print("ERROR:", err)
+            print("TRACE:", out)
+            return
+        print("OUT:", out)
+
     def buildai(self):
         """Build an AI powered action"""
         nodes = Node.build_ai()
