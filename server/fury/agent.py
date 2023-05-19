@@ -7,14 +7,21 @@ This file contains methods and functions that are used to create an agent, i.e.
 - functional node registry
 """
 
+import copy
 import traceback
 from functools import lru_cache
 from typing import Any, List, Optional, Union, Dict, Tuple
+
+import jinja2
 
 from fury.base import (
     logger,
     func_to_template_fields,
     func_to_return_template_fields,
+    jtype_to_template_fields,
+    extract_jinja_indices,
+    get_value_by_keys,
+    put_value_by_keys,
     Node,
     Model,
     ModelTags,
@@ -150,6 +157,9 @@ hardcoded in the entire thing somewhere.
 
 
 class AIAction:
+    JTYPE = "jinja-template"
+    FUNC = "python-function"
+
     def __init__(
         self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object
     ):
@@ -160,34 +170,68 @@ class AIAction:
         if not mp_set.issubset(fields):
             raise Exception(f"Model params {mp_set} not a subset of {fields}")
 
+        self.templates = []
+
+        # since this is the AI action this is responsible for validating the function
+        if type(fn) == dict:
+            action_source = AIAction.JTYPE
+            fields = []  # fields required for self.fields
+            templates = (
+                []
+            )  # list of all the templates to be render with its position in fn
+            fields_with_locations = extract_jinja_indices(fn)
+            for field in fields_with_locations:
+                fields.extend(field[1])
+                obj = get_value_by_keys(fn, field[0])
+                if not obj:
+                    raise ValueError(
+                        f"Field {field[0]} not found in {fn}, but was extraced. There is a bug in get_value_by_keys function"
+                    )
+                templates.append((obj, jinja2.Template(obj), field[0]))
+
+            # set values
+            self.templates = templates
+        else:
+            assert type(fn) == type(
+                func_to_return_template_fields
+            ), "`fn` can either be a function or a string"
+            action_source = AIAction.FUNC
+            fields = func_to_template_fields(fn)
+
         self.node_id = node_id
         self.model = model
         self.model_params = model_params
         self.fn = fn
-        self.fields = func_to_template_fields(fn)
+        self.action_source = action_source
+        self.fields = fields
 
     def __call__(self, **data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
-        # we can check again if the incoming keys in the message data are actualyl present in the fields
-        # or not for the model
-        try:
-            # we need to create a sub dict that only contains the fields that are needed by the preprocessor
-            # function and pass the rest of the data to the model call
-            _data = {}
-            for f in self.fields:
-                if f.required and f.name not in data:
-                    raise Exception(
-                        f"Field {f.name} is required in {self.node_id} but not present"
-                    )
-                if f.name in data:
-                    _data[f.name] = data.pop(f.name)
-
-            fn_out = self.fn(**_data)  # type: ignore
-            if not type(fn_out) == dict:
+        # check for keys even before calling any API or something
+        # we need to create a sub dict that only contains the fields that are needed by the preprocessor
+        # function and pass the rest of the data to the model call
+        _data = {}
+        for f in self.fields:
+            if f.required and f.name not in data:
                 raise Exception(
-                    f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
+                    f"Field {f.name} is required in {self.node_id} but not present"
                 )
-        except Exception as e:
-            return "", e
+            if f.name in data:
+                _data[f.name] = data.pop(f.name)
+
+        if self.action_source == AIAction.FUNC:
+            try:
+                fn_out = self.fn(**_data)  # type: ignore
+                if self.action_source == AIAction.FUNC and not type(fn_out) == dict:
+                    raise Exception(
+                        f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
+                    )
+            except Exception as e:
+                return "", e
+        elif self.action_source == AIAction.JTYPE:
+            fn_out = copy.deepcopy(self.fn)
+            for raw, t, keys in self.templates:
+                value = t.render(**_data)
+                put_value_by_keys(fn_out, keys, value)
 
         # print(">> model_params:", self.model_params)
         # print(">> preprocessor:", fn_out)
@@ -213,7 +257,7 @@ class AIActionsRegistry:
         description: str,
         model_id: str,
         model_params: Dict[str, Any],
-        fn: object = None,
+        fn: object,
         tags: List[str] = [],
     ):
         logger.info(f"Registering ai-node '{node_id}'")

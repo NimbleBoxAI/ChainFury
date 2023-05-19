@@ -66,11 +66,14 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def callai(self, fail: bool = False):
+    def callai(self, jtype: bool = False, fail: bool = False):
         """Call the AI action"""
-        action = ai_actions_registry.get("hello-world")
+        action_id = "hello-world"
         if fail:
-            action = ai_actions_registry.get("write-a-poem")
+            action_id = "this-does-not-exist"
+        if jtype:
+            action_id += "-2"
+        action = ai_actions_registry.get(action_id)
         print(action)
 
         out, err = action(
@@ -78,6 +81,7 @@ class _Nodes:
                 "openai_api_key": _get_openai_token(),
                 "message": "hello world",
                 "temperature": 0.12,
+                # "style": "snoop dogg", # uncomment to get the fail version running correctly
             }
         )
         if err:
@@ -86,9 +90,12 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def callai_chat(self, fail: bool = False):
+    def callai_chat(self, jtype: bool = False, fail: bool = False):
         """Call the AI action"""
-        action = ai_actions_registry.get("chat-sum-numbers")
+        action_id = "chat-sum-numbers"
+        if jtype:
+            action_id += "-2"
+        action = ai_actions_registry.get(action_id)
         print(action)
 
         out, err = action(
@@ -103,26 +110,6 @@ class _Nodes:
             print("TRACE:", out)
             return
         print("OUT:", out)
-
-    def buildai(self):
-        """Build an AI powered action"""
-        nodes = Node.build_ai()
-
-        model_data = {
-            "model_id": "openai-completion",
-            "model_params": {
-                "openai_token": _get_openai_token(),
-                "model": "text-curie-001",
-                "prompt": "",
-                "temperature": 0.1,
-            },
-            "prompt": {
-                "type": "text",
-                "text": "Answer a simple question about this JSON: `{{api_text}}` | Q: what is the key? | A: ",
-            },
-        }
-
-        pass
 
     def call_chain(self, fail: bool = False):
         # this is an example to check if the entire enf to end chain is working correctly or not

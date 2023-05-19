@@ -6,6 +6,9 @@ from hashlib import sha256
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
 
+import jinja2schema
+from jinja2schema import model as j2sm
+
 
 def get_logger(name):
     temp_logger = logging.getLogger(name)
@@ -31,7 +34,7 @@ class TemplateField:
         type: Union[str, List["TemplateField"]],
         format: str = "",
         items: List["TemplateField"] = [],
-        additionalProperties: Union[Dict, "TemplateField"] = {},
+        additionalProperties: Union[List["TemplateField"], "TemplateField"] = [],
         password: bool = False,
         #
         required: bool = False,
@@ -95,9 +98,7 @@ def pyannotation_to_json_schema(
 
         if x == str:
             return TemplateField(type="string")
-        elif x == int:
-            return TemplateField(type="integer")
-        elif x == float:
+        elif x == int or x == float:
             return TemplateField(type="number")
         elif x == bool:
             return TemplateField(type="boolean")
@@ -246,6 +247,133 @@ def func_to_return_template_fields(func, returns: List[str]) -> TemplateField:
 
     # TODO: @yashbonde add support for parsing the return names and match with types
     return schema.items[0]
+
+
+def jinja_schema_to_template_fields(v) -> TemplateField:
+    if type(v) == j2sm.Scalar or type(v) == j2sm.String:
+        field = TemplateField(type="string", required=True)
+    elif type(v) == j2sm.Number:
+        field = TemplateField(type="number", required=True)
+    elif type(v) == j2sm.Boolean:
+        field = TemplateField(type="boolean", required=True)
+    elif type(v) == j2sm.Unknown:
+        field = TemplateField(type="string", required=True)
+    elif type(v) == j2sm.Variable:
+        field = TemplateField(type="string", required=True)
+    elif type(v) == j2sm.Dictionary:
+        field = TemplateField(type="object", required=True)
+        all_fields = []
+        for k, v in v.items():
+            field_item = jinja_schema_to_template_fields(v)
+            field_item.name = k
+            all_fields.append(field_item)
+        field.additionalProperties = all_fields
+    elif type(v) == j2sm.List:
+        field = TemplateField(type="array", required=True)
+        field.items = [jinja_schema_to_template_fields(v.item)]
+    elif type(v) == j2sm.Tuple:
+        field = TemplateField(type="array", required=True)
+        if v.items:
+            field.items = [jinja_schema_to_template_fields(x) for x in v.items]
+    else:
+        raise ValueError(f"cannot handle type {type(v)}")
+    return field
+
+
+def jtype_to_template_fields(prompt: str) -> List[TemplateField]:
+    try:
+        s = jinja2schema.infer(prompt)
+        fields = []
+        for k, v in s.items():
+            f = jinja_schema_to_template_fields(v)
+            f.name = k
+            fields.append(f)
+    except Exception as e:
+        print(
+            "Could not parse prompt to jinja schema. We support only for/if/filters in jinja2. "
+            "Please read here for more information: https://jinja.palletsprojects.com/en/3.1.x/templates/"
+        )
+        raise e
+    return fields
+
+
+def extract_jinja_indices(data, current_index=(), indices=None) -> List:
+    """
+    Returns things like:
+
+    [(('3', 'content'), [TemplateField('num1', type=string, items=[], additionalProperties=[]), TemplateField('num2', type=string, items=[], additionalProperties=[])])]
+    [((), [TemplateField('message', type=string, items=[], additionalProperties=[])])]
+    [(('meta_prompt', 'data'), [TemplateField('place', type=string, items=[], additionalProperties=[])])]
+    [('0', [TemplateField('name', type=string, items=[], additionalProperties=[])])]
+    [(('meta', 'ptype'), [TemplateField('genome', type=string, items=[], additionalProperties=[])])]
+    [(('level-0', 'level-1', 'level-2'), [TemplateField('thing', type=string, items=[], additionalProperties=[])]), (('level-0', 'nice'), [TemplateField('feeling', type=string, items=[], additionalProperties=[])])]
+    []
+    """
+    if indices is None:
+        indices = []
+
+    if isinstance(data, str):
+        fields = jtype_to_template_fields(data)
+        if fields:
+            indices.append((current_index, fields))
+    elif isinstance(data, list):
+        for i, item in enumerate(data):
+            if current_index:
+                if type(current_index) == tuple:
+                    new_index = (*current_index, i)
+                else:
+                    new_index = (current_index, i)
+            else:
+                new_index = str(i)
+            extract_jinja_indices(item, new_index, indices)
+    elif isinstance(data, dict):
+        for key, value in data.items():
+            if current_index:
+                if type(current_index) == tuple:
+                    new_index = (*current_index, key)
+                else:
+                    new_index = (current_index, key)
+            else:
+                new_index = key
+            extract_jinja_indices(value, new_index, indices)
+
+    return indices
+
+
+def get_value_by_keys(obj, keys):
+    if not keys:
+        return obj
+    keys = (keys,) if not isinstance(keys, (list, tuple)) else keys
+    key = keys[0]
+    if isinstance(obj, dict):
+        return get_value_by_keys(obj.get(key), keys[1:])
+    elif isinstance(obj, (list, tuple)):
+        key = int(key)
+        if isinstance(key, int) and 0 <= key < len(obj):
+            return get_value_by_keys(obj[key], keys[1:])
+    return None
+
+
+def put_value_by_keys(obj, keys, value):
+    if not keys:
+        return
+
+    keys = (keys,) if not isinstance(keys, (list, tuple)) else keys
+    key = keys[0]
+    if len(keys) == 1:
+        if isinstance(obj, dict):
+            obj[key] = value
+        elif isinstance(obj, list) and isinstance(key, int) and 0 <= key < len(obj):
+            obj[key] = value
+    else:
+        if isinstance(obj, dict):
+            if key not in obj or not isinstance(obj[key], (dict, list)):
+                obj[key] = {} if isinstance(keys[1], str) else []
+            put_value_by_keys(obj[key], keys[1:], value)
+        elif isinstance(obj, list) and isinstance(key, int) and 0 <= key < len(obj):
+            if not isinstance(obj[key], (dict, list)):
+                obj[key] = {} if isinstance(keys[1], str) else []
+            put_value_by_keys(obj[key], keys[1:], value)
 
 
 #
