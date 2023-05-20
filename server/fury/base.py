@@ -3,12 +3,24 @@ import json
 import inspect
 import logging
 import traceback
+from pprint import pformat
 from hashlib import sha256
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
 
 import jinja2schema
 from jinja2schema import model as j2sm
+
+
+def terminal_top_with_text(msg: str = "") -> str:
+    width = os.get_terminal_size().columns
+    if len(msg) > width - 5:
+        x = "=" * width
+        x += "\n" + msg
+        x += "\n" + "=" * width // 2  # type: ignore
+    else:
+        x = "=" * (width - len(msg) - 1) + " " + msg
+    return x
 
 
 def get_logger():
@@ -500,25 +512,33 @@ class Node:
             "outputs": [o.to_dict() for o in self.outputs],
         }
 
-    def __call__(self, data: Dict[str, Any], ret_fields: bool = False) -> Tuple[Any, Optional[Exception]]:
+    def __call__(self, data: Dict[str, Any], print_thoughts: bool = False) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
         template_keys = set([x.name for x in self.fields])
         try:
             if not data_keys.issubset(template_keys):
-                raise ValueError(f"Invalid keys passed to node: {data_keys - template_keys}")
+                raise ValueError(f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}")
+            if print_thoughts:
+                print(terminal_top_with_text(f"Node: {self.id}"))
+                print("Inputs:\n------")
+                print(pformat(data))
+
             out, err = self.fn(**data)  # type: ignore
             if err:
                 raise err
-            # if not ret_fields:
-            #     return out, None
 
             # this is where we have to polish this outgoing result into the structure as configured in self.outputs
-            # print("> fnout: ", out)
-            # print("OUTPUTS:", self.outputs)
+            # logger.debug("> fnout: ", out)
+            # logger.debug("OUTPUTS:", self.outputs)
             for o in self.outputs:
-                # print("  OP:", o.name, o._loc)
+                # logger.debug("  OP:", o.name, o._loc)
                 o.set_value(get_value_by_keys(out, o._loc))
-            return {o.name: o.value for o in self.outputs}, None
+
+            fout = {o.name: o.value for o in self.outputs}
+            if print_thoughts:
+                print("Outputs:\n-------")
+                print(pformat(fout))
+            return fout, None
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
@@ -586,7 +606,12 @@ class Chain:
         out += "\n  ]\n)"
         return out
 
-    def __call__(self, data, v: bool = False) -> Tuple[Var, Dict[str, Any]]:
+    def __call__(self, data, print_thoughts: bool = False) -> Tuple[Var, Dict[str, Any]]:
+        if print_thoughts:
+            print(terminal_top_with_text("Chain Starts"))
+            print("Inputs:\n------")
+            print(pformat(data))
+
         full_ir = {}
         out = None
         for node_id in self.topo_order:
@@ -613,14 +638,21 @@ class Chain:
             for k in all_keys:
                 if node.has_field(k):
                     _data[k] = data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
-            out, err = node(_data, ret_fields=True)
+            out, err = node(_data, print_thoughts=print_thoughts)
             if err:
-                logger.error("TRACE:", out)
+                logger.error("TRACE: {out}")
                 raise err
             # if out.type != "array":
             #     out = Var(type="array", items=[out])
             for k, v in out.items():
                 full_ir[f"{node_id}/{k}"] = v
+
+        if print_thoughts:
+            print(terminal_top_with_text("Chain Starts"))
+            print("Outputs:\n------")
+            print(pformat(data))
+            print("Full IR:\n------")
+            print(pformat(full_ir))
 
         return out, full_ir  # type: ignore
 

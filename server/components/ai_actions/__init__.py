@@ -36,28 +36,8 @@ ai_actions_registry.register(
 
 
 # a generic function to write a poem from the given message
-def write_a_poem(message: str, style: str):
-    options = {
-        "prompt": f"Write a poem for this: '{message}' in the style of {style}\n\nPoem:",
-        "max_tokens": 1024,
-    }
-    return options
-
-
 ai_actions_registry.register(
     node_id="write-a-poem",
-    description="AI will write a poem.",
-    model_id="openai-completion",
-    model_params={
-        "model": "text-curie-001",
-        "temperature": 0.1,
-    },
-    fn=write_a_poem,
-    outputs={"generations": ("choices",)},
-)
-
-ai_actions_registry.register(
-    node_id="write-a-poem-2",
     description="J-type action that uses jinja templating instead of pre-loaded python functions",
     model_id="openai-completion",
     model_params={
@@ -68,7 +48,7 @@ ai_actions_registry.register(
         "prompt": 'Write a poem for this: "{{ message }}" in the style of {{ style }}\n\nPoem:',
         "max_tokens": 1024,
     },
-    outputs={"generations": ("choices",)},
+    outputs={"generations": ("choices", 0, "text")},
 )
 
 
@@ -137,9 +117,8 @@ ai_actions_registry.register(
     outputs={"chat_reply": ("choices", 0, "message", "content")},
 )
 
-
 ai_actions_registry.register(
-    node_id="chat-joke",
+    node_id="deep-rap-quote",
     description="AI will tell a joke on any topic you tell it to talk about",
     model_id="openai-chat",
     model_params={
@@ -149,7 +128,7 @@ ai_actions_registry.register(
         "messages": [
             {
                 "role": "user",
-                "content": "give a deep 4 line quote on life in the style of {{ character }}.",
+                "content": "give a deep 8 line rap quote on life in the style of {{ character }}.",
             },
         ],
     },

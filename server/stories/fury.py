@@ -1,6 +1,7 @@
 import os
 import json
 import fire
+from pprint import pformat
 from requests import Session
 from typing import Dict, Any
 
@@ -165,6 +166,7 @@ class _Chain:
                 "chat_reply": ("choices", 0, "message", "content"),
             },
         )
+        print(j)
 
         e = Edge(p.id, j.id, ("text", "json_thingy"))
 
@@ -191,7 +193,8 @@ class _Chain:
         j1 = ai_actions_registry.get("hello-world")
         print(j1)
         j2 = ai_actions_registry.get("write-a-poem")
-        e = Edge(j1.id, j2.id, ("text", "text"))
+        print(j2)
+        e = Edge(j1.id, j2.id, ("generation", "text"))
         c = Chain([j1, j2], [e])
         print(c)
 
@@ -205,6 +208,71 @@ class _Chain:
         )
         print("OUT:", out)
 
+    def callj3(self, quote: str, n: int = 4,  thoughts: bool = False):
+        findQuote = ai_actions_registry.register(
+            node_id="find-quote",
+            model_id="openai-chat",
+            model_params={
+                "model": "gpt-3.5-turbo",
+            },
+            fn={
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "'{{ quote }}' \nWho said this quote, if you don't know then reply with a random character from history world? Give reply in less than 10 words.",
+                    },
+                ],
+            },
+            outputs={
+                "chat_reply": ("choices", 0, "message", "content"),
+            },
+        )
+
+        charStory = ai_actions_registry.register(
+            node_id="tell-character-story",
+            model_id="openai-chat",
+            model_params={
+                "model": "gpt-3.5-turbo",
+            },
+            fn={
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "Tell a small {{ story_size }} line story about '{{ character_name }}'",
+                    },
+                ],
+            },
+            outputs={
+                "characters_story": ("choices", 0, "message", "content"),
+            },
+        )
+        rapMaker = ai_actions_registry.get("deep-rap-quote")
+        e1 = Edge(findQuote.id, charStory.id, ("chat_reply", "character_name"))
+        e2 = Edge(charStory.id, rapMaker.id, ("characters_story", "character"))
+        c = Chain([findQuote, charStory, rapMaker], [e1, e2])
+        print(c)
+
+        # run the chain
+        out, full_ir = c(
+            {
+                "openai_api_key": _get_openai_token(),
+                "quote": quote,
+                "story_size": n
+            },
+            print_thoughts=thoughts,
+        )
+        if not thoughts:
+            print(
+                "SUMMARY:",
+                pformat(
+                    {
+                        findQuote.id: full_ir.get(f"{findQuote.id}/chat_reply", "NulL"),
+                        charStory.id: full_ir.get(f"{charStory.id}/characters_story", "NulL"),
+                        rapMaker.id: full_ir.get(f"{rapMaker.id}/chat_reply", "NulL"),
+                    }
+                ),
+            )
+
 
 if __name__ == "__main__":
 
@@ -216,6 +284,11 @@ Fury Story
 python3 -m stories.fury nodes callp [--fail]
 python3 -m stories.fury nodes callai [--jtype --fail]
 python3 -m stories.fury nodes callai_chat [--jtype --fail]
+
+python3 -m stories.fury chain callpp
+python3 -m stories.fury chain callpj
+python3 -m stories.fury chain calljj
+python3 -m stories.fury chain callj3 --quote QUOTE
 """.strip()
 
     fire.Fire({"nodes": _Nodes, "chain": _Chain, "help": help})

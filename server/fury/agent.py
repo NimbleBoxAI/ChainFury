@@ -82,7 +82,7 @@ class ModelRegistry:
         self.counter[model_id] = self.counter.get(model_id, 0) + 1
         out = self.models.get(model_id, None)
         if out is None:
-            logger.warning(f"Model {model_id} not found")
+            raise ValueError(f"Model {model_id} not found")
         return out
 
     def get_count_for_model(self, model_id: str) -> int:
@@ -147,7 +147,7 @@ class ProgramaticActionsRegistry:
         self.counter[node_id] = self.counter.get(node_id, 0) + 1
         out = self.nodes.get(node_id, None)
         if out is None:
-            logger.warning(f"p-node '{node_id}' not found")
+            raise ValueError(f"p-node '{node_id}' not found")
         return out
 
     def get_count_for_nodes(self, node_id: str) -> int:
@@ -259,11 +259,11 @@ class AIActionsRegistry:
     def register(
         self,
         node_id: str,
-        description: str,
         model_id: str,
         model_params: Dict[str, Any],
         fn: object,
         outputs: Dict[str, Any],
+        description: str = "",
         tags: List[str] = [],
     ) -> Node:
         """
@@ -316,7 +316,7 @@ class AIActionsRegistry:
         self.counter[node_id] = self.counter.get(node_id, 0) + 1
         out = self.nodes.get(node_id, None)
         if out is None:
-            logger.warning(f"ai-node '{node_id}' not found")
+            raise ValueError(f"ai-node '{node_id}' not found")
         return out
 
     def get_count_for_nodes(self, node_id: str) -> int:
