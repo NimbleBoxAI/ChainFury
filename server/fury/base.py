@@ -1,3 +1,4 @@
+import os
 import json
 import inspect
 import logging
@@ -10,37 +11,45 @@ import jinja2schema
 from jinja2schema import model as j2sm
 
 
-def get_logger(name):
-    temp_logger = logging.getLogger(name)
-    temp_logger.setLevel(logging.DEBUG)
-    return temp_logger
+def get_logger():
+    logger = logging.getLogger("fury")
+    lvl = os.getenv("FURY_LOG_LEVEL", "info").upper()
+    logger.setLevel(getattr(logging, lvl))
+    log_handler = logging.StreamHandler()
+    log_handler.setFormatter(
+        logging.Formatter("[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z")
+    )
+    logger.addHandler(log_handler)
+    return logger
 
 
-logger = get_logger("fury-core")
+logger = get_logger()
 
 
 class Secret(str):
-    """This class just means that in TemplateField it will be taken as a password field"""
+    """This class just means that in Var it will be taken as a password field"""
 
 
 #
-# TemplateFields: this is the base class for all the fields that the user can provide from the front end
+# Vars: this is the base class for all the fields that the user can provide from the front end
 #
 
 
-class TemplateField:
+class Var:
     def __init__(
         self,
-        type: Union[str, List["TemplateField"]],
+        type: Union[str, List["Var"]],
         format: str = "",
-        items: List["TemplateField"] = [],
-        additionalProperties: Union[List["TemplateField"], "TemplateField"] = [],
+        items: List["Var"] = [],
+        additionalProperties: Union[List["Var"], "Var"] = [],
         password: bool = False,
         #
         required: bool = False,
         placeholder: str = "",
         show: bool = False,
         name: str = "",
+        *,
+        _loc: Optional[Tuple] = (),
     ):
         self.type = type
         self.format = format
@@ -54,24 +63,21 @@ class TemplateField:
         self.name = name
         #
         self.value = None
+        self._loc = _loc  # this is the location from which this value is extracted
 
     def __repr__(self) -> str:
-        return f"TemplateField('{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
+        return f"Var({'*' if self.required else ''}'{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {"type": self.type}
-        if (
-            type(self.type) == list
-            and len(self.type)
-            and type(self.type[0]) == TemplateField
-        ):
+        if type(self.type) == list and len(self.type) and type(self.type[0]) == Var:
             d["type"] = [x.to_dict() for x in self.type]
         if self.format:
             d["format"] = self.format
         if self.items:
             d["items"] = [item.to_dict() for item in self.items]
         if self.additionalProperties:
-            if isinstance(self.additionalProperties, TemplateField):
+            if isinstance(self.additionalProperties, Var):
                 d["additionalProperties"] = self.additionalProperties.to_dict()
             else:
                 d["additionalProperties"] = self.additionalProperties
@@ -92,221 +98,199 @@ class TemplateField:
         self.value = v
 
 
-def pyannotation_to_json_schema(
-    x, allow_any, allow_exc, allow_none, *, trace: bool = False
-) -> TemplateField:
-    """Function to convert the given annotation from python to a TemplateField which can then be
+def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: bool = False) -> Var:
+    """Function to convert the given annotation from python to a Var which can then be
     JSON serialised and sent to the clients."""
     if isinstance(x, type):
         if trace:
-            print("t0")
+            logger.debug("t0")
 
         if x == str:
-            return TemplateField(type="string")
+            return Var(type="string")
         elif x == int or x == float:
-            return TemplateField(type="number")
+            return Var(type="number")
         elif x == bool:
-            return TemplateField(type="boolean")
+            return Var(type="boolean")
         elif x == bytes:
-            return TemplateField(type="string", format="byte")
+            return Var(type="string", format="byte")
         elif x == list:
-            return TemplateField(type="array", items=[TemplateField(type="string")])
+            return Var(type="array", items=[Var(type="string")])
         elif x == dict:
-            return TemplateField(
-                type="object", additionalProperties=TemplateField(type="string")
-            )
+            return Var(type="object", additionalProperties=Var(type="string"))
 
         # there are some types that are unique to the fury system
         elif x == Secret:
-            return TemplateField(type="string", password=True)
+            return Var(type="string", password=True)
         elif x == Model:
-            return TemplateField(type=Model.type_name, required=False, show=False)
+            return Var(type=Model.type_name, required=False, show=False)
         if x == Exception and allow_exc:
-            return TemplateField(type="exception", required=False, show=False)
+            return Var(type="exception", required=False, show=False)
         elif x == type(None) and allow_none:
-            return TemplateField(type="null", required=False, show=False)
+            return Var(type="null", required=False, show=False)
         else:
             raise ValueError(f"i0: Unsupported type: {x}")
     elif isinstance(x, str):
         if trace:
-            print("t1")
-        return TemplateField(type="string")
+            logger.debug("t1")
+        return Var(type="string")
     elif hasattr(x, "__origin__") and hasattr(x, "__args__"):
         if trace:
-            print("t2")
+            logger.debug("t2")
         if x.__origin__ == list:
             if trace:
-                print("t2.1")
-            return TemplateField(
+                logger.debug("t2.1")
+            return Var(
                 type="array",
-                items=[
-                    pyannotation_to_json_schema(
-                        x.__args__[0], allow_any, allow_exc, allow_none
-                    )
-                ],
+                items=[pyannotation_to_json_schema(x.__args__[0], allow_any, allow_exc, allow_none)],
             )
         elif x.__origin__ == dict:
             if len(x.__args__) == 2 and x.__args__[0] == str:
                 if trace:
-                    print("t2.2")
-                return TemplateField(
+                    logger.debug("t2.2")
+                return Var(
                     type="object",
-                    additionalProperties=pyannotation_to_json_schema(
-                        x.__args__[1], allow_any, allow_exc, allow_none
-                    ),
+                    additionalProperties=pyannotation_to_json_schema(x.__args__[1], allow_any, allow_exc, allow_none),
                 )
             else:
                 raise ValueError(f"i2: Unsupported type: {x}")
         elif x.__origin__ == tuple:
             if trace:
-                print("t2.3")
-            return TemplateField(
+                logger.debug("t2.3")
+            return Var(
                 type="array",
-                items=[
-                    pyannotation_to_json_schema(arg, allow_any, allow_exc, allow_none)
-                    for arg in x.__args__
-                ],
+                items=[pyannotation_to_json_schema(arg, allow_any, allow_exc, allow_none) for arg in x.__args__],
             )
         elif x.__origin__ == Union:
             # Unwrap union types with None type
             types = [arg for arg in x.__args__ if arg is not None]
             if len(types) == 1:
                 if trace:
-                    print("t2.4")
-                return pyannotation_to_json_schema(
-                    types[0], allow_any, allow_exc, allow_none
-                )
+                    logger.debug("t2.4")
+                return pyannotation_to_json_schema(types[0], allow_any, allow_exc, allow_none)
             else:
                 if trace:
-                    print("t2.5")
-                return TemplateField(
-                    type=[
-                        pyannotation_to_json_schema(
-                            typ, allow_any, allow_exc, allow_none
-                        )
-                        for typ in types
-                    ]
-                )
+                    logger.debug("t2.5")
+                return Var(type=[pyannotation_to_json_schema(typ, allow_any, allow_exc, allow_none) for typ in types])
         else:
             raise ValueError(f"i3: Unsupported type: {x}")
     elif isinstance(x, tuple):
         if trace:
-            print("t4")
-        return TemplateField(
+            logger.debug("t4")
+        return Var(
             type="array",
             items=[
-                TemplateField(type="string"),
+                Var(type="string"),
                 pyannotation_to_json_schema(x[1], allow_any, allow_exc, allow_none),
             ]
             * len(x),
         )
     elif x == Any and allow_any:
         if trace:
-            print("t5")
-        return TemplateField(type="string")
+            logger.debug("t5")
+        return Var(type="string")
     else:
         if trace:
-            print("t6")
+            logger.debug("t6")
         raise ValueError(f"i4: Unsupported type: {x}")
 
 
-def func_to_template_fields(func) -> List[TemplateField]:
+def func_to_vars(func) -> List[Var]:
     """
-    Extracts the signature of a function and converts it to an array of TemplateField objects.
+    Extracts the signature of a function and converts it to an array of Var objects.
     """
     signature = inspect.signature(func)
     fields = []
     for param in signature.parameters.values():
-        schema = pyannotation_to_json_schema(
-            param.annotation, allow_any=False, allow_exc=False, allow_none=False
-        )
+        schema = pyannotation_to_json_schema(param.annotation, allow_any=False, allow_exc=False, allow_none=False)
         schema.required = param.default is inspect.Parameter.empty
         schema.name = param.name
-        schema.placeholder = (
-            str(param.default) if param.default is not inspect.Parameter.empty else ""
-        )
+        schema.placeholder = str(param.default) if param.default is not inspect.Parameter.empty else ""
         if not schema.name.startswith("_"):
             schema.show = True
         fields.append(schema)
     return fields
 
 
-def func_to_return_template_fields(func, returns: List[str]) -> TemplateField:
+def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
     """
     Analyses the return annotation type of the signature of a function and converts it to an array of
-    named TemplateField objects.
+    named Var objects.
     """
     signature = inspect.signature(func)
-    schema = pyannotation_to_json_schema(
-        signature.return_annotation, allow_any=True, allow_exc=True, allow_none=True
-    )
+    schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=True, allow_exc=True, allow_none=True)
     if not (
         schema.type == "array"
         and len(schema.items) == 2
         and type(schema.items[1].type) == list
         and any(x.type == "exception" for x in schema.items[1].type)
     ):
-        raise ValueError(
-            "Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable"
-        )
+        raise ValueError("Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable")
 
     # take the names provided in returns and populate the returning field
+    logger.debug(f"RETURNS: {returns}")
     ret = schema.items[0]
+    logger.debug(f"RET: {ret}")
     if ret.type == "array":
-        assert len(returns) == len(
-            ret.items
-        ), "Uneven number of items in return and type def"
+        assert len(returns) in [1, len(ret.items)], f"For array outputs, returns should either be 1 or {len(ret.items)}, got {len(returns)}"
+        if len(returns) == 1:
+            ret.items[0].name = next(iter(returns))
+            ret.items[0]._loc = returns[next(iter(returns))]
         for i, n in zip(ret.items, returns):
             i.name = n
+            i._loc = returns[n]
+        ret = ret.items
     else:
-        assert (
-            len(returns) == 1
-        ), "Items that are not arrays can have only 1 returning var. This can also be a bug"
-        ret.name = returns[0]
+        assert len(returns) == 1, "Items that are not arrays can have only 1 returning var. This can also be a bug"
+        ret.name = next(iter(returns))
+        ret._loc = returns[next(iter(returns))]
+        ret = [
+            ret,
+        ]
+    logger.debug(f"FINAL: {ret}")
     return ret
 
 
-def jinja_schema_to_template_fields(v) -> TemplateField:
+def jinja_schema_to_vars(v) -> Var:
     if type(v) == j2sm.Scalar or type(v) == j2sm.String:
-        field = TemplateField(type="string", required=True)
+        field = Var(type="string", required=True)
     elif type(v) == j2sm.Number:
-        field = TemplateField(type="number", required=True)
+        field = Var(type="number", required=True)
     elif type(v) == j2sm.Boolean:
-        field = TemplateField(type="boolean", required=True)
+        field = Var(type="boolean", required=True)
     elif type(v) == j2sm.Unknown:
-        field = TemplateField(type="string", required=True)
+        field = Var(type="string", required=True)
     elif type(v) == j2sm.Variable:
-        field = TemplateField(type="string", required=True)
+        field = Var(type="string", required=True)
     elif type(v) == j2sm.Dictionary:
-        field = TemplateField(type="object", required=True)
+        field = Var(type="object", required=True)
         all_fields = []
         for k, v in v.items():
-            field_item = jinja_schema_to_template_fields(v)
+            field_item = jinja_schema_to_vars(v)
             field_item.name = k
             all_fields.append(field_item)
         field.additionalProperties = all_fields
     elif type(v) == j2sm.List:
-        field = TemplateField(type="array", required=True)
-        field.items = [jinja_schema_to_template_fields(v.item)]
+        field = Var(type="array", required=True)
+        field.items = [jinja_schema_to_vars(v.item)]
     elif type(v) == j2sm.Tuple:
-        field = TemplateField(type="array", required=True)
+        field = Var(type="array", required=True)
         if v.items:
-            field.items = [jinja_schema_to_template_fields(x) for x in v.items]
+            field.items = [jinja_schema_to_vars(x) for x in v.items]
     else:
         raise ValueError(f"cannot handle type {type(v)}")
     return field
 
 
-def jtype_to_template_fields(prompt: str) -> List[TemplateField]:
+def jtype_to_vars(prompt: str) -> List[Var]:
     try:
         s = jinja2schema.infer(prompt)
         fields = []
         for k, v in s.items():
-            f = jinja_schema_to_template_fields(v)
+            f = jinja_schema_to_vars(v)
             f.name = k
             fields.append(f)
     except Exception as e:
-        print(
+        logger.error(
             "Could not parse prompt to jinja schema. We support only for/if/filters in jinja2. "
             "Please read here for more information: https://jinja.palletsprojects.com/en/3.1.x/templates/"
         )
@@ -318,19 +302,19 @@ def extract_jinja_indices(data, current_index=(), indices=None) -> List:
     """
     Returns things like:
 
-    [(('3', 'content'), [TemplateField('num1', type=string, items=[], additionalProperties=[]), TemplateField('num2', type=string, items=[], additionalProperties=[])])]
-    [((), [TemplateField('message', type=string, items=[], additionalProperties=[])])]
-    [(('meta_prompt', 'data'), [TemplateField('place', type=string, items=[], additionalProperties=[])])]
-    [('0', [TemplateField('name', type=string, items=[], additionalProperties=[])])]
-    [(('meta', 'ptype'), [TemplateField('genome', type=string, items=[], additionalProperties=[])])]
-    [(('level-0', 'level-1', 'level-2'), [TemplateField('thing', type=string, items=[], additionalProperties=[])]), (('level-0', 'nice'), [TemplateField('feeling', type=string, items=[], additionalProperties=[])])]
+    [(('3', 'content'), [Var('num1', type=string, items=[], additionalProperties=[]), Var('num2', type=string, items=[], additionalProperties=[])])]
+    [((), [Var('message', type=string, items=[], additionalProperties=[])])]
+    [(('meta_prompt', 'data'), [Var('place', type=string, items=[], additionalProperties=[])])]
+    [('0', [Var('name', type=string, items=[], additionalProperties=[])])]
+    [(('meta', 'ptype'), [Var('genome', type=string, items=[], additionalProperties=[])])]
+    [(('level-0', 'level-1', 'level-2'), [Var('thing', type=string, items=[], additionalProperties=[])]), (('level-0', 'nice'), [Var('feeling', type=string, items=[], additionalProperties=[])])]
     []
     """
     if indices is None:
         indices = []
 
     if isinstance(data, str):
-        fields = jtype_to_template_fields(data)
+        fields = jtype_to_vars(data)
         if fields:
             indices.append((current_index, fields))
     elif isinstance(data, list):
@@ -415,14 +399,14 @@ class Model:
         model_id,
         fn: object,
         description,
-        template_fields: List[TemplateField],
+        vars: List[Var],
         tags=[],
     ):
         self.collection_name = collection_name
         self.model_id = model_id
         self.fn = fn
         self.description = description
-        self.template_fields = template_fields
+        self.vars = vars
         self.tags = tags
 
     def __repr__(self) -> str:
@@ -434,7 +418,7 @@ class Model:
             "model_id": self.model_id,
             "description": self.description,
             "tags": self.tags,
-            "template_fields": [x.to_dict() for x in self.template_fields],
+            "vars": [x.to_dict() for x in self.vars],
         }
 
     def __call__(self, model_data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
@@ -458,9 +442,7 @@ class NodeType:
 
 
 class NodeConnection:
-    def __init__(
-        self, id: str, name: str = "", required: bool = False, description: str = ""
-    ):
+    def __init__(self, id: str, name: str = "", required: bool = False, description: str = ""):
         self.id = id
         self.name = name
         self.required = required
@@ -475,8 +457,8 @@ class Node:
         id: str,
         type: str,
         fn: object,  # the function to call
-        fields: List[TemplateField],
-        output: TemplateField,
+        fields: List[Var],
+        outputs: List[Var],
         description: str = "",
     ):
         # some bacic checks
@@ -485,23 +467,25 @@ class Node:
         elif type == NodeType.PROGRAMATIC:
             pass
         else:
-            raise ValueError(
-                f"Invalid node type: {type}, see Node.types for valid types"
-            )
+            raise ValueError(f"Invalid node type: {type}, see Node.types for valid types")
 
         # set the values
         self.id = id
         self.type = type
         self.description = description
         self.fields = fields
-        self.output = output
+        self.outputs = outputs
         self.fn = fn
 
     def __repr__(self) -> str:
-        out = f"FuryNode('{self.id}', '{self.type}', fields ({len(self.fields)}): [,"
+        out = f"FuryNode{{ ('{self.id}', '{self.type}') ["
         for f in self.fields:
-            out += f"\n      {f},"
-        out += f"\n] => {self.output})"
+            if f.required:
+                out += f"\n      {f},"
+        out += f"\n] ({len(self.fields)}) => ({len(self.outputs)}) ["
+        for o in self.outputs:
+            out += f"\n      {o},"
+        out += f"\n] }}"
         return out
 
     def has_field(self, field: str):
@@ -513,35 +497,28 @@ class Node:
             "type": self.type,
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
-            "output": self.output.to_dict(),
+            "outputs": [o.to_dict() for o in self.outputs],
         }
 
-    def __call__(
-        self, data: Dict[str, Any], ret_fields: bool = False
-    ) -> Tuple[Any, Optional[Exception]]:
+    def __call__(self, data: Dict[str, Any], ret_fields: bool = False) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
         template_keys = set([x.name for x in self.fields])
         try:
             if not data_keys.issubset(template_keys):
-                raise ValueError(
-                    f"Invalid keys passed to node: {data_keys - template_keys}"
-                )
+                raise ValueError(f"Invalid keys passed to node: {data_keys - template_keys}")
             out, err = self.fn(**data)  # type: ignore
             if err:
                 raise err
-            if not ret_fields:
-                return out, None
-            else:
-                ret_obj = None
-                if self.output.type == "array":
-                    ret_obj = TemplateField(type="array")
-                    for o, f in zip(out, self.output.items):
-                        f.set_value(o)
-                        ret_obj.items.append(f)
-                else:
-                    self.output.set_value(out)
-                    ret_obj = self.output
-            return ret_obj, None
+            # if not ret_fields:
+            #     return out, None
+
+            # this is where we have to polish this outgoing result into the structure as configured in self.outputs
+            # print("> fnout: ", out)
+            # print("OUTPUTS:", self.outputs)
+            for o in self.outputs:
+                # print("  OP:", o.name, o._loc)
+                o.set_value(get_value_by_keys(out, o._loc))
+            return {o.name: o.value for o in self.outputs}, None
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
@@ -553,9 +530,7 @@ class Node:
 
 
 class Edge:
-    def __init__(
-        self, src_node_id: str, trg_node_id: str, *connections: Tuple[str, str]
-    ):
+    def __init__(self, src_node_id: str, trg_node_id: str, *connections: Tuple[str, str]):
         # some basic checks
         for c in connections:
             assert isinstance(c, (tuple, list)), f"Invalid connection: {c}"
@@ -611,57 +586,48 @@ class Chain:
         out += "\n  ]\n)"
         return out
 
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
-        return cls()
-
-    def to_dict(self):
-        return {
-            "nodes": [x.to_dict() for x in self.nodes],
-            "edges": [x.to_dict() for x in self.edges],
-        }
-
-    def __call__(self, data) -> Tuple[TemplateField, Dict[str, Any]]:
+    def __call__(self, data, v: bool = False) -> Tuple[Var, Dict[str, Any]]:
         full_ir = {}
         out = None
         for node_id in self.topo_order:
             node = self.nodes[node_id]
-            incoming_edges = list(
-                filter(lambda edge: edge.trg_node_id == node_id, self.edges)
-            )
+            incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
 
-            # clear out all the nodes that this thing needs into a separate repo
+            # clear out all the nodes that this thing needs into a separate rep
+            logger.debug(f"Processing node: {node_id}")
+            logger.debug(f"Current full_ir: {set(full_ir.keys())}")
             _data = {}
             for edge in incoming_edges:
                 # need to check if this information is available in the IR buffer, if it is not
                 # then this is an error
+                logger.debug(f"Incoming edge: {edge}")
                 for conns in edge.connections:
-                    ir_value = full_ir.get(f"{edge.src_node_id}/{conns[0]}", None)
+                    req_key = f"{edge.src_node_id}/{conns[0]}"
+                    logger.debug(f"Looking for key: {req_key}")
+                    ir_value = full_ir.get(req_key, None)
                     if ir_value is None:
-                        raise ValueError(
-                            f"Missing value for {edge.src_node_id}/{conns[0]}"
-                        )
+                        raise ValueError(f"Missing value for {req_key}")
                     _data[conns[1]] = ir_value
 
             all_keys = list(data.keys())
             for k in all_keys:
                 if node.has_field(k):
-                    _data[k] = data[
-                        k
-                    ]  # don't pop this, some things are shared between actions eg. openai_api_key
+                    _data[k] = data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
             out, err = node(_data, ret_fields=True)
             if err:
-                print("TRACE:", out)
+                logger.error("TRACE:", out)
                 raise err
-            if out.type != "array":
-                out = TemplateField(type="array", items=[out])
-            for o in out.items:
-                full_ir[f"{node_id}/{o.name}"] = o.value
+            # if out.type != "array":
+            #     out = Var(type="array", items=[out])
+            for k, v in out.items():
+                full_ir[f"{node_id}/{k}"] = v
 
-        return out, full_ir
+        return out, full_ir  # type: ignore
 
 
+#
 # helper functions
+#
 
 
 class NotDAGError(Exception):

@@ -83,12 +83,7 @@ def openai_completion(
     )
     if r.status_code != 200:
         raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
-    if raw:
-        return r.json()
-    return {
-        "prompt": prompt,
-        "choices": [x.get("text", "") for x in r.json()["choices"]],
-    }
+    return r.json()
 
 
 model_registry.register(
@@ -161,10 +156,6 @@ def openai_chat(
     if r.status_code != 200:
         raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
     return r.json()
-    # return {
-    #     "messages": messages,
-    #     "choices": [x.get("message", {}) for x in r.json()["choices"]],
-    # }
 
 
 model_registry.register(

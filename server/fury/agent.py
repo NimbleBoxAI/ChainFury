@@ -16,16 +16,18 @@ import jinja2
 
 from fury.base import (
     logger,
-    func_to_template_fields,
-    func_to_return_template_fields,
-    jtype_to_template_fields,
+    func_to_vars,
+    func_to_return_vars,
+    jtype_to_vars,
     extract_jinja_indices,
     get_value_by_keys,
     put_value_by_keys,
+    pyannotation_to_json_schema,
     Node,
     Model,
     ModelTags,
     Chain,
+    Var,
 )
 
 """
@@ -56,7 +58,7 @@ class ModelRegistry:
         tags: List[str] = [],
     ):
         id = f"{model_id}"
-        logger.info(f"Registering model {model_id} at {id}")
+        logger.debug(f"Registering model {model_id} at {id}")
         if id in self.models:
             raise Exception(f"Model {model_id} already registered")
         self.models[id] = Model(
@@ -64,7 +66,7 @@ class ModelRegistry:
             model_id=model_id,
             fn=fn,
             description=description,
-            template_fields=func_to_template_fields(fn),
+            vars=func_to_vars(fn),
             tags=tags,
         )
         for tag in tags:
@@ -110,19 +112,26 @@ class ProgramaticActionsRegistry:
         fn: object,
         node_id: str,
         description: str,
-        returns: List[str],
+        returns: List[str] = [],
+        outputs=None,
         tags: List[str] = [],
     ) -> Node:
-        logger.info(f"Registering p-node '{node_id}'")
+        logger.debug(f"Registering p-node '{node_id}'")
         if node_id in self.nodes:
             raise Exception(f"Node '{node_id}' already registered")
+        if not outputs:
+            assert len(returns), "If outputs is not provided then returns must be provided"
+            outputs = {x: () for x in returns}
+        else:
+            assert len(outputs), "If returns is not provided then outputs must be provided"
+        ops = func_to_return_vars(func=fn, returns=outputs)
         self.nodes[node_id] = Node(
             id=node_id,
             type=Node.types.PROGRAMATIC,
             fn=fn,
             description=description,
-            fields=func_to_template_fields(fn),
-            output=func_to_return_template_fields(func=fn, returns=returns),
+            fields=func_to_vars(fn),
+            outputs=ops,
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
@@ -161,12 +170,10 @@ class AIAction:
     JTYPE = "jinja-template"
     FUNC = "python-function"
 
-    def __init__(
-        self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object
-    ):
+    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object, outputs: Dict[str, Any] = {}):
         # do some basic checks that we can do before anything else like checking if model_params
-        # is a subset of the model.template_fields
-        fields = set(x.name for x in model.template_fields)
+        # is a subset of the model.vars
+        fields = set(x.name for x in model.vars)
         mp_set = set(model_params.keys())
         if not mp_set.issubset(fields):
             raise Exception(f"Model params {mp_set} not a subset of {fields}")
@@ -177,27 +184,21 @@ class AIAction:
         if type(fn) == dict:
             action_source = AIAction.JTYPE
             fields = []  # fields required for self.fields
-            templates = (
-                []
-            )  # list of all the templates to be render with its position in fn
+            templates = []  # list of all the templates to be render with its position in fn
             fields_with_locations = extract_jinja_indices(fn)
             for field in fields_with_locations:
                 fields.extend(field[1])
                 obj = get_value_by_keys(fn, field[0])
                 if not obj:
-                    raise ValueError(
-                        f"Field {field[0]} not found in {fn}, but was extraced. There is a bug in get_value_by_keys function"
-                    )
+                    raise ValueError(f"Field {field[0]} not found in {fn}, but was extraced. There is a bug in get_value_by_keys function")
                 templates.append((obj, jinja2.Template(obj), field[0]))
 
             # set values
             self.templates = templates
         else:
-            assert type(fn) == type(
-                func_to_return_template_fields
-            ), "`fn` can either be a function or a string"
+            assert type(fn) == type(func_to_return_vars), "`fn` can either be a function or a string"
             action_source = AIAction.FUNC
-            fields = func_to_template_fields(fn)
+            fields = func_to_vars(fn)
 
         self.node_id = node_id
         self.model = model
@@ -205,6 +206,7 @@ class AIAction:
         self.fn = fn
         self.action_source = action_source
         self.fields = fields
+        self.outputs = outputs
 
     def __call__(self, **data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
         # check for keys even before calling any API or something
@@ -213,9 +215,7 @@ class AIAction:
         _data = {}
         for f in self.fields:
             if f.required and f.name not in data:
-                raise Exception(
-                    f"Field {f.name} is required in {self.node_id} but not present"
-                )
+                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
             if f.name in data:
                 _data[f.name] = data.pop(f.name)
 
@@ -223,9 +223,7 @@ class AIAction:
             try:
                 fn_out = self.fn(**_data)  # type: ignore
                 if self.action_source == AIAction.FUNC and not type(fn_out) == dict:
-                    raise Exception(
-                        f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
-                    )
+                    raise Exception(f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}")
             except Exception as e:
                 return "", e
         elif self.action_source == AIAction.JTYPE:
@@ -239,10 +237,16 @@ class AIAction:
         model_final_params = {**self.model_params}
         model_final_params.update(data)
         model_final_params.update(fn_out)  # type: ignore
-        # print(model_final_params)
         out, err = self.model(model_final_params)
         if err != None:
             return "", err
+
+        # if self.outputs:
+        #     fout = {}
+        #     for k, loc in self.outputs.items():
+        #         fout[k] = get_value_by_keys(out, loc)
+        #     fout["__raw__"] = out
+        #     out = fout
         return out, err
 
 
@@ -259,9 +263,16 @@ class AIActionsRegistry:
         model_id: str,
         model_params: Dict[str, Any],
         fn: object,
+        outputs: Dict[str, Any],
         tags: List[str] = [],
     ) -> Node:
-        logger.info(f"Registering ai-node '{node_id}'")
+        """
+
+        Args:
+            outputs: This is a dict like `{'x': (-1, 'b', 'c')}`, if provided function returns a dictionary with key `x`
+              and value automatically extracted from the model output at location `(-1, 'b', 'c')`.
+        """
+        logger.debug(f"Registering ai-node '{node_id}'")
         model = model_registry.get(model_id)
         if model is None:
             raise Exception(f"Model {model_id} not found")
@@ -270,16 +281,26 @@ class AIActionsRegistry:
             model=model,
             model_params=model_params,
             fn=fn,
+            outputs=outputs,
         )
+        if not outputs:
+            output_field = [
+                func_to_return_vars(
+                    func=ai_action.__call__,
+                    returns={
+                        "model_output": (),
+                    },
+                ),
+            ]
+        else:
+            output_field = [Var(type="any", name=k, _loc=loc) for k, loc in outputs.items()]
         self.nodes[node_id] = Node(
             id=node_id,
             fn=ai_action,
             type=Node.types.AI,
             description=description,
-            fields=ai_action.fields + model.template_fields,
-            output=func_to_return_template_fields(
-                func=ai_action.__call__, returns=["model_output"]
-            ),
+            fields=ai_action.fields + model.vars,
+            outputs=output_field,  # type: ignore
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]

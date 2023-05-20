@@ -17,6 +17,7 @@ ai_actions_registry.register(
         "temperature": 0.1,
     },
     fn=hello_world,
+    outputs={"generation": ("choices", 0, "text")},
 )
 
 ai_actions_registry.register(
@@ -30,6 +31,7 @@ ai_actions_registry.register(
     fn={
         "prompt": 'Give a witty response for this: "Hello dear AI agent, {{ message }}"\n\nWitty Response:',
     },
+    outputs={"generations": ("choices", 0, "text")},
 )
 
 
@@ -51,6 +53,7 @@ ai_actions_registry.register(
         "temperature": 0.1,
     },
     fn=write_a_poem,
+    outputs={"generations": ("choices",)},
 )
 
 ai_actions_registry.register(
@@ -65,6 +68,7 @@ ai_actions_registry.register(
         "prompt": 'Write a poem for this: "{{ message }}" in the style of {{ style }}\n\nPoem:',
         "max_tokens": 1024,
     },
+    outputs={"generations": ("choices",)},
 )
 
 
@@ -100,6 +104,7 @@ ai_actions_registry.register(
         "model": "gpt-3.5-turbo",
     },
     fn=sum_of_two_numbers,
+    outputs={"chat_reply": ("choices", 0, "message", "content")},
 )
 
 ai_actions_registry.register(
@@ -129,4 +134,24 @@ ai_actions_registry.register(
             },
         ],
     },
+    outputs={"chat_reply": ("choices", 0, "message", "content")},
+)
+
+
+ai_actions_registry.register(
+    node_id="chat-joke",
+    description="AI will tell a joke on any topic you tell it to talk about",
+    model_id="openai-chat",
+    model_params={
+        "model": "gpt-3.5-turbo",
+    },
+    fn={
+        "messages": [
+            {
+                "role": "user",
+                "content": "give a deep 4 line quote on life in the style of {{ character }}.",
+            },
+        ],
+    },
+    outputs={"chat_reply": ("choices", 0, "message", "content")},
 )

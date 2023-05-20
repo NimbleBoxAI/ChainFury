@@ -34,7 +34,6 @@ class _Nodes:
         """Call a programatic action"""
         node = programatic_actions_registry.get("call_api_requests")
         print(node)
-
         data = {
             "method": "get",
             "url": "http://127.0.0.1:8000/api/v1/components/",
@@ -42,7 +41,7 @@ class _Nodes:
         }
         if fail:
             data["some-key"] = "some-value"
-        out, err = node(data)
+        out, err = node(data, ret_fields=True)
         if err:
             print("ERROR:", err)
             print("TRACE:", out)
@@ -75,7 +74,7 @@ class _Nodes:
         if jtype:
             action_id += "-2"
         action = ai_actions_registry.get(action_id)
-        print(action)
+        # print(action)
 
         out, err = action(
             {
@@ -91,7 +90,7 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def callai_chat(self, jtype: bool = False, fail: bool = False):
+    def callai_chat(self, jtype: bool = False):
         """Call the AI action"""
         action_id = "chat-sum-numbers"
         if jtype:
@@ -102,9 +101,10 @@ class _Nodes:
         out, err = action(
             {
                 "openai_api_key": _get_openai_token(),
-                "num1": 123,
-                "num2": 456,
-            }
+                "num1": "a mexican taco",
+                "num2": "a spicy korean noodle",
+            },
+            ret_fields=True,
         )
         if err:
             print("ERROR:", err)
@@ -131,10 +131,6 @@ class _Chain:
                 "repl": "booboo",
             }
         )
-        if out.value is not None:
-            out = out.value
-        else:
-            out = [x.value for x in out.items]
         print("OUT:", out)
 
     def callpj(self, fail: bool = False):
@@ -152,22 +148,21 @@ class _Chain:
             fn={
                 "messages": [
                     {
-                        "role": "system",
-                        "content": "You are a sarcastic but helful chatbot trying to answer questions that the user has",
-                    },
-                    {
                         "role": "user",
-                        "content": "Hello there, can you add these two numbers for me? 1023, 97",
+                        "content": "Hello there, can you add these two numbers for me? 1023, 97. Be super witty in all responses.",
                     },
                     {
                         "role": "assistant",
-                        "content": "It is 1110, as if I don't have anything better to do",
+                        "content": "It is 1110. WTF I mean I am a powerful AI, I have better things to do!",
                     },
                     {
                         "role": "user",
                         "content": "Can you explain this json to me? {{ json_thingy }}",
                     },
                 ],
+            },
+            outputs={
+                "chat_reply": ("choices", 0, "message", "content"),
             },
         )
 
@@ -190,11 +185,11 @@ class _Chain:
                 "openai_api_key": _get_openai_token(),
             }
         )
-        for x in out.items:
-            print(x.value)
+        print("OUT:", out)
 
     def calljj(self):
         j1 = ai_actions_registry.get("hello-world")
+        print(j1)
         j2 = ai_actions_registry.get("write-a-poem")
         e = Edge(j1.id, j2.id, ("text", "text"))
         c = Chain([j1, j2], [e])

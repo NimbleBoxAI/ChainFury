@@ -28,3 +28,4 @@ docstring-parser
 psycopg2-binary
 pyarrow
 fire==0.5.0
+jinja2schema==0.1.4

@@ -44,7 +44,10 @@ programatic_actions_registry.register(
     call_api_requests,
     "call_api_requests",
     "Call an API using the requests library",
-    returns=["text", "status_code"],
+    outputs={
+        "text": (0,),
+        "status_code": (1,),
+    },
 )
 
 
@@ -63,9 +66,7 @@ programatic_actions_registry.register(
 )
 
 
-def regex_substitute(
-    pattern: str, repl: str, text: str
-) -> Tuple[str, Optional[Exception]]:
+def regex_substitute(pattern: str, repl: str, text: str) -> Tuple[str, Optional[Exception]]:
     return re.sub(pattern, repl, text), None
 
 
