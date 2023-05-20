@@ -112,7 +112,7 @@ class ProgramaticActionsRegistry:
         description: str,
         returns: List[str],
         tags: List[str] = [],
-    ):
+    ) -> Node:
         logger.info(f"Registering p-node '{node_id}'")
         if node_id in self.nodes:
             raise Exception(f"Node '{node_id}' already registered")
@@ -126,6 +126,7 @@ class ProgramaticActionsRegistry:
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+        return self.nodes[node_id]
 
     def get_tags(self) -> List[str]:
         return list(self.tags_to_nodes.keys())
@@ -237,7 +238,7 @@ class AIAction:
         # print(">> preprocessor:", fn_out)
         model_final_params = {**self.model_params}
         model_final_params.update(data)
-        model_final_params.update(fn_out)
+        model_final_params.update(fn_out)  # type: ignore
         # print(model_final_params)
         out, err = self.model(model_final_params)
         if err != None:
@@ -259,7 +260,7 @@ class AIActionsRegistry:
         model_params: Dict[str, Any],
         fn: object,
         tags: List[str] = [],
-    ):
+    ) -> Node:
         logger.info(f"Registering ai-node '{node_id}'")
         model = model_registry.get(model_id)
         if model is None:
@@ -282,6 +283,7 @@ class AIActionsRegistry:
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+        return self.nodes[node_id]
 
     def get_tags(self) -> List[str]:
         return list(self.tags_to_nodes.keys())

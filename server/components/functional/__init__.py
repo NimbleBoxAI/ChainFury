@@ -32,7 +32,7 @@ def call_api_requests(
             data=data,
             headers=headers,
             cookies=cookies,
-            auth=auth,
+            auth=auth,  # type: ignore
             timeout=None if not timeout else timeout,
             allow_redirects=True,
             json=json,

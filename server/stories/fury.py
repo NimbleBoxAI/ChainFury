@@ -10,6 +10,7 @@ from fury import (
     model_registry,
     Node,
     ai_actions_registry,
+    Edge,
 )
 import components  # import to register all the components that we have
 
@@ -70,7 +71,7 @@ class _Nodes:
         """Call the AI action"""
         action_id = "hello-world"
         if fail:
-            action_id = "this-does-not-exist"
+            action_id = "write-a-poem"
         if jtype:
             action_id += "-2"
         action = ai_actions_registry.get(action_id)
@@ -111,14 +112,115 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def call_chain(self, fail: bool = False):
-        # this is an example to check if the entire enf to end chain is working correctly or not
-        pass
+
+class _Chain:
+    def callpp(self):
+        p1 = programatic_actions_registry.get("call_api_requests")
+        p2 = programatic_actions_registry.get("regex_substitute")
+        e = Edge(p1.id, p2.id, ("text", "text"))
+        c = Chain([p1, p2], [e])
+        print(c)
+
+        # run the chain
+        out, full_ir = c(
+            {
+                "method": "get",
+                "url": "http://127.0.0.1:8000/api/v1/components/",
+                "headers": {"token": "booboo"},
+                "pattern": "components",
+                "repl": "booboo",
+            }
+        )
+        if out.value is not None:
+            out = out.value
+        else:
+            out = [x.value for x in out.items]
+        print("OUT:", out)
+
+    def callpj(self, fail: bool = False):
+        p = programatic_actions_registry.get("call_api_requests")
+
+        # create a new ai action to build a poem
+        NODE_ID = "sarcastic-agent"
+        j = ai_actions_registry.register(
+            node_id=NODE_ID,
+            description="AI will add two numbers and give a sarscastic response. J-type action",
+            model_id="openai-chat",
+            model_params={
+                "model": "gpt-3.5-turbo",
+            },
+            fn={
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are a sarcastic but helful chatbot trying to answer questions that the user has",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Hello there, can you add these two numbers for me? 1023, 97",
+                    },
+                    {
+                        "role": "assistant",
+                        "content": "It is 1110, as if I don't have anything better to do",
+                    },
+                    {
+                        "role": "user",
+                        "content": "Can you explain this json to me? {{ json_thingy }}",
+                    },
+                ],
+            },
+        )
+
+        e = Edge(p.id, j.id, ("text", "json_thingy"))
+
+        c = Chain(
+            [p, j],
+            [
+                e,
+            ],
+        )
+        print(c)
+
+        # run the chain
+        out, full_ir = c(
+            {
+                "method": "get",
+                "url": "http://127.0.0.1:8000/api/v1/components/",
+                "headers": {"token": "booboo"},
+                "openai_api_key": _get_openai_token(),
+            }
+        )
+        for x in out.items:
+            print(x.value)
+
+    def calljj(self):
+        j1 = ai_actions_registry.get("hello-world")
+        j2 = ai_actions_registry.get("write-a-poem")
+        e = Edge(j1.id, j2.id, ("text", "text"))
+        c = Chain([j1, j2], [e])
+        print(c)
+
+        # run the chain
+        out = c(
+            {
+                "openai_api_key": _get_openai_token(),
+                "message": "hello world",
+                "style": "snoop dogg",
+            }
+        )
+        print("OUT:", out)
 
 
 if __name__ == "__main__":
-    fire.Fire(
-        {
-            "nodes": _Nodes,
-        }
-    )
+
+    def help():
+        return """
+Fury Story
+==========
+
+python3 -m stories.fury nodes callp [--fail]
+python3 -m stories.fury nodes callai [--jtype --fail]
+python3 -m stories.fury nodes callai_chat [--jtype --fail]
+""".strip()
+
+    fire.Fire({"nodes": _Nodes, "chain": _Chain, "help": help})

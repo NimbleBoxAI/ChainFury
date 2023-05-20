@@ -52,6 +52,8 @@ class TemplateField:
         self.placeholder = placeholder
         self.show = show
         self.name = name
+        #
+        self.value = None
 
     def __repr__(self) -> str:
         return f"TemplateField('{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
@@ -85,6 +87,9 @@ class TemplateField:
         if self.name:
             d["name"] = self.name
         return d
+
+    def set_value(self, v: Any):
+        self.value = v
 
 
 def pyannotation_to_json_schema(
@@ -245,8 +250,20 @@ def func_to_return_template_fields(func, returns: List[str]) -> TemplateField:
             "Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable"
         )
 
-    # TODO: @yashbonde add support for parsing the return names and match with types
-    return schema.items[0]
+    # take the names provided in returns and populate the returning field
+    ret = schema.items[0]
+    if ret.type == "array":
+        assert len(returns) == len(
+            ret.items
+        ), "Uneven number of items in return and type def"
+        for i, n in zip(ret.items, returns):
+            i.name = n
+    else:
+        assert (
+            len(returns) == 1
+        ), "Items that are not arrays can have only 1 returning var. This can also be a bug"
+        ret.name = returns[0]
+    return ret
 
 
 def jinja_schema_to_template_fields(v) -> TemplateField:
@@ -481,11 +498,14 @@ class Node:
         self.fn = fn
 
     def __repr__(self) -> str:
-        out = f"FuryNode('{self.id}', '{self.type}', , output.type:{self.output.type}), fields: [{len(self.fields)},"
+        out = f"FuryNode('{self.id}', '{self.type}', fields ({len(self.fields)}): [,"
         for f in self.fields:
             out += f"\n      {f},"
-        out += "\n])"
+        out += f"\n] => {self.output})"
         return out
+
+    def has_field(self, field: str):
+        return any([x.name == field for x in self.fields])
 
     def to_dict(self):
         return {
@@ -496,7 +516,9 @@ class Node:
             "output": self.output.to_dict(),
         }
 
-    def __call__(self, data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
+    def __call__(
+        self, data: Dict[str, Any], ret_fields: bool = False
+    ) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
         template_keys = set([x.name for x in self.fields])
         try:
@@ -507,7 +529,19 @@ class Node:
             out, err = self.fn(**data)  # type: ignore
             if err:
                 raise err
-            return {"out": out}, None
+            if not ret_fields:
+                return out, None
+            else:
+                ret_obj = None
+                if self.output.type == "array":
+                    ret_obj = TemplateField(type="array")
+                    for o, f in zip(out, self.output.items):
+                        f.set_value(o)
+                        ret_obj.items.append(f)
+                else:
+                    self.output.set_value(out)
+                    ret_obj = self.output
+            return ret_obj, None
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
@@ -519,24 +553,32 @@ class Node:
 
 
 class Edge:
-    def __init__(self, source: str, target: str):
-        self.source = source
-        self.target = target
+    def __init__(
+        self, src_node_id: str, trg_node_id: str, *connections: Tuple[str, str]
+    ):
+        # some basic checks
+        for c in connections:
+            assert isinstance(c, (tuple, list)), f"Invalid connection: {c}"
+            assert len(c) == 2, f"Invalid connection: {c}"
+            assert isinstance(c[0], str), f"Invalid connection: {c}"
+            assert isinstance(c[1], str), f"Invalid connection: {c}"
+
+        self.src_node_id = src_node_id
+        self.trg_node_id = trg_node_id
+        self.connections = connections
 
     def __repr__(self) -> str:
-        return f"FuryEdge('{self.source}', '{self.target}')"
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
-        return cls(
-            source=data["source"],
-            target=data["target"],
-        )
+        out = f"FuryEdge('{self.src_node_id}' => '{self.trg_node_id}',"
+        for c in self.connections:
+            out += f"\n  {c[0]} -> {c[1]},"
+        out += "\n)"
+        return out
 
     def to_dict(self):
         return {
-            "source": self.source,
-            "target": self.target,
+            "src_node_id": self.src_node_id,
+            "trg_node_id": self.trg_node_id,
+            "connections": self.connections,
         }
 
 
@@ -551,8 +593,12 @@ class Chain:
         nodes: List[Node] = [],
         edges: List[Edge] = [],
     ):
-        self.nodes = nodes
+        self.nodes = {node.id: node for node in nodes}
         self.edges = edges
+        self.topo_order = topological_sort(self.edges)
+
+        for node_id in self.topo_order:
+            assert node_id in self.nodes, f"Missing node from an edge: {node_id}"
 
     def __repr__(self) -> str:
         # return f"FuryDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})"
@@ -575,14 +621,44 @@ class Chain:
             "edges": [x.to_dict() for x in self.edges],
         }
 
-    def hash(self) -> str:
-        return sha256(json.dumps(self.to_dict).encode("utf-8")).hexdigest()
+    def __call__(self, data) -> Tuple[TemplateField, Dict[str, Any]]:
+        full_ir = {}
+        out = None
+        for node_id in self.topo_order:
+            node = self.nodes[node_id]
+            incoming_edges = list(
+                filter(lambda edge: edge.trg_node_id == node_id, self.edges)
+            )
 
-    def build(self):
-        # this function builds the final langchain dag that will be executed, in order to determine the order of execution in a DAG
-        # the algorithm is called 'topological sort'
-        out = topological_sort(self.edges)
-        print(out)
+            # clear out all the nodes that this thing needs into a separate repo
+            _data = {}
+            for edge in incoming_edges:
+                # need to check if this information is available in the IR buffer, if it is not
+                # then this is an error
+                for conns in edge.connections:
+                    ir_value = full_ir.get(f"{edge.src_node_id}/{conns[0]}", None)
+                    if ir_value is None:
+                        raise ValueError(
+                            f"Missing value for {edge.src_node_id}/{conns[0]}"
+                        )
+                    _data[conns[1]] = ir_value
+
+            all_keys = list(data.keys())
+            for k in all_keys:
+                if node.has_field(k):
+                    _data[k] = data[
+                        k
+                    ]  # don't pop this, some things are shared between actions eg. openai_api_key
+            out, err = node(_data, ret_fields=True)
+            if err:
+                print("TRACE:", out)
+                raise err
+            if out.type != "array":
+                out = TemplateField(type="array", items=[out])
+            for o in out.items:
+                full_ir[f"{node_id}/{o.name}"] = o.value
+
+        return out, full_ir
 
 
 # helper functions
@@ -596,8 +672,8 @@ def edge_array_to_adjacency_list(edges: List[Edge]):
     """Convert silk format dag edges to adjacency list format"""
     adjacency_lists = {}
     for edge in edges:
-        src = edge.source
-        dst = edge.target
+        src = edge.src_node_id
+        dst = edge.trg_node_id
         if src not in adjacency_lists:
             adjacency_lists[src] = []
         adjacency_lists[src].append(dst)
@@ -609,7 +685,7 @@ def adjacency_list_to_edge_map(adjacency_list) -> List[Edge]:
     edges = []
     for src, dsts in adjacency_list.items():
         for dst in dsts:
-            edges.append(Edge(source=src, target=dst))
+            edges.append(Edge(src_node_id=src, trg_node_id=dst))
     return edges
 
 
