@@ -1,4 +1,5 @@
 import os
+import copy
 import json
 import inspect
 import logging
@@ -285,15 +286,15 @@ def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
         assert len(returns) in [1, len(ret.items)], f"For array outputs, returns should either be 1 or {len(ret.items)}, got {len(returns)}"
         if len(returns) == 1:
             ret.items[0].name = next(iter(returns))
-            ret.items[0]._loc = returns[next(iter(returns))]
+            ret.items[0].loc = returns[next(iter(returns))]
         for i, n in zip(ret.items, returns):
             i.name = n
-            i._loc = returns[n]
+            i.loc = returns[n]
         ret = ret.items
     else:
         assert len(returns) == 1, "Items that are not arrays can have only 1 returning var. This can also be a bug"
         ret.name = next(iter(returns))
-        ret._loc = returns[next(iter(returns))]
+        ret.loc = returns[next(iter(returns))]
         ret = [
             ret,
         ]
@@ -662,10 +663,15 @@ class Chain:
         self,
         nodes: List[Node] = [],
         edges: List[Edge] = [],
+        *,
+        _sample: Dict[str, Any] = {},
+        _main: str = "",
     ):
         self.nodes = {node.id: node for node in nodes}
         self.edges = edges
         self.topo_order = topological_sort(self.edges)
+        self.sample = _sample
+        self.main = _main
 
         for node_id in self.topo_order:
             assert node_id in self.nodes, f"Missing node from an edge: {node_id}"
@@ -681,20 +687,33 @@ class Chain:
         out += "\n  ]\n)"
         return out
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self, main: str, sample: Dict[str, Any]) -> Dict[str, Any]:
+        assert main in sample, f"Invalid key: {main}"
         return {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
             "topo_order": self.topo_order,
+            "sample": sample,
+            "main": main,
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
         nodes = [Node.from_dict(x) for x in data["nodes"]]
         edges = [Edge.from_dict(x) for x in data["edges"]]
-        return cls(nodes=nodes, edges=edges)
+        return cls(nodes=nodes, edges=edges, _sample=data["sample"], _main=data["main"])
 
-    def __call__(self, data, print_thoughts: bool = False) -> Tuple[Var, Dict[str, Any]]:
+    def __call__(self, data: str | Dict[str, Any], print_thoughts: bool = False) -> Tuple[Var, Dict[str, Any]]:
+        if not isinstance(data, dict):
+            assert isinstance(data, str), f"Invalid data type: {type(data)}"
+            assert self.sample and self.main, "Cannot run a chain without a sample and main for string input, please use a dict input"
+            data = {self.main: data}
+            data.update(self.sample)
+        else:
+            _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
+            _data.update(data)
+            data = _data
+
         if print_thoughts:
             print(terminal_top_with_text("Chain Starts"))
             print("Inputs:\n------")

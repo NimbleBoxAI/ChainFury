@@ -37,12 +37,12 @@ class _Nodes:
         print(node)
         data = {
             "method": "get",
-            "url": "http://127.0.0.1:8000/api/v1/components/",
+            "url": "http://127.0.0.1:8000/api/v1/fury/components/",
             "headers": {"token": "my-booomerang-token"},
         }
         if fail:
             data["some-key"] = "some-value"
-        out, err = node(data, ret_fields=True)
+        out, err = node(data)
         if err:
             print("ERROR:", err)
             print("TRACE:", out)
@@ -69,11 +69,12 @@ class _Nodes:
 
     def callai(self, jtype: bool = False, fail: bool = False):
         """Call the AI action"""
-        action_id = "hello-world"
         if fail:
             action_id = "write-a-poem"
-        if jtype:
-            action_id += "-2"
+        else:
+            action_id = "hello-world"
+            if jtype:
+                action_id += "-2"
         action = ai_actions_registry.get(action_id)
         # print(action)
 
@@ -105,7 +106,6 @@ class _Nodes:
                 "num1": "a mexican taco",
                 "num2": "a spicy korean noodle",
             },
-            ret_fields=True,
         )
         if err:
             print("ERROR:", err)
@@ -126,13 +126,14 @@ class _Chain:
         out, full_ir = c(
             {
                 "method": "get",
-                "url": "http://127.0.0.1:8000/api/v1/components/",
+                "url": "http://127.0.0.1:8000/api/v1/fury/components/",
                 "headers": {"token": "booboo"},
                 "pattern": "components",
                 "repl": "booboo",
             }
         )
-        print("OUT:", out)
+        print("BUFF:", pformat(full_ir))
+        print("OUT:", pformat(out))
 
     def callpj(self, fail: bool = False):
         p = programatic_actions_registry.get("call_api_requests")
@@ -187,26 +188,28 @@ class _Chain:
                 "openai_api_key": _get_openai_token(),
             }
         )
-        print("OUT:", out)
+        print("BUFF:", pformat(full_ir))
+        print("OUT:", pformat(out))
 
     def calljj(self):
         j1 = ai_actions_registry.get("hello-world")
         print(j1)
         j2 = ai_actions_registry.get("write-a-poem")
         print(j2)
-        e = Edge(j1.id, j2.id, ("generation", "text"))
+        e = Edge(j1.id, j2.id, ("generation", "message"))
         c = Chain([j1, j2], [e])
         print(c)
 
         # run the chain
-        out = c(
+        out, full_ir = c(
             {
                 "openai_api_key": _get_openai_token(),
                 "message": "hello world",
                 "style": "snoop dogg",
             }
         )
-        print("OUT:", out)
+        print("BUFF:", pformat(full_ir))
+        print("OUT:", pformat(out))
 
     def callj3(self, quote: str, n: int = 4, thoughts: bool = False, to_json: bool = False):
         findQuote = ai_actions_registry.register(
@@ -252,13 +255,17 @@ class _Chain:
         c = Chain([findQuote, charStory, rapMaker], [e1, e2])
         # print(c)
 
+        # sample_input = {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n}  # these will also act like defaults
+        sample_input = {"quote": quote, "story_size": n}  # these will also act like defaults
+
         if to_json:
-            print(json.dumps(c.to_dict(), indent=2))
+            print(json.dumps(c.to_dict("quote", sample_input), indent=2))
             return
 
         # run the chain
+        sample_input["openai_api_key"] = _get_openai_token()
         out, full_ir = c(
-            {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n},
+            sample_input,
             print_thoughts=thoughts,
         )
         if not thoughts:
@@ -273,19 +280,27 @@ class _Chain:
                 ),
             )
 
-    def from_json(self, quote: str, n: int = 4, path: str = "./stories/fury.json"):
+    def from_json(self, quote: str = "", n: int = 4, mainline: bool = False, path: str = "./stories/fury.json"):
         with open(path) as f:
             dag = json.load(f)
         c = Chain.from_dict(dag)
         print(c)
 
-        # run the chain
+        if mainline:
+            input = quote
+        else:
+            # run the chain
+            input = {"openai_api_key": _get_openai_token()}
+            if quote:
+                input["quote"] = quote
+            if n:
+                input["story_size"] = n
         out, full_ir = c(
-            {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n},
+            input,
             print_thoughts=False,
         )
         print(
-            "IR_BUFFER:",
+            "BUFF:",
             pformat(full_ir),
         )
 
