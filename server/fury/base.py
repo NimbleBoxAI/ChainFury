@@ -61,7 +61,7 @@ class Var:
         show: bool = False,
         name: str = "",
         *,
-        _loc: Optional[Tuple] = (),
+        loc: Optional[Tuple] = (),
     ):
         self.type = type
         self.format = format
@@ -75,7 +75,7 @@ class Var:
         self.name = name
         #
         self.value = None
-        self._loc = _loc  # this is the location from which this value is extracted
+        self.loc = loc  # this is the location from which this value is extracted
 
     def __repr__(self) -> str:
         return f"Var({'*' if self.required else ''}'{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
@@ -104,7 +104,46 @@ class Var:
             d["show"] = self.show
         if self.name:
             d["name"] = self.name
+        if self.loc:
+            d["loc"] = self.loc
         return d
+
+    @classmethod
+    def from_dict(cls, d: Dict[str, Any]) -> "Var":
+        type_val = d.get("type")
+        format_val = d.get("format", "")
+        items_val = d.get("items", [])
+        additional_properties_val = d.get("additionalProperties", [])
+        password_val = d.get("password", False)
+        required_val = d.get("required", False)
+        placeholder_val = d.get("placeholder", "")
+        show_val = d.get("show", False)
+        name_val = d.get("name", "")
+        loc_val = d.get("loc", ())
+
+        if isinstance(type_val, list):
+            type_val = [Var.from_dict(x) if isinstance(x, dict) else x for x in type_val]
+        elif isinstance(type_val, dict):
+            type_val = Var.from_dict(type_val)
+
+        items_val = [Var.from_dict(x) if isinstance(x, dict) else x for x in items_val]
+        additional_properties_val = (
+            Var.from_dict(additional_properties_val) if isinstance(additional_properties_val, dict) else additional_properties_val
+        )
+
+        var = cls(
+            type=type_val,  # type: ignore
+            format=format_val,
+            items=items_val,
+            additionalProperties=additional_properties_val,
+            password=password_val,
+            required=required_val,
+            placeholder=placeholder_val,
+            show=show_val,
+            name=name_val,
+            loc=loc_val,
+        )
+        return var
 
     def set_value(self, v: Any):
         self.value = v
@@ -424,13 +463,13 @@ class Model:
     def __repr__(self) -> str:
         return f"Model('{self.collection_name}', '{self.model_id}')"
 
-    def to_dict(self):
+    def to_dict(self, no_vars: bool = False) -> Dict[str, Any]:
         return {
             "collection_name": self.collection_name,
             "model_id": self.model_id,
             "description": self.description,
             "tags": self.tags,
-            "vars": [x.to_dict() for x in self.vars],
+            "vars": [x.to_dict() for x in self.vars] if not no_vars else [],
         }
 
     def __call__(self, model_data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
@@ -503,14 +542,42 @@ class Node:
     def has_field(self, field: str):
         return any([x.name == field for x in self.fields])
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
+        from fury.agent import AIAction
+
+        fn = {}
+        if isinstance(self.fn, AIAction):
+            fn = self.fn.to_dict(no_vars=True)
+
         return {
             "id": self.id,
             "type": self.type,
+            "fn": fn,
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
             "outputs": [o.to_dict() for o in self.outputs],
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        fields = [Var.from_dict(x) for x in data["fields"]]
+        outputs = [Var.from_dict(x) for x in data["outputs"]]
+        fn = data["fn"]
+        if not fn:
+            raise ValueError(f"Invalid fn: {fn}")
+
+        from fury.agent import AIAction
+
+        ai_action = AIAction.from_dict(fn)
+
+        return cls(
+            id=data["id"],
+            type=data["type"],
+            fn=ai_action,
+            description=data["description"],
+            fields=fields,
+            outputs=outputs,
+        )
 
     def __call__(self, data: Dict[str, Any], print_thoughts: bool = False) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
@@ -532,7 +599,7 @@ class Node:
             # logger.debug("OUTPUTS:", self.outputs)
             for o in self.outputs:
                 # logger.debug("  OP:", o.name, o._loc)
-                o.set_value(get_value_by_keys(out, o._loc))
+                o.set_value(get_value_by_keys(out, o.loc))
 
             fout = {o.name: o.value for o in self.outputs}
             if print_thoughts:
@@ -569,12 +636,20 @@ class Edge:
         out += "\n)"
         return out
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return {
             "src_node_id": self.src_node_id,
             "trg_node_id": self.trg_node_id,
             "connections": self.connections,
         }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        return cls(
+            data["src_node_id"],
+            data["trg_node_id"],
+            *data["connections"],
+        )
 
 
 #
@@ -605,6 +680,19 @@ class Chain:
             out += f"\n    {e},"
         out += "\n  ]\n)"
         return out
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "nodes": [node.to_dict() for node in self.nodes.values()],
+            "edges": [edge.to_dict() for edge in self.edges],
+            "topo_order": self.topo_order,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        nodes = [Node.from_dict(x) for x in data["nodes"]]
+        edges = [Edge.from_dict(x) for x in data["edges"]]
+        return cls(nodes=nodes, edges=edges)
 
     def __call__(self, data, print_thoughts: bool = False) -> Tuple[Var, Dict[str, Any]]:
         if print_thoughts:

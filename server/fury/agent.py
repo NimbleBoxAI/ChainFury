@@ -78,7 +78,7 @@ class ModelRegistry:
     def get_models(self, tag: str = "") -> List[Dict[str, Any]]:
         return [{k: v.to_dict()} for k, v in self.models.items()]
 
-    def get(self, model_id: str) -> Optional[Model]:
+    def get(self, model_id: str) -> Model:
         self.counter[model_id] = self.counter.get(model_id, 0) + 1
         out = self.models.get(model_id, None)
         if out is None:
@@ -167,10 +167,11 @@ hardcoded in the entire thing somewhere.
 
 
 class AIAction:
+    # do not remove these from here it is used in base.py if you do then put in a third file
     JTYPE = "jinja-template"
     FUNC = "python-function"
 
-    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object, outputs: Dict[str, Any] = {}):
+    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object):
         # do some basic checks that we can do before anything else like checking if model_params
         # is a subset of the model.vars
         fields = set(x.name for x in model.vars)
@@ -206,7 +207,24 @@ class AIAction:
         self.fn = fn
         self.action_source = action_source
         self.fields = fields
-        self.outputs = outputs
+
+    def to_dict(self, no_vars: bool = False) -> Dict[str, Any]:
+        return {
+            "node_id": self.node_id,
+            "model": self.model.to_dict(no_vars=no_vars),
+            "model_params": self.model_params,
+            "fn": self.fn,
+            "action_source": self.action_source,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        return cls(
+            node_id=data["node_id"],
+            model=model_registry.get(data["model"]["model_id"]),
+            model_params=data["model_params"],
+            fn=data["fn"],
+        )
 
     def __call__(self, **data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
         # check for keys even before calling any API or something
@@ -241,12 +259,6 @@ class AIAction:
         if err != None:
             return "", err
 
-        # if self.outputs:
-        #     fout = {}
-        #     for k, loc in self.outputs.items():
-        #         fout[k] = get_value_by_keys(out, loc)
-        #     fout["__raw__"] = out
-        #     out = fout
         return out, err
 
 
@@ -281,7 +293,6 @@ class AIActionsRegistry:
             model=model,
             model_params=model_params,
             fn=fn,
-            outputs=outputs,
         )
         if not outputs:
             output_field = [
@@ -293,7 +304,7 @@ class AIActionsRegistry:
                 ),
             ]
         else:
-            output_field = [Var(type="any", name=k, _loc=loc) for k, loc in outputs.items()]
+            output_field = [Var(type="any", name=k, loc=loc) for k, loc in outputs.items()]
         self.nodes[node_id] = Node(
             id=node_id,
             fn=ai_action,

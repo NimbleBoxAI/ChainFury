@@ -208,7 +208,7 @@ class _Chain:
         )
         print("OUT:", out)
 
-    def callj3(self, quote: str, n: int = 4,  thoughts: bool = False):
+    def callj3(self, quote: str, n: int = 4, thoughts: bool = False, to_json: bool = False):
         findQuote = ai_actions_registry.register(
             node_id="find-quote",
             model_id="openai-chat",
@@ -250,15 +250,15 @@ class _Chain:
         e1 = Edge(findQuote.id, charStory.id, ("chat_reply", "character_name"))
         e2 = Edge(charStory.id, rapMaker.id, ("characters_story", "character"))
         c = Chain([findQuote, charStory, rapMaker], [e1, e2])
-        print(c)
+        # print(c)
+
+        if to_json:
+            print(json.dumps(c.to_dict(), indent=2))
+            return
 
         # run the chain
         out, full_ir = c(
-            {
-                "openai_api_key": _get_openai_token(),
-                "quote": quote,
-                "story_size": n
-            },
+            {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n},
             print_thoughts=thoughts,
         )
         if not thoughts:
@@ -272,6 +272,22 @@ class _Chain:
                     }
                 ),
             )
+
+    def from_json(self, quote: str, n: int = 4, path: str = "./stories/fury.json"):
+        with open(path) as f:
+            dag = json.load(f)
+        c = Chain.from_dict(dag)
+        print(c)
+
+        # run the chain
+        out, full_ir = c(
+            {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n},
+            print_thoughts=False,
+        )
+        print(
+            "IR_BUFFER:",
+            pformat(full_ir),
+        )
 
 
 if __name__ == "__main__":
