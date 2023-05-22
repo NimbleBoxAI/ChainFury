@@ -255,11 +255,11 @@ class _Chain:
         c = Chain([findQuote, charStory, rapMaker], [e1, e2])
         # print(c)
 
-        # sample_input = {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n}  # these will also act like defaults
-        sample_input = {"quote": quote, "story_size": n}  # these will also act like defaults
+        sample_input = {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n}  # these will also act like defaults
+        # sample_input = {"quote": quote, "story_size": n}  # these will also act like defaults
 
         if to_json:
-            print(json.dumps(c.to_dict("quote", sample_input), indent=2))
+            print(json.dumps(c.to_dict("quote", f"{rapMaker.id}/chat_reply", sample_input), indent=2))
             return
 
         # run the chain
@@ -268,19 +268,11 @@ class _Chain:
             sample_input,
             print_thoughts=thoughts,
         )
-        if not thoughts:
-            print(
-                "SUMMARY:",
-                pformat(
-                    {
-                        findQuote.id: full_ir.get(f"{findQuote.id}/chat_reply", "NulL"),
-                        charStory.id: full_ir.get(f"{charStory.id}/characters_story", "NulL"),
-                        rapMaker.id: full_ir.get(f"{rapMaker.id}/chat_reply", "NulL"),
-                    }
-                ),
-            )
 
-    def from_json(self, quote: str = "", n: int = 4, mainline: bool = False, path: str = "./stories/fury.json"):
+        print("BUFF:", pformat(full_ir))
+        print("OUT:", pformat(out))
+
+    def from_json(self, quote: str = "", n: int = 4, mainline: bool = False, thoughts: bool = False, path: str = "./stories/fury.json"):
         with open(path) as f:
             dag = json.load(f)
         c = Chain.from_dict(dag)
@@ -297,12 +289,10 @@ class _Chain:
                 input["story_size"] = n
         out, full_ir = c(
             input,
-            print_thoughts=False,
+            print_thoughts=thoughts,
         )
-        print(
-            "BUFF:",
-            pformat(full_ir),
-        )
+        print("BUFF:", pformat(full_ir))
+        print("OUT:", pformat(out))
 
 
 if __name__ == "__main__":

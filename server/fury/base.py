@@ -3,6 +3,7 @@ import copy
 import json
 import inspect
 import logging
+import datetime
 import traceback
 from pprint import pformat
 from hashlib import sha256
@@ -664,14 +665,16 @@ class Chain:
         nodes: List[Node] = [],
         edges: List[Edge] = [],
         *,
-        _sample: Dict[str, Any] = {},
-        _main: str = "",
+        sample: Dict[str, Any] = {},
+        main_in: str = "",
+        main_out: str = "",
     ):
         self.nodes = {node.id: node for node in nodes}
         self.edges = edges
         self.topo_order = topological_sort(self.edges)
-        self.sample = _sample
-        self.main = _main
+        self.sample = sample
+        self.main_in = main_in
+        self.main_out = main_out
 
         for node_id in self.topo_order:
             assert node_id in self.nodes, f"Missing node from an edge: {node_id}"
@@ -687,27 +690,30 @@ class Chain:
         out += "\n  ]\n)"
         return out
 
-    def to_dict(self, main: str, sample: Dict[str, Any]) -> Dict[str, Any]:
-        assert main in sample, f"Invalid key: {main}"
+    def to_dict(self, main_in: str, main_out: str, sample: Dict[str, Any]) -> Dict[str, Any]:
+        assert main_in in sample, f"Invalid key: {main_in}"
         return {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
             "topo_order": self.topo_order,
             "sample": sample,
-            "main": main,
+            "main_in": main_in,
+            "main_out": main_out,
         }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]):
         nodes = [Node.from_dict(x) for x in data["nodes"]]
         edges = [Edge.from_dict(x) for x in data["edges"]]
-        return cls(nodes=nodes, edges=edges, _sample=data["sample"], _main=data["main"])
+        return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
 
-    def __call__(self, data: str | Dict[str, Any], print_thoughts: bool = False) -> Tuple[Var, Dict[str, Any]]:
+    def __call__(
+        self, data: str | Dict[str, Any], thoughts_callback: Optional[Callable] = None, print_thoughts: bool = False
+    ) -> Tuple[Var, Dict[str, Any]]:
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main, "Cannot run a chain without a sample and main for string input, please use a dict input"
-            data = {self.main: data}
+            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            data = {self.main_in: data}
             data.update(self.sample)
         else:
             _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
@@ -736,7 +742,7 @@ class Chain:
                 for conns in edge.connections:
                     req_key = f"{edge.src_node_id}/{conns[0]}"
                     logger.debug(f"Looking for key: {req_key}")
-                    ir_value = full_ir.get(req_key, None)
+                    ir_value = full_ir.get(req_key, {}).get("value", None)
                     if ir_value is None:
                         raise ValueError(f"Missing value for {req_key}")
                     _data[conns[1]] = ir_value
@@ -749,18 +755,28 @@ class Chain:
             if err:
                 logger.error("TRACE: {out}")
                 raise err
-            # if out.type != "array":
-            #     out = Var(type="array", items=[out])
+
             for k, v in out.items():
-                full_ir[f"{node_id}/{k}"] = v
+                key = f"{node_id}/{k}"
+                value = {
+                    "value": v,
+                    "timestamp": datetime.datetime.now().isoformat(),
+                }
+                full_ir[key] = value
+                thought = {"key": key, **value}
+                if thoughts_callback is not None:
+                    thoughts_callback(thought)
+                    if print_thoughts:
+                        print(thought)
 
         if print_thoughts:
-            print(terminal_top_with_text("Chain Starts"))
+            print(terminal_top_with_text("Chain Last"))
             print("Outputs:\n------")
-            print(pformat(data))
-            print("Full IR:\n------")
-            print(pformat(full_ir))
+            print(pformat(out))
+            print(terminal_top_with_text("Chain Ends"))
 
+        if self.main_out:
+            out = full_ir.get(self.main_out)["value"]
         return out, full_ir  # type: ignore
 
 

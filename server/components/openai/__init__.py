@@ -109,7 +109,8 @@ def openai_chat(
     logit_bias: dict = {},
     user: str = "",
     *,
-    raw: bool = False,
+    retry_count: int = 5,
+    max_retry_delay: int = 5,
 ) -> Any:
     """
     Returns a JSON object containing the OpenAI's API chat response.

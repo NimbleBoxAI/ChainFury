@@ -142,3 +142,4 @@ langflow
 pyproject.toml
 dunmp.rdb
 *.ipynb
+server/stories/fury.json

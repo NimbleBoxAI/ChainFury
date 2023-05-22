@@ -1,5 +1,6 @@
 import os
 import fire
+from uuid import uuid4
 from requests import Session
 
 
@@ -22,7 +23,7 @@ sess.headers.update({"token": TOKEN})
 
 class ChatbotAPI:
     def init(self, name: str, v: bool = False):
-        out = sess.post(f"{URL}/chatbot/", json={"name": name, "dag": {}})
+        out = sess.post(f"{URL}/chatbot/", json={"name": name, "dag": {}, "engine": "fury"})
         if v:
             print(out.json())
         return out.json()
@@ -82,7 +83,7 @@ class ChatbotAPI:
 
 class FuryAPI:
     def comp(self, v: bool = False):
-        out = sess.get(f"{URL}/fury/components/")
+        out = sess.get(f"{URL}/fury/components")
         if v:
             print(out.json())
         return out.json()
@@ -100,5 +101,54 @@ class FuryAPI:
         return out.json()
 
 
+class Prompts:
+    def init(self, cid: str, message: str, session_id: str = "", v: bool = False):
+        session_id = session_id or str(uuid4())
+        out = sess.post(
+            f"{URL}/chatbot/{cid}/prompt",
+            json={
+                "session_id": session_id,
+                "new_message": message,
+            },
+        )
+        if v:
+            print(out.json())
+        return out.json()
+
+    def chat(self, cid: str):
+        print("Hello to fury Chat. Press ctrl+c to exit.")
+        print("BOT: Hello, I am a fury chatbot. What can I do for you?")
+        sess_id = str(uuid4())
+        prompt = input("USR: ")
+        while not prompt:
+            print("BOT: Please say something")
+            prompt = input("USR: ")
+        while True:
+            out = self.init(cid, prompt, sess_id)
+            print("BOT:", out["result"])
+            prompt = input("USR: ")
+            while not prompt:
+                print("BOT: Please say something")
+                prompt = input("USR: ")
+
+    def get(self, cid: str, pid: str, v: bool = False):
+        out = sess.get(f"{URL}/chatbot/{cid}/prompt/{pid}")
+        if v:
+            print(out.json())
+        return out.json()
+
+    def delete(self, cid: str, pid: str, v: bool = False):
+        out = sess.delete(f"{URL}/chatbot/{cid}/prompt/{pid}")
+        if v:
+            print(out.json())
+        return out.json()
+
+    def list(self, cid: str, limit: int = 0, offset: int = 0, v: bool = False):
+        out = sess.get(f"{URL}/chatbot/{cid}/prompt?limit={limit}&offset={offset}")
+        if v:
+            print(out.json())
+        return out.json()
+
+
 if __name__ == "__main__":
-    fire.Fire({"chatbot": ChatbotAPI, "fury": FuryAPI})
+    fire.Fire({"chatbot": ChatbotAPI, "fury": FuryAPI, "prompts": Prompts})
