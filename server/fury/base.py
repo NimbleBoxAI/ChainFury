@@ -671,7 +671,12 @@ class Chain:
     ):
         self.nodes = {node.id: node for node in nodes}
         self.edges = edges
-        self.topo_order = topological_sort(self.edges)
+
+        if len(self.nodes) == 1:
+            assert len(self.edges) == 0, "Cannot have edges with only 1 node"
+            self.topo_order = [next(iter(self.nodes))]
+        else:
+            self.topo_order = topological_sort(self.edges)
         self.sample = sample
         self.main_in = main_in
         self.main_out = main_out
@@ -714,11 +719,9 @@ class Chain:
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
             assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
             data = {self.main_in: data}
-            data.update(self.sample)
-        else:
-            _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
-            _data.update(data)
-            data = _data
+        _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
+        _data.update(data)
+        data = _data
 
         if print_thoughts:
             print(terminal_top_with_text("Chain Starts"))
@@ -776,7 +779,7 @@ class Chain:
             print(terminal_top_with_text("Chain Ends"))
 
         if self.main_out:
-            out = full_ir.get(self.main_out)["value"]
+            out = full_ir.get(self.main_out)["value"]  # type: ignore
         return out, full_ir  # type: ignore
 
 

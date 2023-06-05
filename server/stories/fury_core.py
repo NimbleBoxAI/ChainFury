@@ -239,10 +239,7 @@ class _Chain:
             },
             fn={
                 "messages": [
-                    {
-                        "role": "user",
-                        "content": "Tell a small {{ story_size }} line story about '{{ character_name }}'",
-                    },
+                    {"role": "user", "content": "Tell a small {{ story_size }} line story about '{{ character_name }}'"},
                 ],
             },
             outputs={

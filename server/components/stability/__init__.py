@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Tuple
 
-from fury import Secret, model_registry
+from fury import Secret, model_registry, exponential_backoff
 
 
 def stability_text_to_image(
@@ -99,9 +99,7 @@ model_registry.register(
 )
 
 
-def stability_image_to_image_upscale(
-    stability_api_key: Secret, image: bytes, width: int = None, height: int = None
-) -> bytes:
+def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, width: int = None, height: int = None) -> bytes:
     """
     Upscales an image to a specified width or height.
 
