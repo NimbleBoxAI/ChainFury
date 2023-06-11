@@ -23,18 +23,11 @@ def _get_openai_token() -> str:
     return openai_token
 
 
-class FormAiAction:
-    # when the AI action is built using a form or via FE then we need to conver the JSON
-    # configuration to a callable for the chain.
-    def __init__(self, id: str, model_params: Dict[str, Any]):
-        pass
-
-
 class _Nodes:
     def callp(self, fail: bool = False):
         """Call a programatic action"""
         node = programatic_actions_registry.get("call_api_requests")
-        print(node)
+        print("NODE:", node)
         data = {
             "method": "get",
             "url": "http://127.0.0.1:8000/api/v1/fury/components/",
@@ -98,7 +91,7 @@ class _Nodes:
         if jtype:
             action_id += "-2"
         action = ai_actions_registry.get(action_id)
-        print(action)
+        print("ACTION:", action)
 
         out, err = action(
             {
@@ -120,7 +113,7 @@ class _Chain:
         p2 = programatic_actions_registry.get("regex_substitute")
         e = Edge(p1.id, p2.id, ("text", "text"))
         c = Chain([p1, p2], [e])
-        print(c)
+        print("CHAIN:", c)
 
         # run the chain
         out, full_ir = c(
@@ -167,7 +160,7 @@ class _Chain:
                 "chat_reply": ("choices", 0, "message", "content"),
             },
         )
-        print(j)
+        print("ACTION:", j)
 
         e = Edge(p.id, j.id, ("text", "json_thingy"))
 
@@ -177,7 +170,7 @@ class _Chain:
                 e,
             ],
         )
-        print(c)
+        print("CHAIN:", c)
 
         # run the chain
         out, full_ir = c(
@@ -193,12 +186,12 @@ class _Chain:
 
     def calljj(self):
         j1 = ai_actions_registry.get("hello-world")
-        print(j1)
+        print("ACTION:", j1)
         j2 = ai_actions_registry.get("write-a-poem")
-        print(j2)
+        print("ACTION:", j2)
         e = Edge(j1.id, j2.id, ("generation", "message"))
         c = Chain([j1, j2], [e])
-        print(c)
+        print("CHAIN:", c)
 
         # run the chain
         out, full_ir = c(
@@ -250,7 +243,7 @@ class _Chain:
         e1 = Edge(findQuote.id, charStory.id, ("chat_reply", "character_name"))
         e2 = Edge(charStory.id, rapMaker.id, ("characters_story", "character"))
         c = Chain([findQuote, charStory, rapMaker], [e1, e2])
-        # print(c)
+        print("CHAIN:", c)
 
         sample_input = {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n}  # these will also act like defaults
         # sample_input = {"quote": quote, "story_size": n}  # these will also act like defaults
@@ -273,7 +266,7 @@ class _Chain:
         with open(path) as f:
             dag = json.load(f)
         c = Chain.from_dict(dag)
-        print(c)
+        print("CHAIN:", c)
 
         if mainline:
             input = quote
