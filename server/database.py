@@ -76,6 +76,7 @@ class ChatBot(Base):
 
     id = Column(String(8), default=lambda: unique_string(ChatBot, ChatBot.id), primary_key=True)
     name = Column(String(80), unique=False)
+    description = Column(Text, nullable=True)
     created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
     dag = Column(JSON)
     meta = Column(JSON)
@@ -87,6 +88,7 @@ class ChatBot(Base):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
             "created_by": self.created_by,
             "dag": self.dag,
             "meta": self.meta,

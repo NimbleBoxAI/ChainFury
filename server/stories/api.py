@@ -15,7 +15,7 @@ def hr(msg: str = ""):
         print("=" * (width - len(msg) - 1) + " " + msg)
 
 
-TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLTIiLCJ1c2VyaWQiOiJyd2J6dmIwZyJ9.jCEj1HXGER6-Gni9QHRRA76kIqiXHmjNeM3K9OtMWHk"
+TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLTIiLCJ1c2VyaWQiOiJuZzU0d3l4YSJ9.fs7Ejjx9sRYG9LIVU7VHZm5CSzK8HIK0hUyL0k5iirk"
 URL = "http://127.0.0.1:8000/api/v1"
 
 sess = Session()
@@ -58,8 +58,9 @@ class ChatbotAPI:
             print(out.json())
         return out.json()
 
-    def update(self, id: str, name: str, dag: dict, v: bool = False):
-        out = sess.put(f"{URL}/chatbot/{id}", json={"name": name, "dag": dag})
+    def update(self, id: str, name: str, dag: dict = {"key": "value"}, v: bool = False):
+        update_req = {"name": name, "dag": dag, "update_keys": ["name", "dag"]}
+        out = sess.put(f"{URL}/chatbot/{id}", json=update_req)
         if v:
             print(out.json())
         return out.json()
@@ -79,9 +80,9 @@ class ChatbotAPI:
     def story(self, name: str):
         # fmt: off
         hr("Create chatbot"); out = self.init(name); print("New chatbot:", out)
-        hr("List chatbots"); out = self.list()["chatbots"]; print("total chatbots:", len(out))
-        hr("Show chatbot"); out = self.show(out[0]["id"]); print("chatbot:", out)
-        hr("Update chatbot"); out = self.update(out["id"], name="new name", dag={"key": "value"}); print("updated chatbot:", out)
+        hr("List chatbots"); chatbots = self.list()["chatbots"]; print("total chatbots:", len(chatbots))
+        hr("Show chatbot"); out = self.show(chatbots[0]["id"]); print("chatbot:", out)
+        hr("Update chatbot"); out = self.update(out["id"], name="new name"); print("updated chatbot:", out)
         hr("Delete chatbot"); out = self.delete(out["id"]); print("deleted chatbot:", out)
         hr("List chatbots"); out = self.list(); print("total chatbots:", len(out))
         # fmt: on
@@ -218,7 +219,7 @@ class FuryAPI:
         # fmt: on
 
 
-class Prompts:
+class PromptsAPI:
     def init(self, cid: str, message: str, session_id: str = "", v: bool = False):
         session_id = session_id or str(uuid4())
         out = sess.post(
@@ -268,4 +269,11 @@ class Prompts:
 
 
 if __name__ == "__main__":
-    fire.Fire({"auth": AuthAPI, "chatbot": ChatbotAPI, "fury": FuryAPI, "prompts": Prompts})
+    fire.Fire(
+        {
+            "auth": AuthAPI,
+            "chatbot": ChatbotAPI,
+            "fury": FuryAPI,
+            "prompts": PromptsAPI,
+        }
+    )

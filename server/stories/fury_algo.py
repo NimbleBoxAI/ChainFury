@@ -80,6 +80,25 @@ class Actions:
         },
     )
 
+    sensational_story_generator = ai_actions_registry.register(
+        node_id="story-multi-generator",
+        model_id="openai-completion",
+        model_params={
+            "model": "text-babbage-001",
+            "max_tokens": 128,
+        },
+        fn={
+            "prompt": """Complete the following Story
+
+headline: {{ headline }}
+
+sub-headline: {{ sub_headline }}
+
+64 word story:""",
+        },
+        outputs={"story": ["choices", 0, "text"]},
+    )
+
     catchy_headline = ai_actions_registry.register(
         node_id="catchy-headline",
         model_id="openai-chat",
@@ -188,6 +207,24 @@ class Chains:
         [
             Edge(Actions.topic_to_synopsis.id, Actions.sensational_story.id, ("synopsis", "scene")),
             Edge(Actions.sensational_story.id, Actions.catchy_headline.id, ("story", "story")),
+        ],
+        sample={"openai_api_key": _get_openai_token(), "topics": ""},
+        main_in="topics",
+        main_out=f"{Actions.catchy_headline.id}/headline",
+    )
+
+    more_variants = Chain(
+        [
+            Actions.topic_to_synopsis,
+            Actions.sensational_story,
+            Actions.catchy_headline,
+            Actions.sensational_story_generator,
+        ],
+        [
+            Edge(Actions.topic_to_synopsis.id, Actions.sensational_story.id, ("synopsis", "scene")),
+            Edge(Actions.sensational_story.id, Actions.catchy_headline.id, ("story", "story")),
+            Edge(Actions.catchy_headline.id, Actions.sensational_story_generator.id, ("headline", "headline")),
+            Edge(Actions.topic_to_synopsis.id, Actions.sensational_story_generator.id, ("synopsis", "sub_headline")),
         ],
         sample={"openai_api_key": _get_openai_token(), "topics": ""},
         main_in="topics",
@@ -314,13 +351,16 @@ def tree_of_thought(topics: str, max_search_space: int = 5, v: bool = False):
 
 
 if __name__ == "__main__":
-    print(Actions.catchy_headline.to_json())
-    # fire.Fire(
-    #     {
-    #         "io": io_prompting,
-    #         "cot": chain_of_thought,
-    #         "cot_t": chain_of_thought_topic,
-    #         "cot-sc": cot_consistency,
-    #         "tot": tree_of_thought,
-    #     }
-    # )
+    # print(Chains.topic_to_story.to_json())
+    fire.Fire(
+        {
+            "algo": {
+                "io": io_prompting,
+                "cot": chain_of_thought,
+                "cot_t": chain_of_thought_topic,
+                "cot-sc": cot_consistency,
+                "tot": tree_of_thought,
+            },
+            "chains": Chains,
+        }
+    )

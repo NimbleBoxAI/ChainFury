@@ -222,7 +222,7 @@ def update_fury_action(
     # create update dict
     update_dict = {}
     node = None
-    for field in fury_action.update_fields:
+    for field in unq_fields:
         if field == "name":
             update_dict["name"] = fury_action.name
 

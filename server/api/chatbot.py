@@ -19,6 +19,7 @@ class ChatBotDetails(BaseModel):
     id: str = ""
     created_at: datetime = None  # type: ignore
     engine: str = ""
+    update_keys: List[str] = []
 
 
 # C: POST /chatbot/
@@ -30,18 +31,30 @@ def create_chatbot(
     chatbot_data: ChatBotDetails,
     db: Session = Depends(database.fastapi_db_session),
 ):
-    # checks
+    # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
-    user_id = get_user_id_from_jwt(token)
-    chatbot_data.engine = chatbot_data.engine or ChatBotTypes.LANGFLOW
+    user = verify_user(db, username)
+
+    # validate chatbot
+    if not chatbot_data.name:
+        resp.status_code = 400
+        return {"message": "Name not specified"}
+
+    if not chatbot_data.engine:
+        resp.status_code = 400
+        return {"message": "Engine not specified"}
+
     if chatbot_data.engine not in ChatBotTypes.all():
         resp.status_code = 400
         return {"message": f"Invalid engine '{chatbot_data.engine}'"}
 
     # actually create
     chatbot = ChatBot(
-        name=chatbot_data.name, created_by=user_id, dag=chatbot_data.dag, engine=chatbot_data.engine, created_at=datetime.now()
+        name=chatbot_data.name,
+        created_by=user.id,
+        dag=chatbot_data.dag,
+        engine=chatbot_data.engine,
+        created_at=datetime.now(),
     )
     db.add(chatbot)
     db.commit()
@@ -51,7 +64,13 @@ def create_chatbot(
 
 # R: GET /chatbot/{id}
 @chatbot_router.get("/{id}", status_code=200)
-def get_chatbot(token: Annotated[str, Header()], req: Request, resp: Response, id: str, db: Session = Depends(database.fastapi_db_session)):
+def get_chatbot(
+    token: Annotated[str, Header()],
+    req: Request,
+    resp: Response,
+    id: str,
+    db: Session = Depends(database.fastapi_db_session),
+):
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
@@ -69,25 +88,32 @@ def update_chatbot(
     chatbot_data: ChatBotDetails,
     db: Session = Depends(database.fastapi_db_session),
 ):
+    if not len(chatbot_data.update_keys):
+        resp.status_code = 400
+        return {"message": "No keys to update"}
+
+    unq_keys = set(chatbot_data.update_keys)
+    valid_keys = {"name", "description", "dag"}
+    if not unq_keys.issubset(valid_keys):
+        resp.status_code = 400
+        return {"message": f"Invalid keys {unq_keys.difference(valid_keys)}"}
+
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
 
-    chatbot_data.engine = chatbot_data.engine or ChatBotTypes.LANGFLOW
-    if chatbot_data.engine not in ChatBotTypes.all():
-        resp.status_code = 400
-        return {"message": f"Invalid engine '{chatbot_data.engine}'"}
-    if chatbot_data.name:
-        chatbot.name = chatbot_data.name
-    if chatbot_data.dag:
-        if chatbot.engine != chatbot_data.engine:
-            resp.status_code = 400
-            return {"message": f"Cannot change engine from {chatbot.engine} to {chatbot_data.engine}"}
-        chatbot.dag = chatbot_data.dag
+    for field in unq_keys:
+        if field == "name":
+            chatbot.name = chatbot_data.name
+        elif field == "description":
+            chatbot.description = chatbot_data.description
+        elif field == "dag":
+            chatbot.dag = chatbot_data.dag
+
     db.commit()
     db.refresh(chatbot)
-    return chatbot.to_dict()
+    return chatbot
 
 
 # D: DELETE /chatbot/{id}
