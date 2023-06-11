@@ -362,5 +362,9 @@ if __name__ == "__main__":
                 "tot": tree_of_thought,
             },
             "chains": Chains,
+            "print": {
+                "action": lambda x: print(getattr(Actions, x).to_json()),
+                "chain": lambda x: print(getattr(Chains, x).to_json()),
+            },
         }
     )
