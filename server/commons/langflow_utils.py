@@ -1,8 +1,6 @@
 import traceback
 import time
-from dataclasses import dataclass
-from typing import Dict, Any, List
-from langflow.interface.run import fix_memory_inputs, load_langchain_object, save_cache
+from langflow.interface.run import fix_memory_inputs, load_langchain_object
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
@@ -12,18 +10,11 @@ from database_utils.intermediate_step import insert_intermediate_steps
 from database_utils.prompt import create_prompt
 from schemas.prompt_schema import Prompt
 from commons.gpt_rating import ask_for_rating
-from database import Prompt as PromptModel
+from database import Prompt as ChatBot
+
+from commons.types import CFPromptResult
 
 logger = c.get_logger(__name__)
-
-
-@dataclass
-class CFPromptResult:
-    result: str
-    thought: list[dict[str, Any]]
-    num_tokens: int
-    prompt_id: int
-    prompt: PromptModel
 
 
 def format_intermediate_steps(intermediate_steps):
@@ -112,13 +103,10 @@ def process_graph(message, chat_history, data_graph):
     return str(result), thought, num_tokens
 
 
-def get_prompt(chatbot_id: str, prompt: Prompt, db: Session) -> CFPromptResult:
+def get_prompt(chatbot: ChatBot, prompt: Prompt, db: Session, start: float) -> CFPromptResult:
     try:
-        # start timer
-        start = time.time()
-        chatbot = get_chatbot(db, chatbot_id)
         logger.debug("Adding prompt to database")
-        prompt_row = create_prompt(db, chatbot_id, prompt.new_message, prompt.session_id)
+        prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)
 
         _result, thought, num_tokens = process_graph(prompt.new_message, prompt.chat_history, chatbot.dag)
         result = CFPromptResult(result=str(_result), thought=thought, num_tokens=num_tokens, prompt=prompt_row, prompt_id=prompt_row.id)  # type: ignore

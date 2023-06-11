@@ -1,0 +1,480 @@
+{
+  "nodes": [
+    {
+      "id": "find-quote",
+      "type": "ai-powered",
+      "fn": {
+        "node_id": "find-quote",
+        "model": {
+          "collection_name": "openai",
+          "id": "openai-chat",
+          "description": "Given a list of messages describing a conversation, the model will return a response.",
+          "tags": [],
+          "vars": []
+        },
+        "model_params": {
+          "model": "gpt-3.5-turbo"
+        },
+        "fn": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "'{{ quote }}' \nWho said this quote, if you don't know then reply with a random character from history world? Give reply in less than 10 words."
+            }
+          ]
+        },
+        "action_source": "jinja-template"
+      },
+      "description": "",
+      "fields": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "quote"
+        },
+        {
+          "type": "string",
+          "password": true,
+          "required": true,
+          "show": true,
+          "name": "openai_api_key"
+        },
+        {
+          "type": "string",
+          "required": true,
+          "show": true,
+          "name": "model"
+        },
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ],
+          "required": true,
+          "show": true,
+          "name": "messages"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "temperature"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "top_p"
+        },
+        {
+          "type": "number",
+          "placeholder": "1",
+          "show": true,
+          "name": "n"
+        },
+        {
+          "type": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "show": true,
+          "name": "stop"
+        },
+        {
+          "type": "number",
+          "placeholder": "1024",
+          "show": true,
+          "name": "max_tokens"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "presence_penalty"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "frequency_penalty"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "placeholder": "{}",
+          "show": true,
+          "name": "logit_bias"
+        },
+        {
+          "type": "string",
+          "show": true,
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "placeholder": "False",
+          "show": true,
+          "name": "raw"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "any",
+          "name": "chat_reply",
+          "loc": [
+            "choices",
+            0,
+            "message",
+            "content"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tell-character-story",
+      "type": "ai-powered",
+      "fn": {
+        "node_id": "tell-character-story",
+        "model": {
+          "collection_name": "openai",
+          "id": "openai-chat",
+          "description": "Given a list of messages describing a conversation, the model will return a response.",
+          "tags": [],
+          "vars": []
+        },
+        "model_params": {
+          "model": "gpt-3.5-turbo"
+        },
+        "fn": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "Tell a small {{ story_size }} line story about '{{ character_name }}'"
+            }
+          ]
+        },
+        "action_source": "jinja-template"
+      },
+      "description": "",
+      "fields": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "story_size"
+        },
+        {
+          "type": "string",
+          "required": true,
+          "name": "character_name"
+        },
+        {
+          "type": "string",
+          "password": true,
+          "required": true,
+          "show": true,
+          "name": "openai_api_key"
+        },
+        {
+          "type": "string",
+          "required": true,
+          "show": true,
+          "name": "model"
+        },
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ],
+          "required": true,
+          "show": true,
+          "name": "messages"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "temperature"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "top_p"
+        },
+        {
+          "type": "number",
+          "placeholder": "1",
+          "show": true,
+          "name": "n"
+        },
+        {
+          "type": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "show": true,
+          "name": "stop"
+        },
+        {
+          "type": "number",
+          "placeholder": "1024",
+          "show": true,
+          "name": "max_tokens"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "presence_penalty"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "frequency_penalty"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "placeholder": "{}",
+          "show": true,
+          "name": "logit_bias"
+        },
+        {
+          "type": "string",
+          "show": true,
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "placeholder": "False",
+          "show": true,
+          "name": "raw"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "any",
+          "name": "characters_story",
+          "loc": [
+            "choices",
+            0,
+            "message",
+            "content"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "deep-rap-quote",
+      "type": "ai-powered",
+      "fn": {
+        "node_id": "deep-rap-quote",
+        "model": {
+          "collection_name": "openai",
+          "id": "openai-chat",
+          "description": "Given a list of messages describing a conversation, the model will return a response.",
+          "tags": [],
+          "vars": []
+        },
+        "model_params": {
+          "model": "gpt-3.5-turbo"
+        },
+        "fn": {
+          "messages": [
+            {
+              "role": "user",
+              "content": "give a deep 8 line rap quote on life in the style of {{ character }}."
+            }
+          ]
+        },
+        "action_source": "jinja-template"
+      },
+      "description": "AI will tell a joke on any topic you tell it to talk about",
+      "fields": [
+        {
+          "type": "string",
+          "required": true,
+          "name": "character"
+        },
+        {
+          "type": "string",
+          "password": true,
+          "required": true,
+          "show": true,
+          "name": "openai_api_key"
+        },
+        {
+          "type": "string",
+          "required": true,
+          "show": true,
+          "name": "model"
+        },
+        {
+          "type": "array",
+          "items": [
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          ],
+          "required": true,
+          "show": true,
+          "name": "messages"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "temperature"
+        },
+        {
+          "type": "number",
+          "placeholder": "1.0",
+          "show": true,
+          "name": "top_p"
+        },
+        {
+          "type": "number",
+          "placeholder": "1",
+          "show": true,
+          "name": "n"
+        },
+        {
+          "type": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "show": true,
+          "name": "stop"
+        },
+        {
+          "type": "number",
+          "placeholder": "1024",
+          "show": true,
+          "name": "max_tokens"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "presence_penalty"
+        },
+        {
+          "type": "number",
+          "placeholder": "0.0",
+          "show": true,
+          "name": "frequency_penalty"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "placeholder": "{}",
+          "show": true,
+          "name": "logit_bias"
+        },
+        {
+          "type": "string",
+          "show": true,
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "placeholder": "False",
+          "show": true,
+          "name": "raw"
+        }
+      ],
+      "outputs": [
+        {
+          "type": "any",
+          "name": "chat_reply",
+          "loc": [
+            "choices",
+            0,
+            "message",
+            "content"
+          ]
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "src_node_id": "find-quote",
+      "trg_node_id": "tell-character-story",
+      "connections": [
+        [
+          "chat_reply",
+          "character_name"
+        ]
+      ]
+    },
+    {
+      "src_node_id": "tell-character-story",
+      "trg_node_id": "deep-rap-quote",
+      "connections": [
+        [
+          "characters_story",
+          "character"
+        ]
+      ]
+    }
+  ],
+  "topo_order": [
+    "find-quote",
+    "tell-character-story",
+    "deep-rap-quote"
+  ],
+  "sample": {
+    "quote": "hello there nice world",
+    "story_size": 2
+  },
+  "main_in": "quote",
+  "main_out": "deep-rap-quote/chat_reply"
+}

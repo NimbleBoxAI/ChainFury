@@ -1,11 +1,14 @@
 {
-    "python.linting.enabled": true,
-    "python.formatting.blackArgs": [
-        "--line-length",
-        "140"
-    ],
-    "python.formatting.provider": "black",
-    "editor.formatOnSave": true,
-    "python.linting.mypyEnabled": false,
-    "python.analysis.typeCheckingMode": "basic"
+  "python.linting.enabled": true,
+  "python.formatting.blackArgs": [
+    "--line-length",
+    "140"
+  ],
+  "python.formatting.provider": "none",
+  "editor.formatOnSave": true,
+  "python.linting.mypyEnabled": false,
+  "python.analysis.typeCheckingMode": "basic",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
 }

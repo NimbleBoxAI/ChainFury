@@ -72,11 +72,11 @@ def get_user_id_from_jwt(token):
     return payload.get("userid")
 
 
-def verify_user(db: Session, username):
+def verify_user(db: Session, username) -> User:
     logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
-        raise Exception("User not found")
+        raise HTTPException(status_code=401, detail="User not found")
     return user
 
 
@@ -241,3 +241,26 @@ def have_chatbot_access(db: Session, chatbot_id: str, user_id: str):
         return True
     else:
         return False
+
+
+def add_fury_actions():
+    db = db_session()
+    try:
+        with open("./examples/index.json") as f:
+            data = json.load(f)
+        for template_data in data:
+            template = db.query(Template).filter_by(id=template_data["id"]).first()
+            if template:
+                template.name = template_data["name"]
+                template.description = template_data["description"]
+                with open("./examples/" + template_data["dag"]) as f:
+                    dag = json.load(f)
+                template.dag = dag
+            else:
+                with open("./examples/" + template_data["dag"]) as f:
+                    dag = json.load(f)
+                template = Template(id=template_data["id"], name=template_data["name"], description=template_data["description"], dag=dag)
+                db.add(template)
+        db.commit()
+    except IntegrityError as e:
+        logger.info("Not adding default templates")
