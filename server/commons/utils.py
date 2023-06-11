@@ -72,7 +72,7 @@ def get_user_id_from_jwt(token):
     return payload.get("userid")
 
 
-def verify_user(db: Session, username):
+def verify_user(db: Session, username) -> User:
     logger.info(f"Verifying user {username}")
     user = db.query(User).filter(User.username == username).first()
     if user is None:

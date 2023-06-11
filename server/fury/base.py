@@ -194,7 +194,7 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
                 logger.debug("t2.1")
             return Var(
                 type="array",
-                items=[pyannotation_to_json_schema(x.__args__[0], allow_any, allow_exc, allow_none)],
+                items=[pyannotation_to_json_schema(x=x.__args__[0], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)],
             )
         elif x.__origin__ == dict:
             if len(x.__args__) == 2 and x.__args__[0] == str:
@@ -202,7 +202,9 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
                     logger.debug("t2.2")
                 return Var(
                     type="object",
-                    additionalProperties=pyannotation_to_json_schema(x.__args__[1], allow_any, allow_exc, allow_none),
+                    additionalProperties=pyannotation_to_json_schema(
+                        x=x.__args__[1], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none
+                    ),
                 )
             else:
                 raise ValueError(f"i2: Unsupported type: {x}")
@@ -211,7 +213,10 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
                 logger.debug("t2.3")
             return Var(
                 type="array",
-                items=[pyannotation_to_json_schema(arg, allow_any, allow_exc, allow_none) for arg in x.__args__],
+                items=[
+                    pyannotation_to_json_schema(x=arg, allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)
+                    for arg in x.__args__
+                ],
             )
         elif x.__origin__ == Union:
             # Unwrap union types with None type
@@ -219,11 +224,15 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
             if len(types) == 1:
                 if trace:
                     logger.debug("t2.4")
-                return pyannotation_to_json_schema(types[0], allow_any, allow_exc, allow_none)
+                return pyannotation_to_json_schema(x=types[0], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)
             else:
                 if trace:
                     logger.debug("t2.5")
-                return Var(type=[pyannotation_to_json_schema(typ, allow_any, allow_exc, allow_none) for typ in types])
+                return Var(
+                    type=[
+                        pyannotation_to_json_schema(x=typ, allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none) for typ in types
+                    ]
+                )
         else:
             raise ValueError(f"i3: Unsupported type: {x}")
     elif isinstance(x, tuple):
@@ -233,7 +242,7 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
             type="array",
             items=[
                 Var(type="string"),
-                pyannotation_to_json_schema(x[1], allow_any, allow_exc, allow_none),
+                pyannotation_to_json_schema(x=x[1], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none),
             ]
             * len(x),
         )
@@ -270,7 +279,7 @@ def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
     named Var objects.
     """
     signature = inspect.signature(func)
-    schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=True, allow_exc=True, allow_none=True)
+    schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=False, allow_exc=True, allow_none=True)
     if not (
         schema.type == "array"
         and len(schema.items) == 2
@@ -449,26 +458,26 @@ class Model:
     def __init__(
         self,
         collection_name,
-        model_id,
+        id,
         fn: object,
         description,
         vars: List[Var],
         tags=[],
     ):
         self.collection_name = collection_name
-        self.model_id = model_id
+        self.id = id
         self.fn = fn
         self.description = description
         self.vars = vars
         self.tags = tags
 
     def __repr__(self) -> str:
-        return f"Model('{self.collection_name}', '{self.model_id}')"
+        return f"Model('{self.collection_name}', '{self.id}')"
 
     def to_dict(self, no_vars: bool = False) -> Dict[str, Any]:
         return {
             "collection_name": self.collection_name,
-            "model_id": self.model_id,
+            "id": self.id,
             "description": self.description,
             "tags": self.tags,
             "vars": [x.to_dict() for x in self.vars] if not no_vars else [],
@@ -513,6 +522,7 @@ class Node:
         fields: List[Var],
         outputs: List[Var],
         description: str = "",
+        tags: str = [],
     ):
         # some bacic checks
         if type == NodeType.AI:
@@ -529,6 +539,7 @@ class Node:
         self.fields = fields
         self.outputs = outputs
         self.fn = fn
+        self.tags = tags
 
     def __repr__(self) -> str:
         out = f"FuryNode{{ ('{self.id}', '{self.type}') ["
@@ -580,6 +591,13 @@ class Node:
             fields=fields,
             outputs=outputs,
         )
+
+    def to_json(self, indent=None) -> str:
+        return json.dumps(self.to_dict(), indent=indent)
+
+    @classmethod
+    def from_json(cls, data: str):
+        return cls.from_dict(json.loads(data))
 
     def __call__(self, data: Dict[str, Any], print_thoughts: bool = False) -> Tuple[Any, Optional[Exception]]:
         data_keys = set(data.keys())
@@ -695,8 +713,15 @@ class Chain:
         out += "\n  ]\n)"
         return out
 
-    def to_dict(self, main_in: str, main_out: str, sample: Dict[str, Any]) -> Dict[str, Any]:
+    def to_dict(self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}) -> Dict[str, Any]:
+        main_in = main_in or self.main_in
+        main_out = main_out or self.main_out
+        sample = sample or self.sample
         assert main_in in sample, f"Invalid key: {main_in}"
+
+        if not (main_in or main_out or sample):
+            logger.warning("No main_in, main_out or sample provided, using defaults")
+            raise ValueError("No main_in, main_out or sample provided, using defaults")
         return {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
@@ -711,6 +736,13 @@ class Chain:
         nodes = [Node.from_dict(x) for x in data["nodes"]]
         edges = [Edge.from_dict(x) for x in data["edges"]]
         return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, data: str):
+        return cls.from_dict(json.loads(data))
 
     def __call__(
         self, data: str | Dict[str, Any], thoughts_callback: Optional[Callable] = None, print_thoughts: bool = False

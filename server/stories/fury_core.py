@@ -26,7 +26,7 @@ def _get_openai_token() -> str:
 class FormAiAction:
     # when the AI action is built using a form or via FE then we need to conver the JSON
     # configuration to a callable for the chain.
-    def __init__(self, model_id: str, model_params: Dict[str, Any]):
+    def __init__(self, id: str, model_params: Dict[str, Any]):
         pass
 
 

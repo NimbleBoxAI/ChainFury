@@ -92,7 +92,7 @@ def openai_completion(
 model_registry.register(
     fn=openai_completion,
     collection_name="openai",
-    model_id="openai-completion",
+    id="openai-completion",
     description="Given a prompt, the model will return one or more predicted completions, and can also return the "
     "probabilities of alternative tokens at each position.",
 )
@@ -169,6 +169,6 @@ def openai_chat(
 model_registry.register(
     fn=openai_chat,
     collection_name="openai",
-    model_id="openai-chat",
+    id="openai-chat",
     description="Given a list of messages describing a conversation, the model will return a response.",
 )

@@ -46,24 +46,24 @@ class ModelRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_models: Dict[str, List[str]] = {}
 
-    def has(self, model_id: str):
-        return model_id in self.models
+    def has(self, id: str):
+        return id in self.models
 
     def register(
         self,
         fn: object,
         collection_name: str,
-        model_id: str,
+        id: str,
         description: str,
         tags: List[str] = [],
     ):
-        id = f"{model_id}"
-        logger.debug(f"Registering model {model_id} at {id}")
+        id = f"{id}"
+        logger.debug(f"Registering model {id} at {id}")
         if id in self.models:
-            raise Exception(f"Model {model_id} already registered")
+            raise Exception(f"Model {id} already registered")
         self.models[id] = Model(
             collection_name=collection_name,
-            model_id=model_id,
+            id=id,
             fn=fn,
             description=description,
             vars=func_to_vars(fn),
@@ -75,18 +75,21 @@ class ModelRegistry:
     def get_tags(self) -> List[str]:
         return list(self.tags_to_models.keys())
 
-    def get_models(self, tag: str = "") -> List[Dict[str, Any]]:
-        return [{k: v.to_dict()} for k, v in self.models.items()]
+    def get_models(self, tag: str = "") -> Dict[str, Dict[str, Any]]:
+        items = {k: v.to_dict() for k, v in self.models.items()}
+        if tag:
+            items = {k: v for k, v in items.items() if tag in v.get("tags", [])}
+        return items
 
-    def get(self, model_id: str) -> Model:
-        self.counter[model_id] = self.counter.get(model_id, 0) + 1
-        out = self.models.get(model_id, None)
+    def get(self, id: str) -> Model:
+        self.counter[id] = self.counter.get(id, 0) + 1
+        out = self.models.get(id, None)
         if out is None:
-            raise ValueError(f"Model {model_id} not found")
+            raise ValueError(f"Model {id} not found")
         return out
 
-    def get_count_for_model(self, model_id: str) -> int:
-        return self.counter.get(model_id, 0)
+    def get_count_for_model(self, id: str) -> int:
+        return self.counter.get(id, 0)
 
 
 model_registry = ModelRegistry()
@@ -132,6 +135,7 @@ class ProgramaticActionsRegistry:
             description=description,
             fields=func_to_vars(fn),
             outputs=ops,
+            tags=tags,
         )
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
@@ -140,8 +144,11 @@ class ProgramaticActionsRegistry:
     def get_tags(self) -> List[str]:
         return list(self.tags_to_nodes.keys())
 
-    def get_nodes(self, tag: str = "") -> List[Dict[str, Any]]:
-        return [{k: v.to_dict()} for k, v in self.nodes.items()]
+    def get_nodes(self, tag: str = "") -> Dict[str, Dict[str, Any]]:
+        items = {k: v.to_dict() for k, v in self.nodes.items()}
+        if tag:
+            items = {k: v for k, v in items.items() if tag in v.get("tags", [])}
+        return items
 
     def get(self, node_id: str) -> Optional[Node]:
         self.counter[node_id] = self.counter.get(node_id, 0) + 1
@@ -221,7 +228,7 @@ class AIAction:
     def from_dict(cls, data: Dict[str, Any]):
         return cls(
             node_id=data["node_id"],
-            model=model_registry.get(data["model"]["model_id"]),
+            model=model_registry.get(data["model"]["id"]),
             model_params=data["model_params"],
             fn=data["fn"],
         )
@@ -268,7 +275,7 @@ class AIActionsRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_nodes: Dict[str, List[str]] = {}
 
-    def register(
+    def to_node(
         self,
         node_id: str,
         model_id: str,
@@ -276,15 +283,12 @@ class AIActionsRegistry:
         fn: object,
         outputs: Dict[str, Any],
         description: str = "",
-        tags: List[str] = [],
     ) -> Node:
         """
-
         Args:
             outputs: This is a dict like `{'x': (-1, 'b', 'c')}`, if provided function returns a dictionary with key `x`
               and value automatically extracted from the model output at location `(-1, 'b', 'c')`.
         """
-        logger.debug(f"Registering ai-node '{node_id}'")
         model = model_registry.get(model_id)
         if model is None:
             raise Exception(f"Model {model_id} not found")
@@ -296,32 +300,64 @@ class AIActionsRegistry:
         )
         if not outputs:
             output_field = [
-                func_to_return_vars(
-                    func=ai_action.__call__,
-                    returns={
-                        "model_output": (),
-                    },
-                ),
+                func_to_return_vars(func=ai_action.__call__, returns={"model_output": ()}),
             ]
         else:
-            output_field = [Var(type="any", name=k, loc=loc) for k, loc in outputs.items()]
-        self.nodes[node_id] = Node(
+            output_field = [Var(type="string", name=k, loc=loc) for k, loc in outputs.items()]
+        node = Node(
             id=node_id,
             fn=ai_action,
             type=Node.types.AI,
             description=description,
             fields=ai_action.fields + model.vars,
-            outputs=output_field,  # type: ignore
+            outputs=output_field,
         )
+        return node
+
+    def register(
+        self,
+        node_id: str,
+        model_id: str,
+        model_params: Dict[str, Any],
+        fn: object,
+        outputs: Dict[str, Any],
+        description: str = "",
+        tags: List[str] = [],
+    ) -> Node:
+        logger.debug(f"Registering ai-node '{node_id}'")
+        node = self.to_node(
+            node_id=node_id,
+            model_id=model_id,
+            model_params=model_params,
+            fn=fn,
+            outputs=outputs,
+            description=description,
+        )
+        self.nodes[node_id] = node
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
         return self.nodes[node_id]
 
+    def unregister(self, node_id: str):
+        logger.debug(f"Unregistering ai-node '{node_id}'")
+        node = self.nodes.pop(node_id, None)
+        if node is None:
+            raise ValueError(f"ai-node '{node_id}' not found")
+        for tag, nodes in self.tags_to_nodes.items():
+            if node_id in nodes:
+                nodes.remove(node_id)
+                if not nodes:
+                    self.tags_to_nodes.pop(tag)
+                break
+
     def get_tags(self) -> List[str]:
         return list(self.tags_to_nodes.keys())
 
-    def get_nodes(self, tag: str = "") -> List[Dict[str, Any]]:
-        return [{k: v.to_dict()} for k, v in self.nodes.items()]
+    def get_nodes(self, tag: str = "") -> Dict[str, Dict[str, Any]]:
+        items = {k: v.to_dict() for k, v in self.nodes.items()}
+        if tag:
+            items = {k: v for k, v in items.items() if tag in v.get("tags", [])}
+        return items
 
     def get(self, node_id: str) -> Optional[Node]:
         self.counter[node_id] = self.counter.get(node_id, 0) + 1
@@ -336,35 +372,18 @@ class AIActionsRegistry:
 
 ai_actions_registry = AIActionsRegistry()
 
+# Eventually build memory registry like the actions registry
+#
 # class Memory:
 #     def __init__(self, memory_id):
 #         self.node = Node(id=f"cf-memory-{memory_id}", type=Node.types.MEMORY)
-
+#
 #     # user can subclass this and override the following functions
 #     def get(self, key: str):
 #         ...
-
+#
 #     def put(self, key: str, value: Any):
 #         ...
-
-
-# # the main class, user can either subclass this or prvide the chain
-# class Agent:
-#     def __init__(self, models: List[Model], chain: Chain):
-#         self.models = models
-#         self.chain = chain
-
-#     def __call__(self, user_input: Any):
-#         return self.chain(user_input)
-
-
-# # we LRU cache this to save time on ser / deser
-# @lru_cache(128)
-# def get_agent(models: List[Model], chain: Chain) -> Agent:
-#     return Agent(
-#         models=models,
-#         chain=chain,
-#     )
 
 
 if __name__ == "__main__":

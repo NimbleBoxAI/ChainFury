@@ -314,12 +314,13 @@ def tree_of_thought(topics: str, max_search_space: int = 5, v: bool = False):
 
 
 if __name__ == "__main__":
-    fire.Fire(
-        {
-            "io": io_prompting,
-            "cot": chain_of_thought,
-            "cot_t": chain_of_thought_topic,
-            "cot-sc": cot_consistency,
-            "tot": tree_of_thought,
-        }
-    )
+    print(Actions.catchy_headline.to_json())
+    # fire.Fire(
+    #     {
+    #         "io": io_prompting,
+    #         "cot": chain_of_thought,
+    #         "cot_t": chain_of_thought_topic,
+    #         "cot-sc": cot_consistency,
+    #         "tot": tree_of_thought,
+    #     }
+    # )

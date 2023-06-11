@@ -35,7 +35,7 @@ def get_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, start: float
         # Create a Fury chain then run the chain while logging all the intermediate steps
         # prompt.chat_history
         chain = Chain.from_dict(chatbot.dag)  # type: ignore
-        callback = FuryThoughts(db, prompt.session_id)
+        callback = FuryThoughts(db, prompt_row.id)
         mainline_out, full_ir = chain(prompt.new_message, thoughts_callback=callback)
         result = CFPromptResult(
             result=str(mainline_out),

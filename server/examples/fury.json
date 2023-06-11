@@ -7,7 +7,7 @@
         "node_id": "find-quote",
         "model": {
           "collection_name": "openai",
-          "model_id": "openai-chat",
+          "id": "openai-chat",
           "description": "Given a list of messages describing a conversation, the model will return a response.",
           "tags": [],
           "vars": []
@@ -153,7 +153,7 @@
         "node_id": "tell-character-story",
         "model": {
           "collection_name": "openai",
-          "model_id": "openai-chat",
+          "id": "openai-chat",
           "description": "Given a list of messages describing a conversation, the model will return a response.",
           "tags": [],
           "vars": []
@@ -304,7 +304,7 @@
         "node_id": "deep-rap-quote",
         "model": {
           "collection_name": "openai",
-          "model_id": "openai-chat",
+          "id": "openai-chat",
           "description": "Given a list of messages describing a conversation, the model will return a response.",
           "tags": [],
           "vars": []

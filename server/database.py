@@ -81,6 +81,7 @@ class ChatBot(Base):
     meta = Column(JSON)
     engine = Column(String(80), nullable=False, default=ChatBotTypes.LANGFLOW)
     created_at = Column(DateTime, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -154,7 +155,7 @@ class IntermediateStep(Base):
         }
 
     def __repr__(self):
-        return f"Prompt(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
+        return f"IntermediateStep(id={self.id}, prompt_id={self.prompt_id}, intermediate_prompt={self.intermediate_prompt}, intermediate_response={self.intermediate_response}, response_json={self.response_json}, meta={self.meta}, created_at={self.created_at})"
 
 
 class Template(Base):
@@ -190,12 +191,14 @@ class Template(Base):
 
 
 # A fury action is an AI powered node that can be used in a fury chain it is the DB equivalent of fury.Node
+
+
 class FuryActions(Base):
     __tablename__ = "fury_actions"
-    id: str = Column(String(8), default=lambda: unique_string(Components, Components.id), primary_key=True)
+    id: str = Column(String(36), primary_key=True)
     created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
     type: str = Column(String(80), nullable=False)  # the AI Action type
-    name: str = Column(String(80), unique=True)
+    name: str = Column(String(80), unique=False)
     description: str = Column(String(80))
     fields: list[dict] = Column(JSON)
     fn: dict = Column(JSON)
@@ -205,13 +208,23 @@ class FuryActions(Base):
     def to_dict(self):
         return {
             "id": self.id,
+            "created_by": self.created_by,
             "type": self.type,
             "name": self.name,
             "description": self.description,
             "fields": self.fields,
             "fn": self.fn,
             "outputs": self.outputs,
+            "tags": self.tags,
         }
+
+    def update_from_dict(self, data: dict):
+        self.name = data.get("name", self.name)
+        self.description = data.get("description", self.description)
+        self.fields = data.get("fields", self.fields)
+        self.fn = data.get("fn", self.fn)
+        self.outputs = data.get("outputs", self.outputs)
+        self.tags = data.get("tags", self.tags)
 
 
 Base.metadata.create_all(bind=engine)
