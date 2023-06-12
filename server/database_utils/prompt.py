@@ -24,5 +24,4 @@ def create_prompt(db: Session, chatbot_id: str, input_prompt: str, session_id: s
     db.add(db_prompt)
     db.commit()
     db.refresh(db_prompt)
-    print("db_promptdb_promptdb_promptdb_prompt:", db_prompt)
     return db_prompt

@@ -35,7 +35,6 @@ def get_prompt_list(request: Request, chatbot_id: str, limit: int = 100, offset:
         limit = 100
     offset = offset if offset > 0 else 0
     prompts = db.query(PromptModel).filter(PromptModel.chatbot_id == chatbot_id).limit(limit).offset(offset).all()
-    print(prompts)
     return {
         "prompts": [p.to_dict() for p in prompts],
     }
@@ -45,10 +44,10 @@ def get_prompt_list(request: Request, chatbot_id: str, limit: int = 100, offset:
 def process_prompt(request: Request, chatbot_id: str, prompt: Prompt, db: Session = Depends(fastapi_db_session)):
     # result = get_prompt(chatbot_id, prompt, db)
     result = call_engine(chatbot_id, prompt, db)
-    print(result)
+    # print(result)
     # manage any callbacks
-    # ph = get_phandler()
-    # ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))
+    ph = get_phandler()
+    ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))
 
     out = result.__dict__
     out.pop("prompt")

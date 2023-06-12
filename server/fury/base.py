@@ -461,14 +461,14 @@ class Model:
         id,
         fn: object,
         description,
-        vars: List[Var],
         tags=[],
     ):
         self.collection_name = collection_name
         self.id = id
         self.fn = fn
+        # vars: List[Var],
         self.description = description
-        self.vars = vars
+        self.vars = func_to_vars(fn)
         self.tags = tags
 
     def __repr__(self) -> str:

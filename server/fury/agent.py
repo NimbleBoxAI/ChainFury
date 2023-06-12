@@ -49,27 +49,13 @@ class ModelRegistry:
     def has(self, id: str):
         return id in self.models
 
-    def register(
-        self,
-        fn: object,
-        collection_name: str,
-        id: str,
-        description: str,
-        tags: List[str] = [],
-    ):
-        id = f"{id}"
+    def register(self, model: Model):
+        id = f"{model.id}"
         logger.debug(f"Registering model {id} at {id}")
         if id in self.models:
             raise Exception(f"Model {id} already registered")
-        self.models[id] = Model(
-            collection_name=collection_name,
-            id=id,
-            fn=fn,
-            description=description,
-            vars=func_to_vars(fn),
-            tags=tags,
-        )
-        for tag in tags:
+        self.models[id] = model
+        for tag in model.tags:
             self.tags_to_models[tag] = self.tags_to_models.get(tag, []) + [id]
 
     def get_tags(self) -> List[str]:

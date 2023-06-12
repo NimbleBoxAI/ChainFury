@@ -46,7 +46,7 @@ def create_chatbot(
 
     if chatbot_data.engine not in ChatBotTypes.all():
         resp.status_code = 400
-        return {"message": f"Invalid engine '{chatbot_data.engine}'"}
+        return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
 
     # actually create
     chatbot = ChatBot(
