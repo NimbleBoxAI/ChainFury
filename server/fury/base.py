@@ -745,7 +745,7 @@ class Chain:
         return cls.from_dict(json.loads(data))
 
     def __call__(
-        self, data: str | Dict[str, Any], thoughts_callback: Optional[Callable] = None, print_thoughts: bool = False
+        self, data: Union[str, Dict[str, Any]], thoughts_callback: Optional[Callable] = None, print_thoughts: bool = False
     ) -> Tuple[Var, Dict[str, Any]]:
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"

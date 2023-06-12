@@ -4,7 +4,7 @@ from uuid import uuid4
 from functools import lru_cache
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
-from typing import Annotated, Dict, Any
+from typing import Annotated, Dict, Any, Union
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Header, Request, Response, Query
 
@@ -302,7 +302,7 @@ def list_fury_actions(
 #
 
 
-def validate_action(fury_action: ActionRequest | ActionUpdateRequest, resp: Response) -> tuple[Node, Response]:
+def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp: Response) -> tuple[Node, Response]:
     # if the function is to be updated then perform the full validation same as when creating a new action
     if len(fury_action.outputs) != 1:
         resp.status_code = 400
