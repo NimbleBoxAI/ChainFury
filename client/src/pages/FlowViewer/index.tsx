@@ -258,30 +258,34 @@ const FlowViewer = () => {
         </Button>
       </div>
       {!loading ? (
-        <ReactFlowProvider>
-          <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
-            <ReactFlow
-              nodeTypes={nodeTypes}
-              proOptions={{ hideAttribution: true }}
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={setReactFlowInstance}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              fitView={true}
-              defaultViewport={{
-                zoom: 0.8,
-                y: 0,
-                x: 0
-              }}
-            >
-              <Controls />
-            </ReactFlow>
-          </div>
-        </ReactFlowProvider>
+        engine === 'langchain' ? (
+          <ReactFlowProvider>
+            <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
+              <ReactFlow
+                nodeTypes={nodeTypes}
+                proOptions={{ hideAttribution: true }}
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onInit={setReactFlowInstance}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                fitView={true}
+                defaultViewport={{
+                  zoom: 0.8,
+                  y: 0,
+                  x: 0
+                }}
+              >
+                <Controls />
+              </ReactFlow>
+            </div>
+          </ReactFlowProvider>
+        ) : (
+          <FuryFlowViewer />
+        )
       ) : (
         ''
       )}
@@ -297,3 +301,60 @@ const FlowViewer = () => {
 };
 
 export default FlowViewer;
+
+const FuryFlowViewer = () => {
+  const reactFlowWrapper = useRef(null) as any;
+  const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
+
+  const onDrop = useCallback(
+    (event: {
+      preventDefault: () => void;
+      dataTransfer: { getData: (arg0: string) => any };
+      clientX: number;
+      clientY: number;
+    }) => {
+      event.preventDefault();
+      console.log(event);
+      let type = event.dataTransfer.getData('application/reactflow');
+      console.log(type);
+    },
+    [reactFlowInstance]
+  );
+
+  const onDragOver = useCallback(
+    (event: { preventDefault: () => void; dataTransfer: { dropEffect: string } }) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    },
+    []
+  );
+
+  return (
+    <>
+      <ReactFlowProvider>
+        <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodeTypes={nodeTypes}
+            proOptions={{ hideAttribution: true }}
+            // nodes={nodes}
+            // edges={edges}
+            // onNodesChange={onNodesChange}
+            // onEdgesChange={onEdgesChange}
+            // onConnect={onConnect}
+            // onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            fitView={true}
+            defaultViewport={{
+              zoom: 0.8,
+              y: 0,
+              x: 0
+            }}
+          >
+            <Controls />
+          </ReactFlow>
+        </div>
+      </ReactFlowProvider>
+    </>
+  );
+};

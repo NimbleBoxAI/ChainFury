@@ -156,7 +156,7 @@ const Sidebar = () => {
                       key={key}
                       label={bot}
                       values={auth?.furyComponents[bot]?.components ?? []}
-                      // onDragStart={onDragStart}
+                      onDragStart={onDragStart}
                     />
                   );
                 })}
@@ -199,10 +199,23 @@ export default Sidebar;
 
 const FuryCollapsibleComponents = ({
   label,
-  values
+  values,
+  onDragStart
 }: {
   label: string;
   values: FuryComponentInterface[];
+  onDragStart: {
+    (
+      event: {
+        dataTransfer: {
+          setData: (arg0: string, arg1: any) => void;
+          effectAllowed: string;
+        };
+      },
+      nodeType: any
+    ): void;
+    (event: any, nodeType: any): void;
+  };
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -233,6 +246,9 @@ const FuryCollapsibleComponents = ({
                 }}
                 className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
                 draggable
+                onDragStart={(event) => {
+                  onDragStart(event, JSON.stringify(bot));
+                }}
               >
                 {bot?.id}
               </div>
