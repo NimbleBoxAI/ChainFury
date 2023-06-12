@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -19,9 +19,11 @@ import { useAppDispatch } from '../../redux/hooks/store';
 import {
   useComponentsMutation,
   useCreateBotMutation,
-  useEditBotMutation
+  useEditBotMutation,
+  useFuryComponentDetailsMutation,
+  useFuryComponentsMutation
 } from '../../redux/services/auth';
-import { setComponents } from '../../redux/slices/authSlice';
+import { setComponents, setFuryComponents } from '../../redux/slices/authSlice';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -37,17 +39,20 @@ const FlowViewer = () => {
   };
   const [botName, setBotName] = useState('' as string);
   const [getComponents] = useComponentsMutation();
+  const [getFullComponents] = useFuryComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [templateId, setTemplateId] = useState('' as string);
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
-  const navigate = useNavigate();
+  const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
+  const [engine, setEngine] = useState('' as '' | 'fury' | 'langchain');
 
   useEffect(() => {
+    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langchain') || 'langchain');
     if (location.search?.includes('?bot=') && flow_id === 'new') {
-      setBotName(location.search.split('?bot=')[1]);
+      setBotName(location.search.split('?bot=')[1]?.split('&engine=')[0]);
       setVariant('new');
       setNodes([]);
       setEdges([]);
@@ -59,8 +64,11 @@ const FlowViewer = () => {
     } else {
       setVariant('edit');
     }
-    fetchComponents();
   }, [location]);
+
+  useEffect(() => {
+    if (engine) fetchComponents();
+  }, [engine]);
 
   useEffect(() => {
     if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
@@ -70,18 +78,44 @@ const FlowViewer = () => {
   }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
   const fetchComponents = async () => {
-    getComponents()
-      .unwrap()
-      .then((res) => {
-        dispatch(
-          setComponents({
-            components: res
+    if (engine !== 'fury')
+      getComponents()
+        .unwrap()
+        .then((res) => {
+          dispatch(
+            setComponents({
+              components: res
+            })
+          );
+        })
+        ?.catch(() => {
+          alert('Error fetching components');
+        });
+    else {
+      const furyConfig = await getFullComponents().unwrap();
+      const components = {} as any;
+      if (furyConfig?.components) {
+        for (let i = 0; i < furyConfig?.components?.length; i++) {
+          await furyCompDetails({
+            component_type: furyConfig?.components[i]
           })
-        );
-      })
-      ?.catch(() => {
-        alert('Error fetching components');
-      });
+            .unwrap()
+            .then((res) => {
+              console.log({ [furyConfig?.components[i]]: res });
+              components[furyConfig?.components[i]] = {
+                components: Object.values(res),
+                type: furyConfig?.components[i]
+              };
+            });
+        }
+      }
+      console.log({ components });
+      dispatch(
+        setFuryComponents({
+          furyComponents: components
+        })
+      );
+    }
   };
 
   const onConnect = useCallback(

@@ -40,9 +40,52 @@ export interface MetricsInterface {
   average_openai_ratings: number;
 }
 
+export interface FuryComponentInterface {
+  id: string;
+  type: string;
+  fn?: {
+    node_id: string;
+    model: {
+      collection_name: string;
+      id: string;
+      description: string;
+      tags: string[];
+      vars: any[];
+    };
+  };
+  description: string;
+  fields: Field[];
+  outputs: Output[];
+}
+
+interface Field {
+  type: FieldType;
+  required?: boolean;
+  show?: boolean;
+  name: string;
+  placeholder?: string;
+  items?: Item[];
+  additionalProperties?: {
+    type: FieldType;
+  };
+}
+
+interface Item {
+  type: FieldType;
+}
+
+type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+
+interface Output {
+  type: FieldType;
+  name: string;
+  loc?: string[];
+}
+
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
+  furyComponents: Record<string, { type: string; components: FuryComponentInterface[] }>;
   typesMap: Record<string, string[]>;
   chatBots: Record<string, ChatBots>;
   selectedChatBot: ChatBots;
@@ -60,6 +103,7 @@ const slice = createSlice({
   initialState: {
     accessToken: localStorage.getItem('accessToken') ?? '',
     components: {},
+    furyComponents: {},
     typesMap: {},
     chatBots: {},
     selectedChatBot: {} as ChatBots,
@@ -94,6 +138,12 @@ const slice = createSlice({
         typesMap[componentKey] = baseClasses;
       });
       state.typesMap = typesMap;
+    },
+    setFuryComponents: (
+      state,
+      { payload: { furyComponents } }: PayloadAction<{ furyComponents: any }>
+    ) => {
+      state.furyComponents = furyComponents;
     },
     setChatBots: (state, { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>) => {
       const tempChatBots = {} as Record<string, ChatBots>;
@@ -142,7 +192,8 @@ export const {
   setSelectedChatBot,
   setPrompts,
   setTemplates,
-  setMetrics
+  setMetrics,
+  setFuryComponents
 } = slice.actions;
 
 export default slice.reducer;

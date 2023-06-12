@@ -127,6 +127,23 @@ export const authApi = createApi({
         method: 'GET'
       })
     }),
+    furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
+      query: () => ({
+        url: '/fury/',
+        method: 'GET'
+      })
+    }),
+    furyComponentDetails: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        component_type: string;
+      }
+    >({
+      query: ({ component_type }) => ({
+        url: `/fury/components/${component_type}`,
+        method: 'GET'
+      })
+    }),
     getPrompts: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -259,5 +276,7 @@ export const {
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation
+  useGetAllBotMetricsMutation,
+  useFuryComponentsMutation,
+  useFuryComponentDetailsMutation
 } = authApi;

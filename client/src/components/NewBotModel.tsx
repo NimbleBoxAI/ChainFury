@@ -14,6 +14,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
   const [selectedFlow, setSelectedFlow] = useState('scratch');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const { auth } = useAuthStates();
+  const [engine, setEngine] = useState('fury');
 
   return (
     <Dialog open={true} onClose={onClose}>
@@ -33,6 +34,32 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
           placeholder="Name"
           className="h-[40px] w-full mt-[16px]"
         />
+        {selectedFlow === 'scratch' ? (
+          <div className="flex justify-between gap-[8px] w-full">
+            <div
+              onClick={() => {
+                setEngine('langchain');
+              }}
+              className={`${
+                engine !== 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
+              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
+            >
+              Langchain
+            </div>
+            <div
+              onClick={() => {
+                setEngine('fury');
+              }}
+              className={`${
+                engine === 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
+              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
+            >
+              Fury
+            </div>
+          </div>
+        ) : (
+          ''
+        )}
         <div className="flex justify-between gap-[8px] w-full">
           <div
             onClick={() => {
@@ -88,7 +115,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
           onClick={() => {
             if (selectedFlow === 'template') {
               navigate(`/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}`);
-            } else navigate(`/ui/dashboard/new?bot=${botName}`);
+            } else navigate(`/ui/dashboard/new?bot=${botName}&engine=${engine}`);
             onClose();
           }}
           variant="contained"

@@ -11,7 +11,10 @@ export const nodeColors: { [char: string]: string } = {
   docloaders: '#FF9135',
   toolkits: '#DB2C2C',
   wrappers: '#E6277A',
-  unknown: '#9CA3AF'
+  unknown: '#9CA3AF',
+  models: '#9CE0FC',
+  programatic_actions: '#6344BE',
+  builtin_ai: '#EA3852'
 };
 
 export const nodeNames: { [char: string]: string } = {

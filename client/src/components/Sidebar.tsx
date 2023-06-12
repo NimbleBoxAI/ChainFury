@@ -1,10 +1,11 @@
-import { Button } from '@mui/material';
+import { Button, Collapse } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
 import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
 import {
+  FuryComponentInterface,
   setChatBots,
   setMetrics,
   setSelectedChatBot,
@@ -14,6 +15,8 @@ import ChangePassword from './ChangePassword';
 import ChatBotCard from './ChatBotCard';
 import CollapsibleComponents from './CollapsibleComponents';
 import NewBotModel from './NewBotModel';
+import { nodeColors } from '../utils';
+import SvgChevronDown from './SvgComps/ChevronDown';
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
@@ -130,6 +133,7 @@ const Sidebar = () => {
           </>
         ) : (
           <div className="flex flex-col gap-[8px]">
+            {/* Langchain */}
             {Object.keys(auth?.components).map((bot, key) => {
               return (
                 <CollapsibleComponents
@@ -137,6 +141,18 @@ const Sidebar = () => {
                   label={bot}
                   onDragStart={onDragStart}
                   values={auth?.components[bot]}
+                />
+              );
+            })}
+            {/* Fury */}
+            {Object.keys(auth?.furyComponents).map((bot, key) => {
+              return (
+                <FuryCollapsibleComponents
+                  key={key}
+                  label={bot}
+                  values={auth?.furyComponents[bot]?.components ?? []}
+                  // onDragStart={onDragStart}
+                  // values={auth?.furyComponents[bot]}
                 />
               );
             })}
@@ -176,3 +192,50 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+const FuryCollapsibleComponents = ({
+  label,
+  values
+}: {
+  label: string;
+  values: FuryComponentInterface[];
+}) => {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Collapse in={open} collapsedSize={42}>
+      <div
+        onClick={() => {
+          setOpen(!open);
+        }}
+        className="prose-nbx cursor-pointer medium400 border border-light-neutral-grey-200 rounded-md bg-light-system-bg-primary"
+      >
+        <div className="p-[8px] flex justify-between items-center">
+          <span className="capitalize semiBold300">{label}</span>{' '}
+          <SvgChevronDown
+            style={{
+              stroke: nodeColors[label]
+            }}
+            className={`${open ? 'rotate-180' : ''}`}
+          />
+        </div>
+        <div className="flex flex-col gap-[16px] p-[8px] bg-light-neutral-grey-100">
+          {values.map((bot, key) => {
+            return (
+              <div
+                key={key}
+                style={{
+                  borderLeftColor: nodeColors[label]
+                }}
+                className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
+                draggable
+              >
+                {bot?.id}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </Collapse>
+  );
+};
