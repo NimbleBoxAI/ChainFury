@@ -109,7 +109,11 @@ const FlowViewer = () => {
             });
         }
       }
-      console.log({ components });
+      if (furyConfig?.actions) {
+        components['actions'] = {
+          components: []
+        };
+      }
       dispatch(
         setFuryComponents({
           furyComponents: components

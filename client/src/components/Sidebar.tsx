@@ -7,7 +7,6 @@ import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/a
 import {
   FuryComponentInterface,
   setChatBots,
-  setMetrics,
   setSelectedChatBot,
   setTemplates
 } from '../redux/slices/authSlice';
@@ -152,7 +151,6 @@ const Sidebar = () => {
                   label={bot}
                   values={auth?.furyComponents[bot]?.components ?? []}
                   // onDragStart={onDragStart}
-                  // values={auth?.furyComponents[bot]}
                 />
               );
             })}

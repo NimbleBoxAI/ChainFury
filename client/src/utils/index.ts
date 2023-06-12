@@ -14,7 +14,8 @@ export const nodeColors: { [char: string]: string } = {
   unknown: '#9CA3AF',
   models: '#9CE0FC',
   programatic_actions: '#6344BE',
-  builtin_ai: '#EA3852'
+  builtin_ai: '#EA3852',
+  actions: '#FF9135'
 };
 
 export const nodeNames: { [char: string]: string } = {
