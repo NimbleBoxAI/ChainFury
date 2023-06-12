@@ -95,6 +95,7 @@ model_registry.register(
         id="openai-completion",
         fn=openai_completion,
         description="Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.",
+        usage=["usage", "total_tokens"],
     ),
 )
 
@@ -173,5 +174,6 @@ model_registry.register(
         id="openai-chat",
         fn=openai_chat,
         description="Given a list of messages describing a conversation, the model will return a response.",
+        usage=["usage", "total_tokens"],
     )
 )

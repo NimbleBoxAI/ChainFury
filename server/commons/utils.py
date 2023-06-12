@@ -1,4 +1,5 @@
 import jwt
+from datetime import datetime, timedelta
 from passlib.hash import sha256_crypt
 from sqlalchemy.exc import IntegrityError
 from database import db_session, User, Prompt, IntermediateStep, Template, ChatBot
@@ -167,12 +168,12 @@ def get_hourly_latency_metrics(db: Session, chatbot_id: str):
     hourly_average_latency = (
         db.query(Prompt)
         .filter(Prompt.chatbot_id == chatbot_id)
+        .filter(Prompt.created_at >= datetime.now() - timedelta(hours=24))
         .with_entities(
             (func.substr(Prompt.created_at, 1, 14)).label("hour"),
             func.avg(Prompt.time_taken).label("avg_time_taken"),
         )
         .group_by((func.substr(Prompt.created_at, 1, 14)))
-        .limit(24)
         .all()
     )
     latency_per_hour = []
