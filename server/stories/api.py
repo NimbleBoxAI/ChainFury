@@ -81,7 +81,7 @@ class ChatbotAPI:
         # fmt: off
         hr("Create chatbot"); out = self.init(name); print("New chatbot:", out)
         hr("List chatbots"); chatbots = self.list()["chatbots"]; print("total chatbots:", len(chatbots))
-        hr("Show chatbot"); out = self.show(chatbots[0]["id"]); print("chatbot:", out)
+        hr("Show chatbot"); out = self.show(out["id"]); print("chatbot:", out)
         hr("Update chatbot"); out = self.update(out["id"], name="new name"); print("updated chatbot:", out)
         hr("Delete chatbot"); out = self.delete(out["id"]); print("deleted chatbot:", out)
         hr("List chatbots"); out = self.list(); print("total chatbots:", len(out))

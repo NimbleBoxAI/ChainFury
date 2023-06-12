@@ -149,7 +149,7 @@ def delete_chatbot(
         return {"message": "ChatBot not found"}
     chatbot.deleted_at = datetime.now()
     db.commit()
-    return {"msg": "ChatBot deleted successfully"}
+    return {"msg": f"ChatBot '{chatbot.id}' deleted successfully"}
 
 
 # L: GET /chatbot/
