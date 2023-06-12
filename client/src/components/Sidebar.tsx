@@ -1,6 +1,6 @@
 import { Button, Collapse } from '@mui/material';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
 import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
@@ -27,6 +27,12 @@ const Sidebar = () => {
   const [getTemplates] = useGetTemplatesMutation();
   const [changePassword, setChangePassword] = useState(false);
   const [searchParams] = useSearchParams();
+  const [engine, setEngine] = useState('' as '' | 'fury' | 'langchain');
+  const location = useLocation();
+
+  useEffect(() => {
+    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langchain') || 'langchain');
+  }, [location.search]);
 
   useEffect(() => {
     if (!localStorage.getItem('accessToken')) {
@@ -133,27 +139,27 @@ const Sidebar = () => {
         ) : (
           <div className="flex flex-col gap-[8px]">
             {/* Langchain */}
-            {Object.keys(auth?.components).map((bot, key) => {
-              return (
-                <CollapsibleComponents
-                  key={key}
-                  label={bot}
-                  onDragStart={onDragStart}
-                  values={auth?.components[bot]}
-                />
-              );
-            })}
-            {/* Fury */}
-            {Object.keys(auth?.furyComponents).map((bot, key) => {
-              return (
-                <FuryCollapsibleComponents
-                  key={key}
-                  label={bot}
-                  values={auth?.furyComponents[bot]?.components ?? []}
-                  // onDragStart={onDragStart}
-                />
-              );
-            })}
+            {engine === 'langchain'
+              ? Object.keys(auth?.components).map((bot, key) => {
+                  return (
+                    <CollapsibleComponents
+                      key={key}
+                      label={bot}
+                      onDragStart={onDragStart}
+                      values={auth?.components[bot]}
+                    />
+                  );
+                })
+              : Object.keys(auth?.furyComponents).map((bot, key) => {
+                  return (
+                    <FuryCollapsibleComponents
+                      key={key}
+                      label={bot}
+                      values={auth?.furyComponents[bot]?.components ?? []}
+                      // onDragStart={onDragStart}
+                    />
+                  );
+                })}
           </div>
         )}
       </div>
