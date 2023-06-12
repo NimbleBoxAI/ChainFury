@@ -3,7 +3,9 @@ from datetime import datetime
 from typing import Annotated, List
 from database import ChatBot, User, ChatBotTypes
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header, Request, Response
+from fastapi import APIRouter, Depends, Header
+from fastapi.requests import Request
+from fastapi.responses import Response
 from pydantic import BaseModel
 from commons.utils import get_user_from_jwt, verify_user, get_user_id_from_jwt
 from commons import config as c
@@ -25,9 +27,9 @@ class ChatBotDetails(BaseModel):
 # C: POST /chatbot/
 @chatbot_router.post("/", status_code=201)
 def create_chatbot(
-    token: Annotated[str, Header()],
     req: Request,
     resp: Response,
+    token: Annotated[str, Header()],
     chatbot_data: ChatBotDetails,
     db: Session = Depends(database.fastapi_db_session),
 ):
@@ -46,7 +48,7 @@ def create_chatbot(
 
     if chatbot_data.engine not in ChatBotTypes.all():
         resp.status_code = 400
-        return {"message": f"Invalid engine '{chatbot_data.engine}'"}
+        return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
 
     # actually create
     chatbot = ChatBot(
@@ -59,35 +61,45 @@ def create_chatbot(
     db.add(chatbot)
     db.commit()
     db.refresh(chatbot)
-    return chatbot.to_dict()
+    return chatbot
 
 
 # R: GET /chatbot/{id}
 @chatbot_router.get("/{id}", status_code=200)
 def get_chatbot(
-    token: Annotated[str, Header()],
     req: Request,
     resp: Response,
+    token: Annotated[str, Header()],
     id: str,
     db: Session = Depends(database.fastapi_db_session),
 ):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # query the db
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
-    return chatbot.to_dict()
+    return chatbot
 
 
 # U: PUT /chatbot/{id}
 @chatbot_router.put("/{id}", status_code=200)
 def update_chatbot(
-    token: Annotated[str, Header()],
     req: Request,
     resp: Response,
+    token: Annotated[str, Header()],
     id: str,
     chatbot_data: ChatBotDetails,
     db: Session = Depends(database.fastapi_db_session),
 ):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # validate chatbot update
     if not len(chatbot_data.update_keys):
         resp.status_code = 400
         return {"message": "No keys to update"}
@@ -98,6 +110,7 @@ def update_chatbot(
         resp.status_code = 400
         return {"message": f"Invalid keys {unq_keys.difference(valid_keys)}"}
 
+    # find and update
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
@@ -119,43 +132,40 @@ def update_chatbot(
 # D: DELETE /chatbot/{id}
 @chatbot_router.delete("/{id}", status_code=200)
 def delete_chatbot(
-    token: Annotated[str, Header()], req: Request, resp: Response, id: str, db: Session = Depends(database.fastapi_db_session)
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    id: str,
+    db: Session = Depends(database.fastapi_db_session),
 ):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # find and delete
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
     chatbot.deleted_at = datetime.now()
     db.commit()
-    return {"message": "ChatBot deleted successfully"}
+    return {"msg": f"ChatBot '{chatbot.id}' deleted successfully"}
 
 
 # L: GET /chatbot/
 @chatbot_router.get("/", status_code=200)
-def get_all_chatbots(
-    token: Annotated[str, Header()],
+def list_chatbots(
     req: Request,
     resp: Response,
+    token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
     db: Session = Depends(database.fastapi_db_session),
 ):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # query the db
     chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).offset(skip).limit(limit).all()
-    # return [chatbot.to_dict() for chatbot in chatbots]
-    # ideally this is better solution, but for legacy reasons we are using the below one
-    return {"msg": "success", "chatbots": [chatbot.to_dict() for chatbot in chatbots]}
-
-
-#
-# helpers
-#
-
-
-def db_chatbot_to_api_chatbot(ChatBot) -> ChatBotDetails:
-    return ChatBotDetails(
-        id=ChatBot.id,
-        name=ChatBot.name,
-        dag=ChatBot.dag,
-        created_at=ChatBot.created_at,
-        engine=ChatBot.engine,
-    )
+    return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}

@@ -3,6 +3,9 @@ from database_constants import PromptRating
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from fastapi import HTTPException
+from fastapi.requests import Request
+from fastapi.responses import Response
+
 from datetime import datetime, timedelta
 from commons.utils import (
     filter_prompts_by_date_range,
@@ -13,7 +16,7 @@ from commons.utils import (
 )
 import database_constants as constants
 from typing import Annotated
-from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access,get_user_id_from_jwt
+from commons.utils import get_user_from_jwt, verify_user, have_chatbot_access, get_user_id_from_jwt
 from database_utils.dashboard import get_chatbots_from_user_id, get_prompts_from_chatbot_id
 
 metrics_router = APIRouter(prefix="", tags=["metrics"])
@@ -21,8 +24,10 @@ metrics_router = APIRouter(prefix="", tags=["metrics"])
 
 @metrics_router.get("/chatbot/{id}/prompts", status_code=200)
 def get_chatbot_prompts(
-    id: str,
+    req: Request,
+    resp: Response,
     token: Annotated[str, Header()],
+    id: str,
     db: Session = Depends(database.fastapi_db_session),
     from_date: str = None,  # type: ignore
     to_date: str = None,  # type: ignore
@@ -31,8 +36,10 @@ def get_chatbot_prompts(
     sort_by: str = constants.SORT_BY_CREATED_AT,
     sort_order: str = constants.SORT_ORDER_DESC,
 ):
+    # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
+
     if from_date is None:
         parsed_from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     else:
@@ -44,46 +51,70 @@ def get_chatbot_prompts(
 
     if parsed_to_date < parsed_from_date:
         raise HTTPException(status_code=400, detail="Invalid date range")
-    metrics = filter_prompts_by_date_range(db, id, parsed_from_date, parsed_to_date, page, page_size, sort_by, sort_order)  # type: ignore
-    if metrics is not None:
-        response = {"msg": "success", "data": metrics}
-    else:
-        raise HTTPException(status_code=404, detail=f"Metrics for the chatbot with id {id} not found")
-    return response
+
+    metrics = filter_prompts_by_date_range(
+        db,
+        id,
+        parsed_from_date,
+        parsed_to_date,
+        page,
+        page_size,
+        sort_by,
+        sort_order,
+    )  # type: ignore
+
+    if metrics is None:
+        resp.status_code = 404
+        return {"msg": "Metrics for the chatbot with id {id} not found"}
+    return {"data": metrics}
 
 
 @metrics_router.get("/chatbot/{id}/metrics", status_code=200)
 def get_chatbot_metrics(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
     id: str,
     metric_type: str,
-    token: Annotated[str, Header()],
     db: Session = Depends(database.fastapi_db_session),
 ):
-    metrics = None
+    # validate user
     username = get_user_from_jwt(token)
-    user: database.User = verify_user(db, username)
+    user = verify_user(db, username)
+
+    metrics = None
     is_chatbot_creator = have_chatbot_access(db, chatbot_id=id, user_id=user.id)  # type: ignore
     if is_chatbot_creator is False:
-        raise HTTPException(status_code=401, detail="Unauthorized access")
+        resp.status_code = 401
+        return {"msg": "Unauthorized access"}
+
     if metric_type == constants.LATENCY_METRIC:
         metrics = get_hourly_latency_metrics(db, id)
-    # elif metric_type == "cost":
-    #     metrics = get_cost_metrics(db, id)
+
     elif metric_type == constants.USER_SCORE_METRIC:
         metrics = get_chatbot_user_score_metrics(db, id)
+
     elif metric_type == constants.INTERNAL_REVIEW_SCORE_METRIC:
         metrics = get_user_score_metrics(db, id)
+
     elif metric_type == constants.GPT_REVIEW_SCORE_METRIC:
         metrics = get_gpt_rating_metrics(db, id)
-    if metrics is not None:
-        response = {"msg": "success", "data": metrics}
-    else:
-        raise HTTPException(status_code=404, detail=f"Metrics for the chatbot with id {id} not found")
-    return response
+    # elif metric_type == "cost":
+    #     metrics = get_cost_metrics(db, id)
+
+    if metrics is None:
+        resp.status_code = 404
+        return {"msg": f"Metrics for the chatbot with id {id} not found"}
+    return {"data": metrics}
 
 
 @metrics_router.get("/chatbots/metrics", status_code=200)
-def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
+def get_all_chatbot_ratings(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    db: Session = Depends(database.fastapi_db_session),
+):
     #     - Average user rating per bot
     #     - Average developer rating per bot
     #     - Average openai rating per bot
@@ -95,9 +126,14 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
     # ----------------------------------------------------------------------------------------------------
     # bot1 |       1.135         |         2.67          |             2.07                 |      /\  24 %
     # bot2 |       1.114         |         2.75          |             1.05                 |      \/.  10%
-    user_id = get_user_id_from_jwt(token)
+
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # get all chatbots for the user
     metrics = []
-    chatbots = get_chatbots_from_user_id(db, user_id)  # type: ignore
+    chatbots = get_chatbots_from_user_id(db, user.id)  # type: ignore
     for chatbot in chatbots:
         chatbot_user_ratings = []
         developer_ratings = []
@@ -154,4 +190,4 @@ def get_all_chatbot_ratings(token: Annotated[str, Header()], db: Session = Depen
             "average_openai_ratings": avg_openai_ratings,
         }
         metrics.append({chatbot_id: bot_metrics})
-    return {"msg": "success", "all_bot_metrics": metrics}
+    return {"all_bot_metrics": metrics}

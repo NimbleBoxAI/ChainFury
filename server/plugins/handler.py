@@ -29,7 +29,6 @@ class PluginHandler:
                 ph.handle(event)
             except Exception as e:
                 logger.error(f"Error handling event {event.event_type} with plugin {pname}")
-                raise e
 
 
 @lru_cache(1)

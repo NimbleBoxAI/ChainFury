@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Tuple
 
-from fury import Secret, model_registry, exponential_backoff
+from fury import Secret, model_registry, exponential_backoff, Model
 
 
 def stability_text_to_image(
@@ -46,10 +46,12 @@ def stability_text_to_image(
 
 
 model_registry.register(
-    fn=stability_text_to_image,
-    collection_name="stabilityai",
-    id="stability-text-to-image",
-    description="Generate a new image from a text prompt",
+    model=Model(
+        collection_name="stabilityai",
+        id="stability-text-to-image",
+        fn=stability_text_to_image,
+        description="Generate a new image from a text prompt",
+    )
 )
 
 
@@ -92,10 +94,12 @@ def stability_image_to_image(
 
 
 model_registry.register(
-    fn=stability_image_to_image,
-    collection_name="stabilityai",
-    id="stability-image-to-image",
-    description="Modify an image based on a text prompt",
+    model=Model(
+        collection_name="stabilityai",
+        id="stability-image-to-image",
+        fn=stability_image_to_image,
+        description="Modify an image based on a text prompt",
+    )
 )
 
 
@@ -115,13 +119,15 @@ def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, wi
 
 
 model_registry.register(
-    fn=stability_image_to_image,
-    collection_name="stabilityai",
-    id="stability-image-to-image-upscale",
-    description="Create a higher resolution version of an input image. This operation outputs an image with a maximum pixel "
-    "count of 4,194,304. This is equivalent to dimensions such as 2048x2048 and 4096x1024. By default, the input "
-    "image will be upscaled by a factor of 2. For additional control over the output dimensions, a width or height "
-    "parameter may be specified.",
+    model=Model(
+        collection_name="stabilityai",
+        id="stability-image-to-image-upscale",
+        fn=stability_image_to_image,
+        description="Create a higher resolution version of an input image. This operation outputs an image with a maximum pixel "
+        "count of 4,194,304. This is equivalent to dimensions such as 2048x2048 and 4096x1024. By default, the input "
+        "image will be upscaled by a factor of 2. For additional control over the output dimensions, a width or height "
+        "parameter may be specified.",
+    )
 )
 
 
@@ -166,8 +172,10 @@ def stability_image_to_image_masking(
 
 
 model_registry.register(
-    fn=stability_image_to_image,
-    collection_name="stabilityai",
-    id="stability-image-to-image-masking",
-    description="Selectively modify portions of an image using a mask",
+    model=Model(
+        collection_name="stabilityai",
+        id="stability-image-to-image-masking",
+        fn=stability_image_to_image,
+        description="Selectively modify portions of an image using a mask",
+    )
 )

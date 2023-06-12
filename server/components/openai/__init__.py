@@ -1,7 +1,7 @@
 import requests
 from typing import Any, List, Union, Dict
 
-from fury import Secret, model_registry, exponential_backoff
+from fury import Secret, model_registry, exponential_backoff, Model
 
 
 def openai_completion(
@@ -90,11 +90,13 @@ def openai_completion(
 
 
 model_registry.register(
-    fn=openai_completion,
-    collection_name="openai",
-    id="openai-completion",
-    description="Given a prompt, the model will return one or more predicted completions, and can also return the "
-    "probabilities of alternative tokens at each position.",
+    model=Model(
+        collection_name="openai",
+        id="openai-completion",
+        fn=openai_completion,
+        description="Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.",
+        usage=["usage", "total_tokens"],
+    ),
 )
 
 
@@ -167,8 +169,11 @@ def openai_chat(
 
 
 model_registry.register(
-    fn=openai_chat,
-    collection_name="openai",
-    id="openai-chat",
-    description="Given a list of messages describing a conversation, the model will return a response.",
+    model=Model(
+        collection_name="openai",
+        id="openai-chat",
+        fn=openai_chat,
+        description="Given a list of messages describing a conversation, the model will return a response.",
+        usage=["usage", "total_tokens"],
+    )
 )

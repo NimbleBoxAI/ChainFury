@@ -461,14 +461,15 @@ class Model:
         id,
         fn: object,
         description,
-        vars: List[Var],
+        usage: List[Union[str, int]] = [],
         tags=[],
     ):
         self.collection_name = collection_name
         self.id = id
         self.fn = fn
         self.description = description
-        self.vars = vars
+        self.usage = usage
+        self.vars = func_to_vars(fn)
         self.tags = tags
 
     def __repr__(self) -> str:
@@ -479,8 +480,9 @@ class Model:
             "collection_name": self.collection_name,
             "id": self.id,
             "description": self.description,
-            "tags": self.tags,
+            "usage": self.usage,
             "vars": [x.to_dict() for x in self.vars] if not no_vars else [],
+            "tags": self.tags,
         }
 
     def __call__(self, model_data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
