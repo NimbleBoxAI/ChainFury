@@ -50,7 +50,8 @@ def list_components_types(
     db: Session = Depends(fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
+
     return {"components": list(_components().keys()), "actions": [_ACTION_AI]}
 
 
@@ -64,12 +65,12 @@ def list_components_types(
 def list_components(
     req: Request,
     resp: Response,
-    component_type: str,
     token: Annotated[str, Header()],
+    component_type: str,
     db: Session = Depends(fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     if component_type not in _components():
         resp.status_code = 404
@@ -82,13 +83,13 @@ def list_components(
 def get_component(
     req: Request,
     resp: Response,
+    token: Annotated[str, Header()],
     component_type: str,
     component_id: str,
-    token: Annotated[str, Header()],
     db: Session = Depends(fastapi_db_session),
 ):
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     if component_type not in _components():
         resp.status_code = 404
@@ -181,7 +182,7 @@ def get_fury_action(
 ):
     # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     # read from db
     fury_action = db.query(FuryActions).get(fury_action_id)
@@ -203,12 +204,13 @@ def update_fury_action(
 ):
     # validate user
     username = get_user_from_jwt(token)
-    _ = verify_user(db, username)
+    user = verify_user(db, username)
+
+    # validate fields
     if not len(fury_action.update_fields):
         resp.status_code = 400
         return {"error": "No update fields provided"}
 
-    # validate fields
     unq_fields = set(fury_action.update_fields)
     valid_fields = {"name", "description", "tags", "fn"}
     if not unq_fields.issubset(valid_fields):
@@ -252,7 +254,7 @@ def update_fury_action(
         logger.exception(traceback.format_exc())
         resp.status_code = 500
         return {"error": "Internal server error"}
-    return fury_action.to_dict()
+    return fury_action
 
 
 # D - Delete a FuryAction by ID
@@ -266,7 +268,7 @@ def delete_fury_action(
 ):
     # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     # delete from db
     fury_action = db.query(FuryActions).get(fury_action_id)
@@ -275,7 +277,7 @@ def delete_fury_action(
         return {"error": "FuryAction not found"}
     db.delete(fury_action)
     db.commit()
-    return {"message": "FuryAction deleted successfully"}
+    return {"msg": "FuryAction deleted successfully"}
 
 
 # L - List all FuryActions
@@ -290,7 +292,7 @@ def list_fury_actions(
 ):
     # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     # read from db
     fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()

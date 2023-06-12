@@ -1,7 +1,9 @@
 import time
 import logging
 
-from fastapi import APIRouter, Depends, Header, Request, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi.requests import Request
+from fastapi.responses import Response
 from typing import Annotated, Any, Tuple, Dict
 from pydantic import BaseModel
 from schemas.prompt_schema import Prompt
@@ -30,18 +32,40 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/chatbot/{chatbot_id}/prompt")
-def get_prompt_list(request: Request, chatbot_id: str, limit: int = 100, offset: int = 0, db: Session = Depends(fastapi_db_session)):
+def get_prompt_list(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    chatbot_id: str,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(fastapi_db_session),
+):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # get prompts
     if limit < 1 or limit > 100:
         limit = 100
     offset = offset if offset > 0 else 0
     prompts = db.query(PromptModel).filter(PromptModel.chatbot_id == chatbot_id).limit(limit).offset(offset).all()
-    return {
-        "prompts": [p.to_dict() for p in prompts],
-    }
+    return {"prompts": [p.to_dict() for p in prompts]}
 
 
 @router.post("/chatbot/{chatbot_id}/prompt")
-def process_prompt(request: Request, chatbot_id: str, prompt: Prompt, db: Session = Depends(fastapi_db_session)):
+def process_prompt(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    chatbot_id: str,
+    prompt: Prompt,
+    db: Session = Depends(fastapi_db_session),
+):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
     # result = get_prompt(chatbot_id, prompt, db)
     result = call_engine(chatbot_id, prompt, db)
     # print(result)
@@ -60,20 +84,33 @@ class InternalFeedbackModel(BaseModel):
 
 @router.put("/chatbot/{chatbot_id}/prompt")
 def update_internal_user_feedback(
-    inputs: InternalFeedbackModel, prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(fastapi_db_session)
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    inputs: InternalFeedbackModel,
+    prompt_id: int,
+    db: Session = Depends(fastapi_db_session),
 ):
+    # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
+
     feedback = update_internal_user_rating(db, prompt_id, inputs.score)
-    return {"message": "Internal user rating updated", "rating": inputs.score}
+    return {"msg": "Internal user rating updated", "rating": inputs.score}
 
 
 @router.get("/chatbot/{chatbot_id}/prompt/{prompt_id}")
 def get_prompt(
-    request: Request, token: Annotated[str, Header()], chatbot_id: str, prompt_id: int, db: Session = Depends(fastapi_db_session)
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    chatbot_id: str,
+    prompt_id: int,
+    db: Session = Depends(fastapi_db_session),
 ):
+    # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     prompt = db.query(PromptModel).filter(PromptModel.id == prompt_id).first()
     if not prompt:
@@ -82,16 +119,20 @@ def get_prompt(
     irsteps = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt.session_id).all()
     if not irsteps:
         irsteps = []
-    return {
-        "prompt": prompt.to_dict(),
-        "irsteps": [ir.to_dict() for ir in irsteps],
-    }
+    return {"prompt": prompt.to_dict(), "irsteps": [ir.to_dict() for ir in irsteps]}
 
 
 @router.delete("/chatbot/{chatbot_id}/prompt/{prompt_id}")
-def delete_prompt(prompt_id: int, token: Annotated[str, Header()], db: Session = Depends(fastapi_db_session)):
+def delete_prompt(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    prompt_id: int,
+    db: Session = Depends(fastapi_db_session),
+):
+    # validate user
     username = get_user_from_jwt(token)
-    verify_user(db, username)
+    user = verify_user(db, username)
 
     # hard delete
     prompt = db.query(PromptModel).filter(PromptModel.id == prompt_id).first()
@@ -105,7 +146,7 @@ def delete_prompt(prompt_id: int, token: Annotated[str, Header()], db: Session =
         db.delete(ir)
 
     db.commit()
-    return {"message": f"Prompt: {prompt_id} deleted"}
+    return {"msg": f"Prompt: '{prompt_id}' deleted"}
 
 
 #
