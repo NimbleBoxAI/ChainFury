@@ -58,7 +58,7 @@ export interface FuryComponentInterface {
   outputs: Output[];
 }
 
-interface Field {
+export interface Field {
   type: FieldType;
   required?: boolean;
   show?: boolean;
@@ -76,7 +76,7 @@ interface Item {
 
 type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
-interface Output {
+export interface Output {
   type: FieldType;
   name: string;
   loc?: string[];

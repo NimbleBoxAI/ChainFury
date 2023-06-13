@@ -13,6 +13,7 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ChainFuryNode } from '../../components/ChainFuryNode';
+import { FuryEngineNode } from '../../components/FuryEngineNode';
 import ChatComp from '../../components/ChatComp';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
@@ -302,9 +303,13 @@ const FlowViewer = () => {
 
 export default FlowViewer;
 
+export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
+
 const FuryFlowViewer = () => {
   const reactFlowWrapper = useRef(null) as any;
   const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const onDrop = useCallback(
     (event: {
@@ -314,9 +319,31 @@ const FuryFlowViewer = () => {
       clientY: number;
     }) => {
       event.preventDefault();
-      console.log(event);
-      let type = event.dataTransfer.getData('application/reactflow');
-      console.log(type);
+      if (reactFlowInstance?.project && reactFlowWrapper?.current) {
+        let type = event.dataTransfer.getData('application/reactflow');
+        const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
+        const nodeData = JSON.parse(type);
+        const position = reactFlowInstance?.project({
+          x: event.clientX - reactFlowBounds.left,
+          y: event.clientY - reactFlowBounds.top
+        });
+        const newNode = {
+          id: type,
+          position,
+          type: 'FuryEngineNode',
+          data: {
+            type: nodeData.type,
+            node: nodeData,
+            id: nodeData.id,
+            value: null,
+            deleteMe: () => {
+              alert('delete node here');
+            }
+          }
+        } as any;
+
+        setNodes((nds) => nds.concat(newNode));
+      }
     },
     [reactFlowInstance]
   );
@@ -334,14 +361,14 @@ const FuryFlowViewer = () => {
       <ReactFlowProvider>
         <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
           <ReactFlow
-            nodeTypes={nodeTypes}
+            nodeTypes={furyNodeTypes}
             proOptions={{ hideAttribution: true }}
-            // nodes={nodes}
-            // edges={edges}
+            nodes={nodes}
+            edges={edges}
             // onNodesChange={onNodesChange}
             // onEdgesChange={onEdgesChange}
             // onConnect={onConnect}
-            // onInit={setReactFlowInstance}
+            onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
             fitView={true}
