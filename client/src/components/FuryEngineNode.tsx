@@ -55,7 +55,9 @@ export const FuryEngineNode = ({
               return (
                 <div key={key} className="flex flex-col gap-[8px]">
                   <span className="medium400 text-light-neutral-grey-600 flex items-center gap-[4px] p-[8px]">
-                    {field?.name}
+                    {field?.name}----
+                    {typeof field?.type === 'string' ? field?.type : field?.type?.[0]?.type}---
+                    {field?.placeholder}
                   </span>
                 </div>
               );
@@ -68,12 +70,14 @@ export const FuryEngineNode = ({
           </span>
           <div>
             {data?.node?.outputs?.map((output, key) => {
+              console.log(output);
               return (
                 <div
                   key={key}
                   className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
                 >
-                  {output?.name}
+                  {output?.name}---
+                  {typeof output?.type === 'string' ? output?.type : output?.type?.[0]?.type}---
                 </div>
               );
             })}

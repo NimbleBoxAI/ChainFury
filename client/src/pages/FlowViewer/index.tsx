@@ -328,7 +328,7 @@ const FuryFlowViewer = () => {
           y: event.clientY - reactFlowBounds.top
         });
         const newNode = {
-          id: type,
+          id: nodeData.id,
           position,
           type: 'FuryEngineNode',
           data: {
@@ -337,7 +337,7 @@ const FuryFlowViewer = () => {
             id: nodeData.id,
             value: null,
             deleteMe: () => {
-              alert('delete node here');
+              setNodes((nds) => nds.filter((delnode) => delnode.id !== nodeData.id));
             }
           }
         } as any;
@@ -365,7 +365,7 @@ const FuryFlowViewer = () => {
             proOptions={{ hideAttribution: true }}
             nodes={nodes}
             edges={edges}
-            // onNodesChange={onNodesChange}
+            onNodesChange={onNodesChange}
             // onEdgesChange={onEdgesChange}
             // onConnect={onConnect}
             onInit={setReactFlowInstance}

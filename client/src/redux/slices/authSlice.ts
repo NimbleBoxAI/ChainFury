@@ -59,25 +59,31 @@ export interface FuryComponentInterface {
 }
 
 export interface Field {
-  type: FieldType;
+  type: FieldType[] | AdditionalFieldType;
   required?: boolean;
   show?: boolean;
   name: string;
   placeholder?: string;
   items?: Item[];
   additionalProperties?: {
-    type: FieldType;
+    type: FieldType[] | AdditionalFieldType;
   };
 }
 
 interface Item {
-  type: FieldType;
+  type: FieldType[] | AdditionalFieldType;
 }
 
-type FieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+type AdditionalFieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+
+interface FieldType {
+  name: string;
+  show: boolean;
+  type: AdditionalFieldType;
+}
 
 export interface Output {
-  type: FieldType;
+  type: FieldType[] | AdditionalFieldType;
   name: string;
   loc?: string[];
 }
