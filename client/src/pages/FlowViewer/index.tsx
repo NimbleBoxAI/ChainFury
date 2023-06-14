@@ -356,6 +356,11 @@ const FuryFlowViewer = () => {
     []
   );
 
+  const onConnect = useCallback(
+    (params: Edge<any> | Connection) => setEdges((eds) => addEdge(params, eds)),
+    []
+  );
+
   return (
     <>
       <ReactFlowProvider>
@@ -366,8 +371,8 @@ const FuryFlowViewer = () => {
             nodes={nodes}
             edges={edges}
             onNodesChange={onNodesChange}
-            // onEdgesChange={onEdgesChange}
-            // onConnect={onConnect}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
             onInit={setReactFlowInstance}
             onDrop={onDrop}
             onDragOver={onDragOver}
