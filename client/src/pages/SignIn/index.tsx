@@ -27,7 +27,7 @@ const Login = () => {
         email: username
       })
       .then((res) => {
-        loginMutation({ token: '' })
+        loginMutation({ token: res ?? '' })
           .unwrap()
           .then((res) => {
             if (res?.token) {
