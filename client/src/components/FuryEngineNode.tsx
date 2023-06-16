@@ -68,8 +68,8 @@ export const FuryEngineNode = ({
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        // const hasCommonElement = connection?.source?.split('|')?.some((item)
-                        console.log({ connection });
+                        const hasCommonElement = connection?.source?.split('|')?.some();
+                        console.log(connection);
                         return true;
                       }}
                       className={
@@ -82,9 +82,10 @@ export const FuryEngineNode = ({
                     ></Handle>
                   </Tooltip>
                   <span className="medium400 text-light-neutral-grey-600 flex items-center gap-[4px] p-[8px]">
-                    {field?.name}----
-                    {typeof field?.type === 'string' ? field?.type : field?.type?.[0]?.type}---
-                    {field?.placeholder}
+                    {typeof field?.type === 'string'
+                      ? GetFuryInput(field?.name, field?.type, field?.placeholder ?? '')
+                      : GetFuryInput(field?.name, field?.type?.[0]?.type, '')}
+                    {/* {field?.placeholder} */}
                   </span>
                 </div>
               );
@@ -101,7 +102,7 @@ export const FuryEngineNode = ({
               return (
                 <div
                   key={key}
-                  className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300 relative"
+                  className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300 relative text-right"
                 >
                   <Tooltip title={' (required)'}>
                     <Handle
@@ -115,7 +116,7 @@ export const FuryEngineNode = ({
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        console.log({ connection });
+                        console.log(connection);
                         return true;
                       }}
                       className={
@@ -127,14 +128,42 @@ export const FuryEngineNode = ({
                       // }}
                     ></Handle>
                   </Tooltip>
-                  {output?.name}---
-                  {typeof output?.type === 'string' ? output?.type : output?.type?.[0]?.type}---
+                  {output?.name}(
+                  {typeof output?.type === 'string' ? output?.type : output?.type?.[0]?.type})
                 </div>
               );
             })}
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+const GetFuryInput = (name: string, type: string, placeholder: string) => {
+  return (
+    <div className="flex flex-col gap-[2px] w-full">
+      <span>{name}</span>
+      {type === 'string' ? (
+        <textarea className="nodrag w-full" rows={1} placeholder={placeholder} />
+      ) : type === 'object' ? (
+        <textarea className="nodrag w-full" rows={3} placeholder={placeholder} />
+      ) : type === 'number' ? (
+        <input className="nodrag w-full" type="number" placeholder={placeholder} />
+      ) : type === 'boolean' ? (
+        <div className="flex gap-[8px]">
+          <div className="flex items-center gap-[4px]">
+            <input type="radio" id="huey" name="drone" value="huey" />
+            <label htmlFor="huey">True</label>
+          </div>
+          <div className="flex items-center gap-[4px]">
+            <input type="radio" id="huey" name="drone" value="huey" />
+            <label htmlFor="huey">False</label>
+          </div>
+        </div>
+      ) : (
+        ''
+      )}
     </div>
   );
 };
