@@ -27,11 +27,17 @@ const Sidebar = lazy(() => retry(() => import('./components/Sidebar')));
 const Dashboard = lazy(() => retry(() => import('./pages/Dashboard')));
 const FlowViewer = lazy(() => retry(() => import('./pages/FlowViewer')));
 const Login = lazy(() => retry(() => import('./pages/SignIn')));
+const SignUp = lazy(() => retry(() => import('./pages/SignUp')));
 
 const AppRoutes = [
   {
     path: '/ui/login',
     element: <Login />,
+    isPrivate: false
+  },
+  {
+    path: '/ui/signup',
+    element: <SignUp />,
     isPrivate: false
   },
   {

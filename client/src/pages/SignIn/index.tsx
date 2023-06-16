@@ -2,15 +2,19 @@ import { Button } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../../redux/hooks/store';
-import { useLoginMutation } from '../../redux/services/auth';
+import { useLoginMutation, useMagicLoginMutation } from '../../redux/services/auth';
 import { Magic } from 'magic-sdk';
 import { setAccessToken } from '../../redux/slices/authSlice';
 
-const magic = new Magic(import.meta.env.VITE_MAGICLINK_KEY ?? '');
+const magic = import.meta.env.VITE_MAGICLINK_KEY
+  ? new Magic(import.meta.env.VITE_MAGICLINK_KEY ?? '')
+  : null;
 const Login = () => {
   const navigate = useNavigate();
   const [loginMutation] = useLoginMutation();
+  const [magicLogin] = useMagicLoginMutation();
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
 
@@ -22,12 +26,36 @@ const Login = () => {
 
   const handleLogin = () => {
     setLoading(true);
+    loginMutation({ username, password })
+      .unwrap()
+      .then((res) => {
+        if (res?.token) {
+          dispatch(
+            setAccessToken({
+              accessToken: res.token
+            })
+          );
+          navigate('/ui/dashboard');
+        } else {
+          alert('Invalid Credentials');
+        }
+      })
+      .catch(() => {
+        alert('Invalid Credentials');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handleMagicLogin = () => {
+    setLoading(true);
     magic.auth
       .loginWithEmailOTP({
         email: username
       })
       .then((res) => {
-        loginMutation({ token: res ?? '' })
+        magicLogin({ token: res ?? '' })
           .unwrap()
           .then((res) => {
             if (res?.token) {
@@ -73,18 +101,43 @@ const Login = () => {
           }}
           value={username}
           className="w-full h-[40px]"
-          placeholder="Username"
+          placeholder={import.meta.env.VITE_MAGICLINK_KEY ? 'Email' : 'Username'}
         />
+        {!import.meta.env.VITE_MAGICLINK_KEY ? (
+          <input
+            onChange={(e) => {
+              setPassword(e.target.value);
+            }}
+            value={password}
+            className="w-full h-[40px]"
+            placeholder="Password"
+            type={'password'}
+          />
+        ) : (
+          ''
+        )}
         <Button
-          onClick={handleLogin}
+          onClick={import.meta.env.VITE_MAGICLINK_KEY ? handleMagicLogin : handleLogin}
           disabled={username.length === 0 || loading}
           className="h-[40px] mt-[8px!important] block"
           variant="contained"
           color="primary"
         >
-          {loading ? 'Please wait' : 'Continue'}
+          {loading ? 'Please wait' : import.meta.env.VITE_MAGICLINK_KEY ? 'Continue' : 'Login'}
         </Button>
       </div>
+      {!import.meta.env.VITE_MAGICLINK_KEY ? (
+        <span
+          onClick={() => {
+            navigate('/ui/signup');
+          }}
+          className="cursor-pointer z-10 relative text-light-primary-blue-600 semiBold300 mt-[8px]"
+        >
+          Don't have an account? Sign Up
+        </span>
+      ) : (
+        ''
+      )}
       <div
         style={{
           transform: 'matrix(1, 0, 0, -1, 0, 0)',
