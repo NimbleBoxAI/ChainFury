@@ -1,3 +1,4 @@
+import os
 import jwt
 import database
 from database import User
@@ -9,7 +10,7 @@ from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 from commons import config as c
 from commons.utils import get_user_from_jwt, get_user_id_from_jwt
-
+from magic_admin import Magic
 
 auth_router = APIRouter(prefix="", tags=["authentication"])
 
@@ -17,8 +18,7 @@ logger = c.get_logger(__name__)
 
 
 class AuthModel(BaseModel):
-    username: str
-    password: str
+    token: str
 
 
 class SignUpModal(BaseModel):
@@ -29,12 +29,21 @@ class SignUpModal(BaseModel):
 
 @auth_router.post("/login", status_code=200)
 def login(auth: AuthModel, db: Session = Depends(database.fastapi_db_session)):
-    user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
-    if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
-        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.JWT_SECRET)
-        response = {"msg": "success", "token": token}
-    else:
-        response = {"msg": "failed"}
+    magic = Magic(api_secret_key=os.environ.get("MAGIC_API_SECRET_KEY", None))
+    try:
+        decoded = magic.User.get_metadata_by_token(auth.token)
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=400, detail="Invalid token")
+    email = decoded.data.get("email")
+    user: User = db.query(User).filter(User.email == email).first()  # type: ignore
+    if user is None:
+        user: User = User(username=email, email=email, password="")  # type: ignore
+        db.add(user)
+        db.commit()
+    print(user.id)
+    token = jwt.encode(payload={"username": email, "userid": user.id}, key=c.JWT_SECRET)
+    response = {"msg": "success", "token": token}
     return response
 
 
@@ -54,6 +63,7 @@ def decode_token(token: Annotated[str, Header()]):
 
 @auth_router.post("/signup", status_code=200)
 def sign_up(auth: SignUpModal, db: Session = Depends(database.fastapi_db_session)):
+    raise HTTPException(status_code=400, detail="This api is disabled")
     user_exists = False
     email_exists = False
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
