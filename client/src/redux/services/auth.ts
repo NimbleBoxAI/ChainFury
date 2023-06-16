@@ -3,8 +3,7 @@ import { BASE_URL, DEFAULT_RESPONSE } from '../../constants';
 import { RootState } from '../store';
 
 interface LoginRequest {
-  username: string;
-  password: string;
+  token: string;
 }
 
 let token: string | null = null;
@@ -26,20 +25,6 @@ export const authApi = createApi({
     login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
       query: (credentials) => ({
         url: '/login',
-        method: 'POST',
-        body: credentials
-      })
-    }),
-    signup: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        username: string;
-        email: string;
-        password: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: '/signup',
         method: 'POST',
         body: credentials
       })
@@ -246,7 +231,6 @@ export const authApi = createApi({
 
 export const {
   useLoginMutation,
-  useSignupMutation,
   useComponentsMutation,
   useCreateBotMutation,
   useGetBotsMutation,
