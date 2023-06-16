@@ -68,7 +68,8 @@ export const FuryEngineNode = ({
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        console.log(connection);
+                        // const hasCommonElement = connection?.source?.split('|')?.some((item)
+                        console.log({ connection });
                         return true;
                       }}
                       className={
@@ -114,7 +115,7 @@ export const FuryEngineNode = ({
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        console.log(connection);
+                        console.log({ connection });
                         return true;
                       }}
                       className={
