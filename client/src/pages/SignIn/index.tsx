@@ -63,15 +63,6 @@ const Login = () => {
           className="w-full h-[40px]"
           placeholder="Username"
         />
-        <input
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
-          value={password}
-          className="w-full h-[40px]"
-          placeholder="Password"
-          type={'password'}
-        />
         <Button
           onClick={handleLogin}
           disabled={username.length === 0 || password.length === 0 || loading}
@@ -79,18 +70,9 @@ const Login = () => {
           variant="contained"
           color="primary"
         >
-          {loading ? 'Please wait' : 'Sign In'}
+          {loading ? 'Please wait' : 'Continue'}
         </Button>
       </div>
-      <span
-        onClick={() => {
-          navigate('/ui/signup');
-        }}
-        className="cursor-pointer z-10 relative text-light-primary-blue-600 semiBold300 mt-[8px]"
-      >
-        Don't have an account? Sign Up
-      </span>
-
       <div
         style={{
           transform: 'matrix(1, 0, 0, -1, 0, 0)',
