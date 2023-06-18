@@ -67,6 +67,7 @@ export interface Field {
   items?: Item[];
   additionalProperties?: {
     type: FieldType[] | AdditionalFieldType;
+    placeholder?: string;
   };
 }
 
@@ -80,6 +81,7 @@ interface FieldType {
   name: string;
   show: boolean;
   type: AdditionalFieldType;
+  placeholder: string;
 }
 
 export interface Output {

@@ -1,37 +1,35 @@
 import { Tooltip } from '@mui/material';
-import { Handle, Position } from 'reactflow';
-import { NodeDataType } from '../constants';
+import { Handle, Position, useUpdateNodeInternals } from 'reactflow';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { Field, Output } from '../redux/slices/authSlice';
-import { nodeColors } from '../utils';
-import ParameterComponent from './ParameterComponent';
 import SvgTrash from './SvgComps/Trash';
+import { useEffect, useRef, useState } from 'react';
 
-export const FuryEngineNode = ({
-  data
-}: {
-  data: {
-    deleteMe: () => void;
-    id: string;
-    type: string;
+interface FuryData {
+  deleteMe: () => void;
+  id: string;
+  type: string;
 
-    node: {
-      outputs: Output[];
-      description: string;
-      fields: Field[];
-      fn?: {
-        node_id: string;
-        model: {
-          collection_name: string;
-          id: string;
-          description: string;
-          tags: string[];
-          vars: any[];
-        };
+  node: {
+    outputs: Output[];
+    description: string;
+    fields: Field[];
+    fn?: {
+      node_id?: string;
+      model_id?: string;
+      model_params?: any;
+      model?: {
+        collection_name: string;
+        id: string;
+        description: string;
+        tags: string[];
+        vars: any[];
       };
     };
   };
-}) => {
+}
+
+export const FuryEngineNode = ({ data }: { data: FuryData }) => {
   const { auth } = useAuthStates();
   return (
     <div
@@ -43,6 +41,7 @@ export const FuryEngineNode = ({
           <div
             className="cursor-pointer"
             onClick={() => {
+              console.log('delete me', data);
               data?.deleteMe?.();
             }}
           >
@@ -68,8 +67,8 @@ export const FuryEngineNode = ({
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        const hasCommonElement = connection?.source?.split('|')?.some();
-                        console.log(connection);
+                        // const hasCommonElement = connection?.source?.split('|')?.some();
+                        // console.log(connection);
                         return true;
                       }}
                       className={
@@ -83,8 +82,8 @@ export const FuryEngineNode = ({
                   </Tooltip>
                   <span className="medium400 text-light-neutral-grey-600 flex items-center gap-[4px] p-[8px]">
                     {typeof field?.type === 'string'
-                      ? GetFuryInput(field?.name, field?.type, field?.placeholder ?? '')
-                      : GetFuryInput(field?.name, field?.type?.[0]?.type, '')}
+                      ? GetFuryInput(data, field?.name, field?.type, key)
+                      : GetFuryInput(data, field?.name, field?.type?.[0]?.type, key)}
                     {/* {field?.placeholder} */}
                   </span>
                 </div>
@@ -98,11 +97,10 @@ export const FuryEngineNode = ({
           </span>
           <div>
             {data?.node?.outputs?.map((output, key) => {
-              console.log(output);
               return (
                 <div
                   key={key}
-                  className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300 relative text-right"
+                  className="bg-light-system-bg-primary rounded-md p-[4px] medium300 relative text-right"
                 >
                   <Tooltip title={' (required)'}>
                     <Handle
@@ -140,16 +138,63 @@ export const FuryEngineNode = ({
   );
 };
 
-const GetFuryInput = (name: string, type: string, placeholder: string) => {
+const GetFuryInput = (data: FuryData, name: string, type: string, index: number) => {
+  const ref = useRef(null) as any;
+  const updateNodeInternals = useUpdateNodeInternals();
+  const [value, setValue] = useState(
+    data.node?.fn?.model_params?.[name] ?? data.node.fields[index].placeholder
+  );
+
+  useEffect(() => {
+    updateNodeInternals(data.id);
+  }, [value]);
+
   return (
-    <div className="flex flex-col gap-[2px] w-full">
+    <div ref={ref} className="flex flex-col gap-[2px] w-full">
       <span>{name}</span>
       {type === 'string' ? (
-        <textarea className="nodrag w-full" rows={1} placeholder={placeholder} />
+        <textarea
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (!data.node.fn && data.node) {
+              data.node.fn = {
+                model_params: {}
+              };
+            }
+            if (data.node.fn && !data.node.fn.model_params) {
+              data.node.fn.model_params = {};
+            }
+            if (data.node.fn) data.node.fn.model_params[name] = e.target.value;
+            data.node.fields[index].placeholder = e.target.value;
+          }}
+          className="nodrag w-full"
+          rows={1}
+        />
       ) : type === 'object' ? (
-        <textarea className="nodrag w-full" rows={3} placeholder={placeholder} />
+        <textarea
+          className="nodrag w-full"
+          rows={3}
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            if (typeof data.node.fields[index]?.type === 'string')
+              data.node.fields[index].placeholder = e.target.value;
+            else data.node.fields[index].placeholder = JSON.parse(e.target.value);
+            updateNodeInternals(data.id);
+          }}
+        />
       ) : type === 'number' ? (
-        <input className="nodrag w-full" type="number" placeholder={placeholder} />
+        <input
+          value={value}
+          onChange={(e) => {
+            updateNodeInternals(data.id);
+            if (!isNaN(Number(e.target.value)))
+              data.node.fields[index].placeholder = e.target.value;
+          }}
+          className="nodrag w-full"
+          type="number"
+        />
       ) : type === 'boolean' ? (
         <div className="flex gap-[8px]">
           <div className="flex items-center gap-[4px]">
