@@ -245,7 +245,7 @@ const FuryCollapsibleComponents = ({
                   borderLeftColor: nodeColors[label]
                 }}
                 className="bg-light-system-bg-primary rounded-md p-[4px] border-l-[2px] medium300"
-                draggable
+                draggable={label !== 'models'}
                 onDragStart={(event) => {
                   onDragStart(event, JSON.stringify(bot));
                 }}
