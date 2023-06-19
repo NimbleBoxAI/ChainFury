@@ -52,7 +52,7 @@ const NewActionModel = ({ onClose, refresh }: { onClose: () => void; refresh: ()
     "content": \`
 Your prompt here
 
-Give a polite professional reply to \\"Why did the chicken cross the road?\\"
+Give a polite professional reply to \\"Why did the {{ animal }} cross the road?\\"
   \`}]
 }`);
     } else
