@@ -44,3 +44,33 @@ export function makeid(length: number) {
   }
   return result;
 }
+
+export function convertStringToJson(x: string) {
+  try {
+    let idx = [...x]
+      .map((ltr, i) => (ltr === '`' ? i : undefined))
+      .filter((val): val is number => val !== undefined);
+    if (idx.length % 2 !== 0) {
+      console.log('Odd number of backticks');
+    }
+
+    let start_end_pairs: [number, number][] = [];
+    for (let i = 0; i < idx.length; i += 2) {
+      start_end_pairs.push([idx[i], idx[i + 1]]);
+    }
+
+    let new_x = '';
+    let offset = 0;
+    for (let [s, e] of start_end_pairs) {
+      new_x += x.slice(offset, s) + x.slice(s, e).replace(/\n/g, '\\n') + x.slice(e, s);
+      offset = e;
+    }
+    new_x += x.slice(offset);
+    new_x = new_x.replace(/`/g, '"');
+    console.log({ new_x });
+    return JSON.parse(new_x);
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+}

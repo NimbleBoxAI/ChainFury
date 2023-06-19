@@ -11,6 +11,7 @@ interface FuryData {
   type: string;
 
   node: {
+    name: string;
     outputs: Output[];
     description: string;
     fields: Field[];
@@ -37,7 +38,9 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
     >
       <div className="flex flex-col">
         <div className="p-[8px] bg-light-system-bg-secondary medium350 flex justify-between items-center border-b">
-          <span className="semiBold250 text-light-neutral-grey-500 ">{data?.id ?? ''}</span>
+          <span className="semiBold250 text-light-neutral-grey-500 ">
+            {(data?.node?.name || data?.id) ?? ''}
+          </span>
           <div
             className="cursor-pointer"
             onClick={() => {

@@ -1,11 +1,8 @@
 import { Button, Dialog } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
-import { useAppDispatch } from '../redux/hooks/store';
-import { useGetTemplatesMutation } from '../redux/services/auth';
-import { setTemplates } from '../redux/slices/authSlice';
-import ChatBotCard from './ChatBotCard';
+
 import SvgClose from './SvgComps/Close';
 
 const NewBotModel = ({ onClose }: { onClose: () => void }) => {

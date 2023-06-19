@@ -41,7 +41,9 @@ export interface MetricsInterface {
 }
 
 export interface FuryComponentInterface {
+  name: string;
   id: string;
+  collection_name?: string;
   type: string;
   fn?: {
     node_id: string;
@@ -75,7 +77,7 @@ interface Item {
   type: FieldType[] | AdditionalFieldType;
 }
 
-type AdditionalFieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+export type AdditionalFieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
 
 interface FieldType {
   name: string;
@@ -147,10 +149,23 @@ const slice = createSlice({
       });
       state.typesMap = typesMap;
     },
+    setFuryCompKey: (
+      state,
+      { payload: { key, component } }: PayloadAction<{ key: string; component: any }>
+    ) => {
+      const current = JSON.parse(JSON.stringify(state.furyComponents));
+      current[key] = {
+        components: component,
+        type: key
+      };
+      state.furyComponents = current;
+    },
     setFuryComponents: (
       state,
       { payload: { furyComponents } }: PayloadAction<{ furyComponents: any }>
     ) => {
+      const current = JSON.parse(JSON.stringify(state.furyComponents));
+      furyComponents['actions'] = current['actions'] || {};
       state.furyComponents = furyComponents;
     },
     setChatBots: (state, { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>) => {
@@ -201,7 +216,8 @@ export const {
   setPrompts,
   setTemplates,
   setMetrics,
-  setFuryComponents
+  setFuryComponents,
+  setFuryCompKey
 } = slice.actions;
 
 export default slice.reducer;

@@ -257,6 +257,38 @@ export const authApi = createApi({
           }
         }
       })
+    }),
+    newAction: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        description: string;
+        tags: [];
+        fn: {
+          model_id: string;
+          model_params: {};
+          fn: {};
+        };
+        outputs: [
+          {
+            type: string;
+            name: string;
+            loc: string;
+          }
+        ];
+      }
+    >({
+      query: (credentials) => ({
+        url: `/fury/actions/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+    getActions: builder.mutation<DEFAULT_RESPONSE, {}>({
+      query: () => ({
+        url: `/fury/actions/`,
+        method: 'GET'
+      })
     })
   })
 });
@@ -278,5 +310,7 @@ export const {
   useChangePasswordMutation,
   useGetAllBotMetricsMutation,
   useFuryComponentsMutation,
-  useFuryComponentDetailsMutation
+  useFuryComponentDetailsMutation,
+  useNewActionMutation,
+  useGetActionsMutation
 } = authApi;

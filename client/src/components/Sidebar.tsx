@@ -3,10 +3,15 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
-import { useGetBotsMutation, useGetTemplatesMutation } from '../redux/services/auth';
+import {
+  useGetActionsMutation,
+  useGetBotsMutation,
+  useGetTemplatesMutation
+} from '../redux/services/auth';
 import {
   FuryComponentInterface,
   setChatBots,
+  setFuryCompKey,
   setSelectedChatBot,
   setTemplates
 } from '../redux/slices/authSlice';
@@ -16,6 +21,7 @@ import CollapsibleComponents from './CollapsibleComponents';
 import NewBotModel from './NewBotModel';
 import { nodeColors } from '../utils';
 import SvgChevronDown from './SvgComps/ChevronDown';
+import NewActionModel from './NewActionModel';
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
@@ -29,6 +35,8 @@ const Sidebar = () => {
   const [searchParams] = useSearchParams();
   const [engine, setEngine] = useState('' as '' | 'fury' | 'langchain');
   const location = useLocation();
+  const [newAction, setNewAction] = useState(false);
+  const [getFuryActions] = useGetActionsMutation();
 
   useEffect(() => {
     setEngine((location.search.split('&engine=')[1] as 'fury' | 'langchain') || 'langchain');
@@ -41,6 +49,10 @@ const Sidebar = () => {
       getBotList();
     }
   }, []);
+
+  useEffect(() => {
+    if (!Object.values(auth.furyComponents?.['actions'] ?? {})?.length) getActions();
+  }, [auth.furyComponents]);
 
   const getBotList = () => {
     getBots({
@@ -87,19 +99,45 @@ const Sidebar = () => {
     event.dataTransfer.effectAllowed = 'move';
   };
 
+  const getActions = () => {
+    getFuryActions({})
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setFuryCompKey({
+            key: 'actions',
+            component: res
+          })
+        );
+      });
+  };
+
   return (
     <div className="relative overflow-hidden w-[250px] min-w-[250px] border-r h-screen shadow-sm bg-light-system-bg-secondary p-[8px] prose-nbx">
       {newBotModel ? <NewBotModel onClose={() => setNewBotModel(false)} /> : ''}
       {flow_id ? (
-        <Button
-          onClick={() => navigate('/ui/dashboard')}
-          variant="outlined"
-          className="my-[8px!important]"
-          color="primary"
-          fullWidth
-        >
-          Go Back
-        </Button>
+        <div className="flex flex-col">
+          <Button
+            onClick={() => navigate('/ui/dashboard')}
+            variant="outlined"
+            className="my-[8px!important]"
+            color="primary"
+            fullWidth
+          >
+            Go Back
+          </Button>
+          <Button
+            onClick={() => {
+              setNewAction(true);
+            }}
+            variant="outlined"
+            className="my-[8px!important] border-light-success-green-600"
+            color="primary"
+            fullWidth
+          >
+            + Action
+          </Button>
+        </div>
       ) : (
         <Button
           onClick={() => setNewBotModel(true)}
@@ -111,6 +149,7 @@ const Sidebar = () => {
           New Bot
         </Button>
       )}
+      {newAction ? <NewActionModel refresh={getActions} onClose={() => setNewAction(false)} /> : ''}
 
       <div className="overflow-scroll max-h-[calc(100%-120px)]">
         {!flow_id ? (
@@ -250,7 +289,7 @@ const FuryCollapsibleComponents = ({
                   onDragStart(event, JSON.stringify(bot));
                 }}
               >
-                {bot?.id}
+                {bot?.name || bot?.id}
               </div>
             );
           })}
