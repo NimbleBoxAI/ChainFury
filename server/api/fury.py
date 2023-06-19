@@ -250,6 +250,7 @@ def update_fury_action(
     try:
         fury_action.update_from_dict(update_dict)
         db.commit()
+        db.refresh(fury_action)
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 500

@@ -25,6 +25,16 @@ def _get_openai_token() -> str:
     return openai_token
 
 
+def _get_nbx_token() -> str:
+    nbx_token = os.environ.get("NBX_DEPLOY_KEY", "")
+    if not nbx_token:
+        raise ValueError("NBX token not found")
+    nbx_url = os.environ.get("NBX_DEPLOY_URL", "")
+    if not nbx_url:
+        raise ValueError("NBX url not found")
+    return {"nbx_deploy_url": nbx_url, "nbx_header_token": nbx_token}
+
+
 class Actions:
     topic_to_synopsis = ai_actions_registry.register(
         node_id="topic-to-synopsis",
@@ -77,6 +87,20 @@ class Actions:
         },
         outputs={
             "story": ("choices", 0, "message", "content"),
+        },
+    )
+
+    sensational_story_nbx = ai_actions_registry.register(
+        node_id="sensation-story-nbx",
+        model_id="nbx-deploy",
+        model_params={
+            "max_new_tokens": 256,
+        },
+        fn={
+            "inputs": "User: You are a Los Santos correspondent and saw '{{ scene }}'. Make it into a small 6 line witty, sarcastic, funny sensational story as if you are on Radio Mirror Park.\n\nAssistant: ",
+        },
+        outputs={
+            "story": ("generated_text",),
         },
     )
 
@@ -183,6 +207,13 @@ class Chains:
         sample={"openai_api_key": _get_openai_token(), "scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story.id}/story",
+    )  # type: ignore
+
+    story_nbx = Chain(
+        [Actions.sensational_story_nbx],
+        sample={"scene": "", **_get_nbx_token()},
+        main_in="scene",
+        main_out=f"{Actions.sensational_story_nbx.id}/story",
     )  # type: ignore
 
     feedback = Chain(

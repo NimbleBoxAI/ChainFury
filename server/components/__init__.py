@@ -10,6 +10,9 @@ from components.functional import (
     regex_search,
     regex_substitute,
 )
+from components.nbx import (
+    nbx_chat_api,
+)
 
 import components.ai_actions
 
