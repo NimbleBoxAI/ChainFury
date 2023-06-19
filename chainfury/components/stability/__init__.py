@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Tuple
 
-from fury import Secret, model_registry, exponential_backoff, Model
+from chainfury import Secret, model_registry, exponential_backoff, Model
 
 
 def stability_text_to_image(

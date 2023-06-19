@@ -92,6 +92,3 @@ app.mount("/", StaticFiles(directory="static"), name="assets")
 
 # warmup and initialize plugins
 get_phandler()
-
-# warmup and initialize components
-import components

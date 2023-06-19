@@ -1,4 +1,4 @@
-from fury import ai_actions_registry, Model
+from chainfury import ai_actions_registry, Model
 
 
 # this is a super generic function to reply funnily to something

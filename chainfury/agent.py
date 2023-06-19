@@ -14,7 +14,7 @@ from typing import Any, List, Optional, Union, Dict, Tuple
 
 import jinja2
 
-from fury.base import (
+from chainfury.base import (
     logger,
     func_to_vars,
     func_to_return_vars,

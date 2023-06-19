@@ -1,20 +1,20 @@
-from components.openai import openai_chat, openai_completion
-from components.stability import (
+from chainfury.components.openai import openai_chat, openai_completion
+from chainfury.components.stability import (
     stability_image_to_image,
     stability_image_to_image_masking,
     stability_image_to_image_upscale,
     stability_text_to_image,
 )
-from components.functional import (
+from chainfury.components.functional import (
     call_api_requests,
     regex_search,
     regex_substitute,
 )
-from components.nbx import (
+from chainfury.components.nbx import (
     nbx_chat_api,
 )
 
-import components.ai_actions
+import chainfury.components.ai_actions
 
 ___all__ = [
     # all the included models

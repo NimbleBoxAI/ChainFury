@@ -8,7 +8,7 @@ import re
 import requests
 from typing import Any, List, Dict, Tuple, Optional
 
-from fury import programatic_actions_registry
+from chainfury import programatic_actions_registry
 
 # Call API: very basic always helpful
 

@@ -7,7 +7,7 @@ from pprint import pformat
 from requests import Session
 from typing import Dict, Any
 
-from fury import (
+from chainfury import (
     Chain,
     programatic_actions_registry,
     model_registry,
@@ -15,7 +15,6 @@ from fury import (
     ai_actions_registry,
     Edge,
 )
-import components  # import to register all the components that we have
 
 
 def _get_openai_token() -> str:
@@ -25,7 +24,7 @@ def _get_openai_token() -> str:
     return openai_token
 
 
-def _get_nbx_token() -> str:
+def _get_nbx_token() -> Dict[str, str]:
     nbx_token = os.environ.get("NBX_DEPLOY_KEY", "")
     if not nbx_token:
         raise ValueError("NBX token not found")
@@ -170,7 +169,7 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
                 },
                 {
                     "role": "user",
-                    "content": '"{{ story }}"\n\In this story is there a mention of any protagonist from the game:'
+                    "content": '"{{ story }}"\nIn this story is there a mention of any protagonist from the game:'
                     '\n- if protagonist mentioned reply with "story-reject"'
                     '\n- else reply with "story-accept"',
                 },

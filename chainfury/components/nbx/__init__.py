@@ -2,7 +2,7 @@ import random
 import requests
 from typing import Any, List
 
-from fury import Secret, model_registry, exponential_backoff, Model
+from chainfury import Secret, model_registry, exponential_backoff, Model
 
 
 def nbx_chat_api(
