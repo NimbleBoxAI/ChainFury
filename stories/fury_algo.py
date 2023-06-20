@@ -181,7 +181,7 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
     )
 
     people_feedback = ai_actions_registry.register(
-        node_id="passes-editor",
+        node_id="people-feedback",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -314,7 +314,7 @@ def cot_consistency(scene, n: int = 3, v: bool = False, pb: bool = False):
         full_buffer.append(thoughts)
     if v:
         print("COUNTS:", pformat(out))
-        print("Final answer:", max(out, key=out.get))
+        print("Final answer:", max(out, key=out.get))  # type: ignore
 
     return out
 
@@ -353,7 +353,7 @@ class TreeOfThought:
                 print("FDBK:", feedback)
 
             # quanify the feedback
-            out = re.findall(r"rating: ([0-9]+)", feedback)
+            out = re.findall(r"rating: ([0-9]+)", feedback)  # type: ignore
             if not out:
                 rating = 0
             else:

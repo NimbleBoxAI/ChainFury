@@ -524,7 +524,7 @@ class Node:
         fields: List[Var],
         outputs: List[Var],
         description: str = "",
-        tags: str = [],
+        tags: List[str] = [],
     ):
         # some bacic checks
         if type == NodeType.AI:

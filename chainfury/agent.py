@@ -8,9 +8,7 @@ This file contains methods and functions that are used to create an agent, i.e.
 """
 
 import copy
-import traceback
-from functools import lru_cache
-from typing import Any, List, Optional, Union, Dict, Tuple
+from typing import Any, List, Optional, Dict, Tuple
 
 import jinja2
 
@@ -18,15 +16,12 @@ from chainfury.base import (
     logger,
     func_to_vars,
     func_to_return_vars,
-    jtype_to_vars,
     extract_jinja_indices,
     get_value_by_keys,
     put_value_by_keys,
-    pyannotation_to_json_schema,
     Node,
     Model,
     ModelTags,
-    Chain,
     Var,
 )
 
@@ -256,6 +251,8 @@ class AIAction:
 
 
 class AIActionsRegistry:
+    DB_REGISTER = "db"
+
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
         self.counter: Dict[str, int] = {}
@@ -285,9 +282,7 @@ class AIActionsRegistry:
             fn=fn,
         )
         if not outputs:
-            output_field = [
-                func_to_return_vars(func=ai_action.__call__, returns={"model_output": ()}),
-            ]
+            output_field = func_to_return_vars(func=ai_action.__call__, returns={"model_output": ()})
         else:
             output_field = [Var(type="string", name=k, loc=loc) for k, loc in outputs.items()]
         node = Node(
@@ -311,6 +306,8 @@ class AIActionsRegistry:
         tags: List[str] = [],
     ) -> Node:
         logger.debug(f"Registering ai-node '{node_id}'")
+        if node_id != AIActionsRegistry.DB_REGISTER and node_id in self.nodes:
+            raise ValueError(f"ai-node '{node_id}' already exists")
         node = self.to_node(
             node_id=node_id,
             model_id=model_id,
@@ -319,10 +316,17 @@ class AIActionsRegistry:
             outputs=outputs,
             description=description,
         )
-        self.nodes[node_id] = node
-        for tag in tags:
-            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
-        return self.nodes[node_id]
+
+        # this node can be registered in DB
+        if node_id == AIActionsRegistry.DB_REGISTER:
+            pass
+
+        # this is just the server instance register
+        else:
+            self.nodes[node_id] = node
+            for tag in tags:
+                self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+        return node
 
     def unregister(self, node_id: str):
         logger.debug(f"Unregistering ai-node '{node_id}'")

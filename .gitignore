@@ -139,7 +139,8 @@ server/templates/*
 .DS_Store
 private_env.sh
 langflow
-pyproject.toml
 dunmp.rdb
 *.ipynb
 server/stories/fury.json
+notebooks/*
+stories/fury.json

@@ -1,4 +1,7 @@
 import os
+
+os.environ["CF_NO_LOAD_CLIENT"] = "1"
+
 import requests
 from typing import Dict, List
 from fastapi import FastAPI, Request

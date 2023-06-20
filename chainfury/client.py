@@ -137,12 +137,20 @@ class SpecSubway:
         return out
 
 
-def get_client(url="http://0.0.0.0:8000", token: str = ""):
-    if not token:
-        token = os.environ.get("CF_TOKEN", "")
+def get_client(url="", token: str = "") -> SpecSubway:
+    url = url or os.environ.get("CF_URL", "")
+    if not url:
+        raise ValueError("No url provided, please set CF_URL environment variable or pass url as argument")
+    token = token or os.environ.get("CF_TOKEN", "")
     if not token:
         raise ValueError("No token provided, please set CF_TOKEN environment variable or pass token as argument")
+
     session = requests.Session()
     session.headers.update({"token": token})
     openapi = session.get(f"{url}/openapi.json").json()
     return SpecSubway.from_openapi(openapi, url, session)
+
+
+client = None
+if not os.environ.get("CF_NO_LOAD_CLIENT", False):
+    client = get_client()
