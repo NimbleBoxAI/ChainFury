@@ -1,4 +1,7 @@
 import os
+
+os.environ["CF_NO_LOAD_CLIENT"] = "1"
+
 import requests
 from typing import Dict, List
 from fastapi import FastAPI, Request
@@ -92,6 +95,3 @@ app.mount("/", StaticFiles(directory="static"), name="assets")
 
 # warmup and initialize plugins
 get_phandler()
-
-# warmup and initialize components
-import components

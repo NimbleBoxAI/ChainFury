@@ -5,7 +5,7 @@ from pprint import pformat
 from requests import Session
 from typing import Dict, Any
 
-from fury import (
+from chainfury import (
     Chain,
     programatic_actions_registry,
     model_registry,
@@ -13,8 +13,6 @@ from fury import (
     ai_actions_registry,
     Edge,
 )
-import components  # import to register all the components that we have
-
 
 def _get_openai_token() -> str:
     openai_token = os.environ.get("OPENAI_TOKEN", "")

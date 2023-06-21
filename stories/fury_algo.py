@@ -7,7 +7,7 @@ from pprint import pformat
 from requests import Session
 from typing import Dict, Any
 
-from fury import (
+from chainfury import (
     Chain,
     programatic_actions_registry,
     model_registry,
@@ -15,7 +15,6 @@ from fury import (
     ai_actions_registry,
     Edge,
 )
-import components  # import to register all the components that we have
 
 
 def _get_openai_token() -> str:
@@ -23,6 +22,16 @@ def _get_openai_token() -> str:
     if not openai_token:
         raise ValueError("OpenAI token not found")
     return openai_token
+
+
+def _get_nbx_token() -> Dict[str, str]:
+    nbx_token = os.environ.get("NBX_DEPLOY_KEY", "")
+    if not nbx_token:
+        raise ValueError("NBX token not found")
+    nbx_url = os.environ.get("NBX_DEPLOY_URL", "")
+    if not nbx_url:
+        raise ValueError("NBX url not found")
+    return {"nbx_deploy_url": nbx_url, "nbx_header_token": nbx_token}
 
 
 class Actions:
@@ -77,6 +86,20 @@ class Actions:
         },
         outputs={
             "story": ("choices", 0, "message", "content"),
+        },
+    )
+
+    sensational_story_nbx = ai_actions_registry.register(
+        node_id="sensation-story-nbx",
+        model_id="nbx-deploy",
+        model_params={
+            "max_new_tokens": 256,
+        },
+        fn={
+            "inputs": "User: You are a Los Santos correspondent and saw '{{ scene }}'. Make it into a small 6 line witty, sarcastic, funny sensational story as if you are on Radio Mirror Park.\n\nAssistant: ",
+        },
+        outputs={
+            "story": ("generated_text",),
         },
     )
 
@@ -146,7 +169,7 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
                 },
                 {
                     "role": "user",
-                    "content": '"{{ story }}"\n\In this story is there a mention of any protagonist from the game:'
+                    "content": '"{{ story }}"\nIn this story is there a mention of any protagonist from the game:'
                     '\n- if protagonist mentioned reply with "story-reject"'
                     '\n- else reply with "story-accept"',
                 },
@@ -158,7 +181,7 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
     )
 
     people_feedback = ai_actions_registry.register(
-        node_id="passes-editor",
+        node_id="people-feedback",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -183,6 +206,13 @@ class Chains:
         sample={"openai_api_key": _get_openai_token(), "scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story.id}/story",
+    )  # type: ignore
+
+    story_nbx = Chain(
+        [Actions.sensational_story_nbx],
+        sample={"scene": "", **_get_nbx_token()},
+        main_in="scene",
+        main_out=f"{Actions.sensational_story_nbx.id}/story",
     )  # type: ignore
 
     feedback = Chain(
@@ -284,7 +314,7 @@ def cot_consistency(scene, n: int = 3, v: bool = False, pb: bool = False):
         full_buffer.append(thoughts)
     if v:
         print("COUNTS:", pformat(out))
-        print("Final answer:", max(out, key=out.get))
+        print("Final answer:", max(out, key=out.get))  # type: ignore
 
     return out
 
@@ -323,7 +353,7 @@ class TreeOfThought:
                 print("FDBK:", feedback)
 
             # quanify the feedback
-            out = re.findall(r"rating: ([0-9]+)", feedback)
+            out = re.findall(r"rating: ([0-9]+)", feedback)  # type: ignore
             if not out:
                 rating = 0
             else:

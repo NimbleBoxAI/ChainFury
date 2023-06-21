@@ -10,8 +10,8 @@ from fastapi import APIRouter, Depends, Header, Request, Response, Query
 
 from database import fastapi_db_session, FuryActions
 from commons.utils import get_user_from_jwt, verify_user
-from fury.agent import model_registry, programatic_actions_registry, ai_actions_registry
-from fury.base import Node
+from chainfury.agent import model_registry, programatic_actions_registry, ai_actions_registry
+from chainfury.base import Node
 
 # build router
 fury_router = APIRouter(prefix="/fury", tags=["fury"])
@@ -250,6 +250,7 @@ def update_fury_action(
     try:
         fury_action.update_from_dict(update_dict)
         db.commit()
+        db.refresh(fury_action)
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 500

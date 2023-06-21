@@ -524,7 +524,7 @@ class Node:
         fields: List[Var],
         outputs: List[Var],
         description: str = "",
-        tags: str = [],
+        tags: List[str] = [],
     ):
         # some bacic checks
         if type == NodeType.AI:
@@ -558,7 +558,7 @@ class Node:
         return any([x.name == field for x in self.fields])
 
     def to_dict(self) -> Dict[str, Any]:
-        from fury.agent import AIAction
+        from chainfury.agent import AIAction
 
         fn = {}
         if isinstance(self.fn, AIAction):
@@ -581,7 +581,7 @@ class Node:
         if not fn:
             raise ValueError(f"Invalid fn: {fn}")
 
-        from fury.agent import AIAction
+        from chainfury.agent import AIAction
 
         ai_action = AIAction.from_dict(fn)
 

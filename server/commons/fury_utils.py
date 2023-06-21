@@ -11,7 +11,7 @@ from commons.types import CFPromptResult
 from database_utils.prompt import create_prompt
 from database_utils.intermediate_step import create_intermediate_steps, insert_intermediate_steps
 
-from fury import Chain
+from chainfury import Chain
 
 logger = c.get_logger(__name__)
 

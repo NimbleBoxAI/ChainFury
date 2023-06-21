@@ -1,9 +1,9 @@
 import fire
 import inspect
-import components
-from components import ___all__ as components_all
+from chainfury import components
+from chainfury.components import ___all__ as components_all
 
-from fury.base import func_to_vars, pyannotation_to_json_schema
+from chainfury.base import func_to_vars, pyannotation_to_json_schema
 
 
 def main(v: bool = False):

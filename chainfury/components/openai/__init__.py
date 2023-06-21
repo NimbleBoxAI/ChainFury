@@ -1,7 +1,7 @@
 import requests
 from typing import Any, List, Union, Dict
 
-from fury import Secret, model_registry, exponential_backoff, Model
+from chainfury import Secret, model_registry, exponential_backoff, Model
 
 
 def openai_completion(
