@@ -249,7 +249,6 @@ const GetFuryInput = (data: FuryData, name: string, type: string, index: number)
             <input
               onChange={(e) => {
                 setValue(e.target.value);
-                console.log(e.target.value);
                 if (data.node.fn && !data.node.fn.model_params) {
                   data.node.fn.model_params = {};
                 }
@@ -268,7 +267,6 @@ const GetFuryInput = (data: FuryData, name: string, type: string, index: number)
             <input
               onChange={(e) => {
                 setValue(e.target.value);
-                console.log(e.target.value);
                 if (data.node.fn && !data.node.fn.model_params) {
                   data.node.fn.model_params = {};
                 }
