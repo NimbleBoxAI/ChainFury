@@ -56,9 +56,9 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
           <div className="w-full text-gray-500 text-sm py-[4px]">{data.node?.description}</div>
           <div className="flex flex-col">
             {data?.node?.fields?.map((field, key) => {
-              return (
+              return field.required ? (
                 <div key={key} className="flex flex-col gap-[8px] relative">
-                  <Tooltip title={' (required)'}>
+                  <Tooltip title={'(required)'}>
                     <Handle
                       type={'target'}
                       // position={left ? Position.Left : Position.Right}
@@ -90,6 +90,8 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
                     {/* {field?.placeholder} */}
                   </span>
                 </div>
+              ) : (
+                <></>
               );
             })}
           </div>
