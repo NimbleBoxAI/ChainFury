@@ -1,9 +1,10 @@
-import { Tooltip } from '@mui/material';
+import { Button, Dialog, Tooltip } from '@mui/material';
 import { Handle, Position, useUpdateNodeInternals } from 'reactflow';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { Field, Output } from '../redux/slices/authSlice';
 import SvgTrash from './SvgComps/Trash';
 import { useEffect, useRef, useState } from 'react';
+import SvgClose from './SvgComps/Close';
 
 interface FuryData {
   deleteMe: () => void;
@@ -32,13 +33,20 @@ interface FuryData {
 
 export const FuryEngineNode = ({ data }: { data: FuryData }) => {
   const { auth } = useAuthStates();
+  const [showAddition, setShowAddition] = useState(false);
+  const [haveAdditionalFields, setHaveAdditionalFields] = useState(false);
+
   return (
     <div
-      className={`w-[350px] border border-light-neutral-grey-200 rounded-[4px] shadow-sm bg-light-system-bg-primary prose-nbx`}
+      className={`w-[350px] border border-light-neutral-grey-200 rounded-[4px] shadow-sm  prose-nbx relative bg-light-system-bg-primary`}
     >
-      <div className="flex flex-col">
+      <img
+        src={'https://api.dicebear.com/6.x/shapes/svg?seed=' + data?.type}
+        className="absolute top-0 z-0 h-full object-cover blur-[4px] opacity-[0.1]"
+      />
+      <div className="flex flex-col relative z-10">
         <div className="p-[8px] bg-light-system-bg-secondary medium350 flex justify-between items-center border-b">
-          <span className="semiBold250 text-light-neutral-grey-500 ">
+          <span className="semiBold250 text-light-neutral-grey-500  gap-[8px]">
             {(data?.node?.name || data?.id) ?? ''}
           </span>
           <div
@@ -53,6 +61,16 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
         </div>
 
         <div className="w-full h-full p-[8px]">
+          {showAddition ? (
+            <AdditionalFieldsModal
+              data={data}
+              onClose={() => {
+                setShowAddition(false);
+              }}
+            />
+          ) : (
+            <></>
+          )}
           <div className="w-full text-gray-500 text-sm py-[4px]">{data.node?.description}</div>
           <div className="flex flex-col">
             {data?.node?.fields?.map((field, key) => {
@@ -91,9 +109,25 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
                   </span>
                 </div>
               ) : (
-                <></>
+                <>
+                  {(() => {
+                    if (!haveAdditionalFields) setHaveAdditionalFields(true);
+                  })()}
+                </>
               );
             })}
+            {haveAdditionalFields ? (
+              <div
+                onClick={() => {
+                  setShowAddition(true);
+                }}
+                className="flex text-center justify-center rounded-sm cursor-pointer hover:bg-light-primary-blue-50 py-[4px] w-full border border-light-neutral-grey-200"
+              >
+                Additonal Fields
+              </div>
+            ) : (
+              ''
+            )}
           </div>
         </div>
         <div className="py-[8px] flex flex-col gap-[8px]">
@@ -157,7 +191,7 @@ const GetFuryInput = (data: FuryData, name: string, type: string, index: number)
   return (
     <div ref={ref} className="flex flex-col gap-[2px] w-full">
       <span>{name}</span>
-      {type === 'string' ? (
+      {type === 'string' || data.node?.fields[index]?.items?.[0]?.type === 'string' ? (
         <textarea
           value={value}
           onChange={(e) => {
@@ -176,38 +210,77 @@ const GetFuryInput = (data: FuryData, name: string, type: string, index: number)
           className="nodrag w-full"
           rows={1}
         />
-      ) : type === 'object' ? (
+      ) : type === 'object' || data.node?.fields[index]?.items?.[0]?.type === 'object' ? (
         <textarea
           className="nodrag w-full"
           rows={3}
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
-            if (typeof data.node.fields[index]?.type === 'string')
-              data.node.fields[index].placeholder = e.target.value;
-            else data.node.fields[index].placeholder = JSON.parse(e.target.value);
+            if (data.node.fn && !data.node.fn.model_params) {
+              data.node.fn.model_params = {};
+            }
+            if (data.node.fn) data.node.fn.model_params[name] = e.target.value;
+            data.node.fields[index].placeholder = e.target.value;
+
             updateNodeInternals(data.id);
           }}
         />
-      ) : type === 'number' ? (
+      ) : type === 'number' || data.node?.fields[index]?.items?.[0]?.type === 'number' ? (
         <input
           value={value}
           onChange={(e) => {
-            updateNodeInternals(data.id);
-            if (!isNaN(Number(e.target.value)))
+            if (!isNaN(parseInt(e.target.value))) {
+              setValue(e.target.value);
+              if (data.node.fn && !data.node.fn.model_params) {
+                data.node.fn.model_params = {};
+              }
+              if (data.node.fn) data.node.fn.model_params[name] = Number(e.target.value);
               data.node.fields[index].placeholder = e.target.value;
+              updateNodeInternals(data.id);
+            }
           }}
           className="nodrag w-full"
           type="number"
         />
-      ) : type === 'boolean' ? (
+      ) : type === 'boolean' || data.node?.fields[index]?.items?.[0]?.type === 'boolean' ? (
         <div className="flex gap-[8px]">
           <div className="flex items-center gap-[4px]">
-            <input type="radio" id="huey" name="drone" value="huey" />
+            <input
+              onChange={(e) => {
+                setValue(e.target.value);
+                console.log(e.target.value);
+                if (data.node.fn && !data.node.fn.model_params) {
+                  data.node.fn.model_params = {};
+                }
+                if (data.node.fn) data.node.fn.model_params[name] = true;
+                data.node.fields[index].placeholder = 'true';
+                updateNodeInternals(data.id);
+              }}
+              type="radio"
+              id="huey"
+              name="drone"
+              value="huey"
+            />
             <label htmlFor="huey">True</label>
           </div>
           <div className="flex items-center gap-[4px]">
-            <input type="radio" id="huey" name="drone" value="huey" />
+            <input
+              onChange={(e) => {
+                setValue(e.target.value);
+                console.log(e.target.value);
+                if (data.node.fn && !data.node.fn.model_params) {
+                  data.node.fn.model_params = {};
+                }
+                if (data.node.fn) data.node.fn.model_params[name] = false;
+                data.node.fields[index].placeholder = 'false';
+                updateNodeInternals(data.id);
+              }}
+              type="radio"
+              id="huey"
+              name="drone"
+              value="huey"
+            />
             <label htmlFor="huey">False</label>
           </div>
         </div>
@@ -215,5 +288,39 @@ const GetFuryInput = (data: FuryData, name: string, type: string, index: number)
         ''
       )}
     </div>
+  );
+};
+
+const AdditionalFieldsModal = ({ data, onClose }: { data: FuryData; onClose: () => void }) => {
+  return (
+    <>
+      <Dialog open={true} onClose={onClose}>
+        <div
+          className={`prose-nbx relative  gap-[16px] p-[16px] flex flex-col justify-center items-center w-[500px]`}
+        >
+          <SvgClose
+            onClick={onClose}
+            className="stroke-light-neutral-grey-900 absolute right-[8px] top-[8px] scale-[1.2] cursor-pointer"
+          />
+
+          <div className="flex flex-col w-full">
+            {data?.node?.fields?.map((field, key) => {
+              return !field.required ? (
+                <div key={key} className="flex flex-col gap-[8px] relative w-full">
+                  <span className="medium400 text-light-neutral-grey-600 flex items-center gap-[4px] p-[8px]">
+                    {typeof field?.type === 'string'
+                      ? GetFuryInput(data, field?.name, field?.type, key)
+                      : GetFuryInput(data, field?.name, field?.type?.[0]?.type, key)}
+                    {/* {field?.placeholder} */}
+                  </span>
+                </div>
+              ) : (
+                <></>
+              );
+            })}
+          </div>
+        </div>
+      </Dialog>
+    </>
   );
 };
