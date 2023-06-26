@@ -1,6 +1,5 @@
-import { Button, Dialog, Tooltip } from '@mui/material';
+import { Dialog, Tooltip } from '@mui/material';
 import { Handle, Position, useUpdateNodeInternals } from 'reactflow';
-import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { Field, Output } from '../redux/slices/authSlice';
 import SvgTrash from './SvgComps/Trash';
 import { useEffect, useRef, useState } from 'react';
@@ -32,7 +31,6 @@ interface FuryData {
 }
 
 export const FuryEngineNode = ({ data }: { data: FuryData }) => {
-  const { auth } = useAuthStates();
   const [showAddition, setShowAddition] = useState(false);
   const [haveAdditionalFields, setHaveAdditionalFields] = useState(false);
 
@@ -137,10 +135,7 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
           <div>
             {data?.node?.outputs?.map((output, key) => {
               return (
-                <div
-                  key={key}
-                  className="bg-light-system-bg-primary rounded-md p-[4px] medium300 relative text-right"
-                >
+                <div key={key} className="rounded-md p-[4px] medium300 relative text-right">
                   <Tooltip title={' (required)'}>
                     <Handle
                       type={'source'}

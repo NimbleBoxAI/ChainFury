@@ -48,10 +48,10 @@ const FlowViewer = () => {
   const [editBot] = useEditBotMutation();
   const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
-  const [engine, setEngine] = useState('' as '' | 'fury' | 'langchain');
+  const [engine, setEngine] = useState('' as '' | 'fury' | 'langflow');
 
   useEffect(() => {
-    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langchain') || 'langchain');
+    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langflow') || 'langflow');
     if (location.search?.includes('?bot=') && flow_id === 'new') {
       setBotName(location.search.split('?bot=')[1]?.split('&engine=')[0]);
       setVariant('new');
@@ -180,7 +180,7 @@ const FlowViewer = () => {
   );
 
   const createChatBot = () => {
-    createBot({ name: botName, nodes, edges, token: auth?.accessToken })
+    createBot({ name: botName, nodes, edges, token: auth?.accessToken, engine: engine })
       .unwrap()
       ?.then((res) => {
         if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
@@ -259,7 +259,7 @@ const FlowViewer = () => {
         </Button>
       </div>
       {!loading ? (
-        engine === 'langchain' ? (
+        engine === 'langflow' ? (
           <ReactFlowProvider>
             <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
               <ReactFlow
@@ -285,7 +285,14 @@ const FlowViewer = () => {
             </div>
           </ReactFlowProvider>
         ) : (
-          <FuryFlowViewer />
+          <FuryFlowViewer
+            nodes={nodes}
+            setNodes={setNodes}
+            onNodesChange={onNodesChange}
+            edges={edges}
+            setEdges={setEdges}
+            onEdgesChange={onEdgesChange}
+          />
         )
       ) : (
         ''
@@ -305,11 +312,23 @@ export default FlowViewer;
 
 export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
 
-const FuryFlowViewer = () => {
+const FuryFlowViewer = ({
+  nodes,
+  setNodes,
+  onNodesChange,
+  edges,
+  setEdges,
+  onEdgesChange
+}: {
+  nodes: any;
+  setNodes: any;
+  onNodesChange: any;
+  edges: any;
+  setEdges: any;
+  onEdgesChange: any;
+}) => {
   const reactFlowWrapper = useRef(null) as any;
   const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const onDrop = useCallback(
     (event: {
@@ -337,12 +356,14 @@ const FuryFlowViewer = () => {
             id: nodeData.id,
             value: null,
             deleteMe: () => {
-              setNodes((nds) => nds.filter((delnode) => delnode.id !== nodeData.id));
+              setNodes((nds: any[]) =>
+                nds.filter((delnode: { id: any }) => delnode.id !== nodeData.id)
+              );
             }
           }
         } as any;
 
-        setNodes((nds) => nds.concat(newNode));
+        setNodes((nds: string | any[]) => nds.concat(newNode));
       }
     },
     [reactFlowInstance]
@@ -357,7 +378,7 @@ const FuryFlowViewer = () => {
   );
 
   const onConnect = useCallback(
-    (params: Edge<any> | Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Edge<any> | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)),
     []
   );
 

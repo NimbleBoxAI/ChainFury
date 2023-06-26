@@ -222,12 +222,14 @@ export const authApi = createApi({
         nodes: any;
         edges: any;
         token: string;
+        engine: string;
       }
     >({
       query: (credentials) => ({
         url: '/chatbot/',
         method: 'POST',
         body: {
+          engine: credentials.engine,
           name: credentials.name,
           dag: {
             nodes: credentials.nodes,
