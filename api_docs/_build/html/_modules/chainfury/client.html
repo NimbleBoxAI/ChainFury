@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chainfury.client &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">chainfury.client</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for chainfury.client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">chainfury.utils</span> <span class="kn">import</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="Subway"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.Subway">[docs]</a><span class="k">class</span> <span class="nc">Subway</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Subway provides a package based interface to any fastAPI server with validations in a realtime using</span>
+<span class="sd">    OpenAPI specification. This is inspired from gRPC style functional calls which hide the underlying complexity</span>
+<span class="sd">    of networking.</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        Use the **Subway.from_openapi** to instantiate. This class is **not meant to be instantiated directly**.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from chainfury.client import Subway</span>
+<span class="sd">        &gt;&gt;&gt; from requests import Session</span>
+<span class="sd">        &gt;&gt;&gt; session = Session()</span>
+<span class="sd">        &gt;&gt;&gt; session.headers.update({&quot;token&quot;: token})</span>
+<span class="sd">        &gt;&gt;&gt; stub = Subway.from_openapi(&quot;localhost:8080&quot;, session)</span>
+<span class="sd">        &gt;&gt;&gt; resource = stub.api.v1.workspace.u(&#39;9jshufhsi&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; resource()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">,</span> <span class="n">_spec</span><span class="p">,</span> <span class="n">__name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">_url</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">_session</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span> <span class="o">=</span> <span class="n">_spec</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">__name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">]))</span>
+            <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span> <span class="ow">and</span> <span class="nb">set</span><span class="p">(</span><span class="n">_spec</span><span class="p">)</span> <span class="o">==</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;method&quot;</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">,</span> <span class="s2">&quot;response_kwargs_dict&quot;</span><span class="p">]))</span>
+            <span class="ow">or</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="Subway.from_openapi"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.Subway.from_openapi">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_openapi</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">_session</span><span class="p">:</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the Subway client from the OpenAPI specification of the server</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            _url (str): URL of the server</span>
+<span class="sd">            _session (requests.Session): Session object to be used for making requests</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">openapi</span> <span class="o">=</span> <span class="n">_session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_url</span><span class="si">}</span><span class="s2">/openapi.json&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loading for OpenAPI version latest&quot;</span><span class="p">)</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">openapi</span><span class="p">[</span><span class="s2">&quot;paths&quot;</span><span class="p">]</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">openapi</span><span class="p">[</span><span class="s2">&quot;components&quot;</span><span class="p">][</span><span class="s2">&quot;schemas&quot;</span><span class="p">]</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">paths</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">tree</span>
+            <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">p</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="n">part</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span> <span class="k">if</span> <span class="n">part</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span> <span class="k">else</span> <span class="n">part</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="k">def</span> <span class="nf">_dfs</span><span class="p">(</span><span class="n">tree</span><span class="p">,</span> <span class="n">trail</span><span class="o">=</span><span class="p">[]):</span>
+            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tree</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tree</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">==</span> <span class="p">{}:</span>
+                    <span class="n">src</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">trail</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">t</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span><span class="p">:</span>
+                        <span class="n">src</span> <span class="o">=</span> <span class="n">src</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="k">if</span> <span class="n">src</span> <span class="o">!=</span> <span class="s2">&quot;/&quot;</span> <span class="k">else</span> <span class="n">src</span>
+                        <span class="n">src</span> <span class="o">=</span> <span class="n">src</span> <span class="o">+</span> <span class="n">t</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[</span><span class="n">src</span><span class="p">]</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="n">src</span> <span class="o">=</span> <span class="n">src</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+                        <span class="n">data</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[</span><span class="n">src</span><span class="p">]</span>
+                    <span class="n">method</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">body</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">method</span><span class="p">]</span>
+                    <span class="n">dict_</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span> <span class="s2">&quot;meta&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;src&quot;</span><span class="p">:</span> <span class="n">src</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="s2">&quot;requestBody&quot;</span> <span class="ow">in</span> <span class="n">body</span><span class="p">:</span>
+                        <span class="n">schema_ref</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;requestBody&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">][</span><span class="s2">&quot;application/json&quot;</span><span class="p">][</span><span class="s2">&quot;schema&quot;</span><span class="p">][</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="n">_req_body</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">schema_ref</span><span class="p">]</span>
+                        <span class="n">kwargs_dict</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_req_body</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span>
+                        <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;kwargs_dict&quot;</span><span class="p">:</span> <span class="n">kwargs_dict</span><span class="p">,</span> <span class="s2">&quot;required&quot;</span><span class="p">:</span> <span class="n">_req_body</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;required&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)}</span>
+                    <span class="k">if</span> <span class="s2">&quot;responses&quot;</span> <span class="ow">in</span> <span class="n">body</span><span class="p">:</span>
+                        <span class="n">schema</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s2">&quot;responses&quot;</span><span class="p">][</span><span class="s2">&quot;200&quot;</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">][</span><span class="s2">&quot;application/json&quot;</span><span class="p">][</span><span class="s2">&quot;schema&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="s2">&quot;$ref&quot;</span> <span class="ow">in</span> <span class="n">schema</span><span class="p">:</span>
+                            <span class="n">schema_ref</span> <span class="o">=</span> <span class="n">schema</span><span class="p">[</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                            <span class="n">_req_body</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="n">schema_ref</span><span class="p">]</span>
+                            <span class="n">kwargs_dict</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_req_body</span><span class="p">[</span><span class="s2">&quot;properties&quot;</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;response_kwargs_dict&quot;</span><span class="p">:</span> <span class="n">kwargs_dict</span><span class="p">})</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">dict_</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;response_kwargs_dict&quot;</span><span class="p">:</span> <span class="n">kwargs_dict</span><span class="p">}</span>
+                    <span class="n">tree</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="n">dict_</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">_dfs</span><span class="p">(</span><span class="n">tree</span><span class="p">[</span><span class="n">t</span><span class="p">],</span> <span class="n">trail</span> <span class="o">+</span> <span class="p">[</span><span class="n">t</span><span class="p">])</span>
+
+        <span class="n">_dfs</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">_url</span><span class="p">,</span> <span class="n">_session</span><span class="p">,</span> <span class="n">tree</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;&lt;Subway (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="si">}</span><span class="s2">)&gt;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Subway&quot;</span><span class="p">:</span>
+        <span class="c1"># https://stackoverflow.com/questions/3278077/difference-between-getattr-vs-getattribute</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&#39; does not have children&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;.</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">&#39; is not a valid function&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Subway</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="n">attr</span><span class="p">],</span> <span class="n">attr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Subway.u"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.Subway.u">[docs]</a>    <span class="k">def</span> <span class="nf">u</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;In cases where the attibute might start with a number, this method can be used to access the attribute.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; stub.9jisjfi      # python will cry</span>
+<span class="sd">            &gt;&gt;&gt; stub.u(&#39;9jisjfi&#39;) # do this instead</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getattr__</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">_verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">_parse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># from pprint import pprint</span>
+        <span class="c1"># pprint(self._spec)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;.</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s2">&#39; is not an endpoint&quot;</span><span class="p">)</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">:</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="s2">&quot;/&quot;</span><span class="p">]</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;This method does not accept any arguments&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">spec_meta</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;kwargs_dict&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">spec_meta</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;This method does not accept any arguments&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">kwargs_dict</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;kwargs_dict&quot;</span><span class="p">]</span>
+                <span class="n">required</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;required&quot;</span><span class="p">]</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">required</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="n">required</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">data</span><span class="p">[</span><span class="n">kwargs_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs_dict</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is not a valid argument&quot;</span><span class="p">)</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">required</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">required</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> is a required argument&quot;</span><span class="p">)</span>
+
+        <span class="n">fn</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">spec</span><span class="p">[</span><span class="s2">&quot;method&quot;</span><span class="p">])</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_caller</span> <span class="ow">and</span> <span class="s2">&quot;/&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">:</span>
+            <span class="n">url</span> <span class="o">+=</span> <span class="s2">&quot;/&quot;</span>
+        <span class="c1"># if _verbose:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">spec</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt;&gt; </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+
+        <span class="n">out</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">_parse</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;response_kwargs_dict&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">]:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">[</span><span class="s2">&quot;meta&quot;</span><span class="p">][</span><span class="s2">&quot;response_kwargs_dict&quot;</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="get_client"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.get_client">[docs]</a><span class="k">def</span> <span class="nf">get_client</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Subway</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This function returns a Subway object that can be used to interact with the API.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        &gt;&gt;&gt; from chainfury import get_client</span>
+<span class="sd">        &gt;&gt;&gt; client = get_client()</span>
+<span class="sd">        &gt;&gt;&gt; cf_actions = client.api.v1.fury.actions.list()</span>
+<span class="sd">        &gt;&gt;&gt; cf_actions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">url</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CF_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">url</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No url provided, please set CF_URL environment variable or pass url as argument&quot;</span><span class="p">)</span>
+    <span class="n">token</span> <span class="o">=</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CF_TOKEN&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No token provided, please set CF_TOKEN environment variable or pass token as argument&quot;</span><span class="p">)</span>
+
+    <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">Subway</span><span class="o">.</span><span class="n">from_openapi</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span></div>
+
+
+<span class="c1"># if not os.environ.get(&quot;CF_NO_LOAD_CLIENT&quot;, False):</span>
+<span class="c1">#     cf_client = get_client()</span>
+<span class="c1"># else:</span>
+<span class="c1">#     logger.warning(&quot;CF_NO_LOAD_CLIENT is set, client will not be loaded&quot;)</span>
+<span class="c1">#     cf_client = None</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

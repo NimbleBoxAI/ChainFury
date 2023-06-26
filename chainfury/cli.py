@@ -1,7 +1,8 @@
 from fire import Fire
 
-from chainfury.base import logger
+from chainfury.utils import logger
 from chainfury.client import get_client
+from chainfury.version import __version__
 
 
 def help():
@@ -24,24 +25,15 @@ Build with ♥️  by NimbleBox.ai
     )
 
 
-def api_to_cli(api: str, **kwargs):
-    """**Experimental** CLI to API, takes in an API path and kwargs and returns the response
-
-    Args:
-        api (str): API path
-        **kwargs: kwargs to pass to the API
-    """
-    api = "api/v1/" + api
-    client = get_client()
-    for x in api.split("/"):
-        client = getattr(client, x)
-    return client(**kwargs)
-
-
 def main():
     Fire(
         {
             "help": help,
-            "api": api_to_cli,
+            "version": lambda: print(
+                f"""ChainFury 🦋 Engine
+
+chainfury=={__version__}
+"""
+            ),
         }
     )

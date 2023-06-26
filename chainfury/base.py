@@ -1,43 +1,16 @@
-import os
 import copy
 import json
 import inspect
-import logging
 import datetime
 import traceback
 from pprint import pformat
-from hashlib import sha256
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable
 from collections import deque, defaultdict
 
 import jinja2schema
 from jinja2schema import model as j2sm
 
-
-def terminal_top_with_text(msg: str = "") -> str:
-    width = os.get_terminal_size().columns
-    if len(msg) > width - 5:
-        x = "=" * width
-        x += "\n" + msg
-        x += "\n" + "=" * width // 2  # type: ignore
-    else:
-        x = "=" * (width - len(msg) - 1) + " " + msg
-    return x
-
-
-def get_logger():
-    logger = logging.getLogger("fury")
-    lvl = os.getenv("FURY_LOG_LEVEL", "info").upper()
-    logger.setLevel(getattr(logging, lvl))
-    log_handler = logging.StreamHandler()
-    log_handler.setFormatter(
-        logging.Formatter("[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z")
-    )
-    logger.addHandler(log_handler)
-    return logger
-
-
-logger = get_logger()
+from chainfury.utils import logger, terminal_top_with_text
 
 
 class Secret(str):
@@ -65,6 +38,20 @@ class Var:
         *,
         loc: Optional[Tuple] = (),
     ):
+        """`Var` is a single input / output for a node.
+
+        Args:
+            type (Union[str, List[Var]]): The type of the variable. If it is a list, then it is a list of Var objects.
+            format (str, optional): The format of the variable. Defaults to "".
+            items (List[Var], optional): If the type is a list, then this is the list of Var objects that are in the list. Defaults to [].
+            additionalProperties (Union[List[Var], Var], optional): If the type is an object, then this is the list of Var objects that are in the object. Defaults to [].
+            password (bool, optional): If the type is a string, then this is whether it is a password field. Defaults to False.
+            required (bool, optional): Whether this field is required. Defaults to False.
+            placeholder (str, optional): The placeholder text for this field. Defaults to "".
+            show (bool, optional): Whether this field should be shown. Defaults to False.
+            name (str, optional): The name of this field. Defaults to "".
+            loc (Optional[Tuple], optional): The location of this field. Defaults to ().
+        """
         self.type = type
         self.format = format
         self.items = items or []
@@ -83,6 +70,11 @@ class Var:
         return f"Var({'*' if self.required else ''}'{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
+        """Serialise this Var to a dictionary that can be JSON serialised and sent to the client.
+
+        Returns:
+            Dict[str, Any]: The serialised Var.
+        """
         d: Dict[str, Any] = {"type": self.type}
         if type(self.type) == list and len(self.type) and type(self.type[0]) == Var:
             d["type"] = [x.to_dict() for x in self.type]
@@ -112,6 +104,14 @@ class Var:
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "Var":
+        """Deserialise a Var from a dictionary.
+
+        Args:
+            d (Dict[str, Any]): The dictionary to deserialise from.
+
+        Returns:
+            Var: The deserialised Var.
+        """
         type_val = d.get("type")
         format_val = d.get("format", "")
         items_val = d.get("items", [])
@@ -148,12 +148,35 @@ class Var:
         return var
 
     def set_value(self, v: Any):
+        """Set the value of this Var.
+
+        Args:
+            v (Any): The value to set.
+        """
         self.value = v
 
 
-def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: bool = False) -> Var:
-    """Function to convert the given annotation from python to a Var which can then be
-    JSON serialised and sent to the clients."""
+def pyannotation_to_json_schema(
+    x: Any,
+    allow_any: bool,
+    allow_exc: bool,
+    allow_none: bool,
+    *,
+    trace: bool = False,
+) -> Var:
+    """Function to convert the given annotation from python to a Var which can then be JSON serialised and sent to the
+    clients.
+
+    Args:
+        x (Any): The annotation to convert.
+        allow_any (bool): Whether to allow the `Any` type.
+        allow_exc (bool): Whether to allow the `Exception` type.
+        allow_none (bool): Whether to allow the `None` type.
+        trace (bool, optional): Adds verbosity the schema generation. Defaults to False.
+
+    Returns:
+        Var: The converted annotation.
+    """
     if isinstance(x, type):
         if trace:
             logger.debug("t0")
@@ -175,7 +198,7 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
         elif x == Secret:
             return Var(type="string", password=True)
         elif x == Model:
-            return Var(type=Model.type_name, required=False, show=False)
+            return Var(type=Model.TYPE_NAME, required=False, show=False)
         if x == Exception and allow_exc:
             return Var(type="exception", required=False, show=False)
         elif x == type(None) and allow_none:
@@ -256,11 +279,17 @@ def pyannotation_to_json_schema(x, allow_any, allow_exc, allow_none, *, trace: b
         raise ValueError(f"i4: Unsupported type: {x}")
 
 
-def func_to_vars(func) -> List[Var]:
+def func_to_vars(func: object) -> List[Var]:
     """
     Extracts the signature of a function and converts it to an array of Var objects.
+
+    Args:
+        func (Callable): The function to extract the signature from.
+
+    Returns:
+        List[Var]: The array of Var objects.
     """
-    signature = inspect.signature(func)
+    signature = inspect.signature(func)  # type: ignore
     fields = []
     for param in signature.parameters.values():
         schema = pyannotation_to_json_schema(param.annotation, allow_any=False, allow_exc=False, allow_none=False)
@@ -275,8 +304,14 @@ def func_to_vars(func) -> List[Var]:
 
 def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
     """
-    Analyses the return annotation type of the signature of a function and converts it to an array of
-    named Var objects.
+    Analyses the return annotation type of the signature of a function and converts it to an array of named Var objects.
+
+    Args:
+        func (Callable): The function to extract the signature from.
+        returns (Dict[str, Tuple]): The dictionary of return types.
+
+    Returns:
+        List[Var]: The array of Var objects.
     """
     signature = inspect.signature(func)
     schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=False, allow_exc=True, allow_none=True)
@@ -313,6 +348,15 @@ def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
 
 
 def jinja_schema_to_vars(v) -> Var:
+    """
+    Converts a Jinja schema to a Var object.
+
+    Args:
+        v ([type]): The Jinja schema.
+
+    Returns:
+        Var: The Var object.
+    """
     if type(v) == j2sm.Scalar or type(v) == j2sm.String:
         field = Var(type="string", required=True)
     elif type(v) == j2sm.Number:
@@ -344,6 +388,15 @@ def jinja_schema_to_vars(v) -> Var:
 
 
 def jtype_to_vars(prompt: str) -> List[Var]:
+    """
+    Converts a Jinja prompt to an array of Var objects.
+
+    Args:
+        prompt (str): The Jinja prompt.
+
+    Returns:
+        List[Var]: The array of Var objects.
+    """
     try:
         s = jinja2schema.infer(prompt)
         fields = []
@@ -360,17 +413,35 @@ def jtype_to_vars(prompt: str) -> List[Var]:
     return fields
 
 
-def extract_jinja_indices(data, current_index=(), indices=None) -> List:
+def extract_jinja_indices(data: Union[str, List, Dict[str, Any]], current_index=(), indices=None) -> List:
     """
-    Returns things like:
+    This takes in a nested object and returns all the locations where jinja template was detected.
 
-    [(('3', 'content'), [Var('num1', type=string, items=[], additionalProperties=[]), Var('num2', type=string, items=[], additionalProperties=[])])]
-    [((), [Var('message', type=string, items=[], additionalProperties=[])])]
-    [(('meta_prompt', 'data'), [Var('place', type=string, items=[], additionalProperties=[])])]
-    [('0', [Var('name', type=string, items=[], additionalProperties=[])])]
-    [(('meta', 'ptype'), [Var('genome', type=string, items=[], additionalProperties=[])])]
-    [(('level-0', 'level-1', 'level-2'), [Var('thing', type=string, items=[], additionalProperties=[])]), (('level-0', 'nice'), [Var('feeling', type=string, items=[], additionalProperties=[])])]
-    []
+    Args:
+        data (Union[str, List, Dict[str, Any]]): The nested object.
+        current_index (tuple, optional): The current index. Defaults to ().
+        indices ([type], optional): The indices. Defaults to None.
+
+    Returns:
+        List: The list of indices.
+
+    Example:
+        >>> from chainfury.base import extract_jinja_indices
+        >>> extract_jinja_indices({
+        ...     "foo": {
+        ...         "bar": "{{ baz }}",
+        ...         "gaa": ["{{ joo }}"]
+        ...    }
+        ... })
+        [(('foo', 'bar'), Var(...)), (('foo', 'gaa', '0'), Var(...))]
+        >>> # more examples
+        [(('3', 'content'), [Var('num1', type=string, items=[], additionalProperties=[]), Var('num2', type=string, items=[], additionalProperties=[])])]
+        [((), [Var('message', type=string, items=[], additionalProperties=[])])]
+        [(('meta_prompt', 'data'), [Var('place', type=string, items=[], additionalProperties=[])])]
+        [('0', [Var('name', type=string, items=[], additionalProperties=[])])]
+        [(('meta', 'ptype'), [Var('genome', type=string, items=[], additionalProperties=[])])]
+        [(('level-0', 'level-1', 'level-2'), [Var('thing', type=string, items=[], additionalProperties=[])]), (('level-0', 'nice'), [Var('feeling', type=string, items=[], additionalProperties=[])])]
+        []
     """
     if indices is None:
         indices = []
@@ -388,7 +459,7 @@ def extract_jinja_indices(data, current_index=(), indices=None) -> List:
                     new_index = (current_index, i)
             else:
                 new_index = str(i)
-            extract_jinja_indices(item, new_index, indices)
+            extract_jinja_indices(data=item, current_index=new_index, indices=indices)
     elif isinstance(data, dict):
         for key, value in data.items():
             if current_index:
@@ -398,12 +469,21 @@ def extract_jinja_indices(data, current_index=(), indices=None) -> List:
                     new_index = (current_index, key)
             else:
                 new_index = key
-            extract_jinja_indices(value, new_index, indices)
+            extract_jinja_indices(data=value, current_index=new_index, indices=indices)
 
     return indices
 
 
-def get_value_by_keys(obj, keys):
+def get_value_by_keys(obj, keys) -> Any:
+    """Takes in an arbitrary nested object and returns the value at the location specified by the keys.
+
+    Args:
+        obj (Union[List, Dict[str, Any]]): The nested object.
+        keys (Union[str, List[str], Tuple[str, ...]]): The keys. See `extract_jinja_indices` for examples.
+
+    Returns:
+        Any: The value at the location specified by the keys.
+    """
     if not keys:
         return obj
     keys = (keys,) if not isinstance(keys, (list, tuple)) else keys
@@ -417,7 +497,14 @@ def get_value_by_keys(obj, keys):
     return None
 
 
-def put_value_by_keys(obj, keys, value):
+def put_value_by_keys(obj, keys, value: Any):
+    """Takes in an arbitrary nested object and sets the value at the location specified by the keys.
+
+    Args:
+        obj (Union[List, Dict[str, Any]]): The nested object.
+        keys (Union[str, List[str], Tuple[str, ...]]): The keys. See `extract_jinja_indices` for examples.
+        value (Any): The value to set.
+    """
     if not keys:
         return
 
@@ -445,25 +532,29 @@ def put_value_by_keys(obj, keys, value):
 #
 
 
-class ModelTags:
-    TEXT_TO_TEXT = "text_to_text"
-    TEXT_TO_IMAGE = "text_to_image"
-    IMAGE_TO_IMAGE = "image_to_image"
-
-
 class Model:
-    model_tags = ModelTags
-    type_name = "model"
+    TYPE_NAME = "model"
+    """constant for the type name"""
 
     def __init__(
         self,
-        collection_name,
-        id,
+        collection_name: str,
+        id: str,
         fn: object,
         description,
         usage: List[Union[str, int]] = [],
         tags=[],
     ):
+        """Defines a single callable model.
+
+        Args:
+            collection_name (str): The name of the collection.
+            id (str): The id of the model.
+            fn (Callable): The callable to wrap.
+            description (str): The description of the model.
+            usage (List[Union[str, int]], optional): The location that tells usage for a call. Defaults to [].
+            tags (List[str], optional): The tags for the model. Defaults to [].
+        """
         self.collection_name = collection_name
         self.id = id
         self.fn = fn
@@ -476,6 +567,14 @@ class Model:
         return f"Model('{self.collection_name}', '{self.id}')"
 
     def to_dict(self, no_vars: bool = False) -> Dict[str, Any]:
+        """Converts the model to a dictionary.
+
+        Args:
+            no_vars (bool, optional): Whether to include the vars. Defaults to False.
+
+        Returns:
+            Dict[str, Any]: The dictionary representation of the model.
+        """
         return {
             "collection_name": self.collection_name,
             "id": self.id,
@@ -486,6 +585,14 @@ class Model:
         }
 
     def __call__(self, model_data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
+        """Calls the model with the given data.
+
+        Args:
+            model_data (Dict[str, Any]): The data to pass to the model.
+
+        Returns:
+            Tuple[Any, Optional[Exception]]: The result of the model and the exception if any.
+        """
         try:
             out = self.fn(**model_data)  # type: ignore
             return out, None
@@ -502,15 +609,9 @@ class Model:
 
 class NodeType:
     PROGRAMATIC = "programatic"
+    """constant for the programatic node type"""
     AI = "ai-powered"
-
-
-class NodeConnection:
-    def __init__(self, id: str, name: str = "", required: bool = False, description: str = ""):
-        self.id = id
-        self.name = name
-        self.required = required
-        self.description = description
+    """constant for the AI node type"""
 
 
 class Node:
@@ -526,6 +627,17 @@ class Node:
         description: str = "",
         tags: List[str] = [],
     ):
+        """Node is a single unit of computation in a Dag. All the actions are considered as nodes.
+
+        Args:
+            id (str): The id of the node.
+            type (str): The type of the node. See `Node.types` for valid types.
+            fn (object): The function to call.
+            fields (List[Var]): The fields of the node.
+            outputs (List[Var]): The outputs of the node.
+            description (str, optional): The description of the node. Defaults to "".
+            tags (List[str], optional): The tags for the node. Defaults to [].
+        """
         # some bacic checks
         if type == NodeType.AI:
             pass
@@ -554,10 +666,23 @@ class Node:
         out += f"\n] }}"
         return out
 
-    def has_field(self, field: str):
+    def has_field(self, field: str) -> bool:
+        """helper function to check if the node has a field with the given name.
+
+        Args:
+            field (str): The name of the field to check.
+
+        Returns:
+            bool: True if the node has the field, False otherwise.
+        """
         return any([x.name == field for x in self.fields])
 
     def to_dict(self) -> Dict[str, Any]:
+        """Converts the node to a dictionary.
+
+        Returns:
+            Dict[str, Any]: The dictionary representation of the node.
+        """
         from chainfury.agent import AIAction
 
         fn = {}
@@ -574,7 +699,15 @@ class Node:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
+    def from_dict(cls, data: Dict[str, Any]) -> "Node":
+        """Creates a node from a dictionary.
+
+        Args:
+            data (Dict[str, Any]): The dictionary representation of the node.
+
+        Returns:
+            Node: The node created from the dictionary.
+        """
         fields = [Var.from_dict(x) for x in data["fields"]]
         outputs = [Var.from_dict(x) for x in data["outputs"]]
         fn = data["fn"]
@@ -595,13 +728,38 @@ class Node:
         )
 
     def to_json(self, indent=None) -> str:
+        """Converts the node to a json string.
+
+        Args:
+            indent (int, optional): The indent to use. Defaults to None.
+
+        Returns:
+            str: The json string representation of the node.
+        """
         return json.dumps(self.to_dict(), indent=indent)
 
     @classmethod
-    def from_json(cls, data: str):
+    def from_json(cls, data: str) -> "Node":
+        """Creates a node from a json string.
+
+        Args:
+            data (str): The json string representation of the node.
+
+        Returns:
+            Node: The node created from the json string.
+        """
         return cls.from_dict(json.loads(data))
 
     def __call__(self, data: Dict[str, Any], print_thoughts: bool = False) -> Tuple[Any, Optional[Exception]]:
+        """Calls the node with the given data.
+
+        Args:
+            data (Dict[str, Any]): The data to pass to the node.
+            print_thoughts (bool, optional): Whether to print the thoughts of the node, useful for debugging. Defaults to False.
+
+        Returns:
+            Tuple[Any, Optional[Exception]]: The result of the node and the exception if any.
+        """
         data_keys = set(data.keys())
         template_keys = set([x.name for x in self.fields])
         try:
@@ -640,6 +798,13 @@ class Node:
 
 class Edge:
     def __init__(self, src_node_id: str, trg_node_id: str, *connections: Tuple[str, str]):
+        """Creates an edge between two nodes.
+
+        Args:
+            src_node_id (str): The id of the source node.
+            trg_node_id (str): The id of the target node.
+            *connections (Tuple[str, str]): The Var names between the source and target node.
+        """
         # some basic checks
         for c in connections:
             assert isinstance(c, (tuple, list)), f"Invalid connection: {c}"
@@ -659,6 +824,11 @@ class Edge:
         return out
 
     def to_dict(self) -> Dict[str, Any]:
+        """Serializes the edge to a dictionary.
+
+        Returns:
+            Dict[str, Any]: The dictionary representation of the edge.
+        """
         return {
             "src_node_id": self.src_node_id,
             "trg_node_id": self.trg_node_id,
@@ -666,7 +836,15 @@ class Edge:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
+    def from_dict(cls, data: Dict[str, Any]) -> "Edge":
+        """Creates an edge from a dictionary.
+
+        Args:
+            data (Dict[str, Any]): The dictionary representation of the edge.
+
+        Returns:
+            Edge: The edge created from the dictionary.
+        """
         return cls(
             data["src_node_id"],
             data["trg_node_id"],
@@ -689,6 +867,15 @@ class Chain:
         main_in: str = "",
         main_out: str = "",
     ):
+        """A chain is a full flow of nodes and edges.
+
+        Args:
+            nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].
+            edges (List[Edge], optional): The list of edges in the chain. Defaults to [].
+            sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.
+            main_in (str, optional): The name of the input var for the chat input. Defaults to "".
+            main_out (str, optional): The name of the output var for the chat output. Defaults to "".
+        """
         self.nodes = {node.id: node for node in nodes}
         self.edges = edges
 
@@ -716,6 +903,16 @@ class Chain:
         return out
 
     def to_dict(self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}) -> Dict[str, Any]:
+        """Serializes the chain to a dictionary.
+
+        Args:
+            main_in (str, optional): The name of the input var for the chat input. Defaults to "".
+            main_out (str, optional): The name of the output var for the chat output. Defaults to "".
+            sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.
+
+        Returns:
+            Dict[str, Any]: The dictionary representation of the chain.
+        """
         main_in = main_in or self.main_in
         main_out = main_out or self.main_out
         sample = sample or self.sample
@@ -734,16 +931,37 @@ class Chain:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]):
+    def from_dict(cls, data: Dict[str, Any]) -> "Chain":
+        """Creates a chain from a dictionary.
+
+        Args:
+            data (Dict[str, Any]): The dictionary representation of the chain.
+
+        Returns:
+            Chain: The chain created from the dictionary.
+        """
         nodes = [Node.from_dict(x) for x in data["nodes"]]
         edges = [Edge.from_dict(x) for x in data["edges"]]
         return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
 
     def to_json(self) -> str:
+        """Serializes the chain to a JSON string.
+
+        Returns:
+            str: The JSON string representation of the chain.
+        """
         return json.dumps(self.to_dict())
 
     @classmethod
     def from_json(cls, data: str):
+        """Creates a chain from a JSON string.
+
+        Args:
+            data (str): The JSON string representation of the chain.
+
+        Returns:
+            Chain: The chain created from the JSON string.
+        """
         return cls.from_dict(json.loads(data))
 
     def __call__(
@@ -752,6 +970,17 @@ class Chain:
         thoughts_callback: Optional[Callable] = None,
         print_thoughts: bool = False,
     ) -> Tuple[Var, Dict[str, Any]]:
+        """Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer
+        and a simple callback system at each step.
+
+        Args:
+            data (Union[str, Dict[str, Any]]): The data to run the chain on.
+            thoughts_callback (Optional[Callable], optional): The callback function to call at each step. Defaults to None.
+            print_thoughts (bool, optional): Whether to print the thoughts buffer at each step. Defaults to False.
+
+        Returns:
+            Tuple[Var, Dict[str, Any]]: The output of the chain and the thoughts buffer.
+        """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
             assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
@@ -836,7 +1065,6 @@ class NotDAGError(Exception):
 
 
 def edge_array_to_adjacency_list(edges: List[Edge]):
-    """Convert silk format dag edges to adjacency list format"""
     adjacency_lists = {}
     for edge in edges:
         src = edge.src_node_id
@@ -848,7 +1076,6 @@ def edge_array_to_adjacency_list(edges: List[Edge]):
 
 
 def adjacency_list_to_edge_map(adjacency_list) -> List[Edge]:
-    """Convert adjacency list format to silk format dag edges"""
     edges = []
     for src, dsts in adjacency_list.items():
         for dst in dsts:
@@ -857,7 +1084,15 @@ def adjacency_list_to_edge_map(adjacency_list) -> List[Edge]:
 
 
 def topological_sort(edges: List[Edge]) -> List[str]:
-    """Topological sort of a DAG, raises NotDAGError if the graph is not a DAG"""
+    """Topological sort of a DAG, raises NotDAGError if the graph is not a DAG. This is full proof version
+    which will work even if the DAG contains several unconnected chains.
+
+    Args:
+        edges (List[Edge]): The edges of the DAG
+
+    Returns:
+        List[str]: The topologically sorted list of node ids
+    """
     adjacency_lists = edge_array_to_adjacency_list(edges)
     in_degree = defaultdict(int)
     for src, dsts in adjacency_lists.items():

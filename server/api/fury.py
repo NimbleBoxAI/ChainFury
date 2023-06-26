@@ -241,21 +241,21 @@ def update_fury_action(
             update_dict.update(node.to_dict())
 
     # find object
-    fury_action_out: FuryActions = db.query(FuryActions).get(fury_action_id)
-    if not fury_action_out:
+    fury_action_db: FuryActions = db.query(FuryActions).get(fury_action_id)
+    if not fury_action_db:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
 
     # update object
     try:
-        fury_action_out.update_from_dict(update_dict)
+        fury_action_db.update_from_dict(update_dict)
         db.commit()
-        db.refresh(fury_action_out)
+        db.refresh(fury_action_db)
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 500
         return {"error": "Internal server error"}
-    return fury_action_out
+    return fury_action_db
 
 
 # D - Delete a FuryAction by ID
@@ -309,20 +309,20 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
     # if the function is to be updated then perform the full validation same as when creating a new action
     if len(fury_action.outputs) != 1:
         resp.status_code = 400
-        resp.body = {"error": "Only one output must be provided when modifying the function"}
-        return None, resp
+        resp.body = {"error": "Only one output must be provided when modifying the function"}  # type: ignore
+        return None, resp  # type: ignore
 
     try:
-        fury_action.outputs = fury_action.outputs[0].dict()
-        fury_action.outputs = {fury_action.outputs["name"]: fury_action.outputs["loc"]}
+        fury_action.outputs = fury_action.outputs[0].dict()  # type: ignore
+        fury_action.outputs = {fury_action.outputs["name"]: fury_action.outputs["loc"]}  # type: ignore
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 400
-        resp.body = {"error": f"Cannot parse outputs: {e}"}
-        return None, resp
+        resp.body = {"error": f"Cannot parse outputs: {e}"}  # type: ignore
+        return None, resp  # type: ignore
 
     try:
-        node: Node = ai_actions_registry.to_node(
+        node: Node = ai_actions_registry.to_action(
             node_id=str(uuid4()),
             model_id=fury_action.fn.model_id,
             model_params=fury_action.fn.model_params,
@@ -333,7 +333,7 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 400
-        resp.body = {"error": str(e)}
-        return None, resp
+        resp.body = {"error": str(e)}  # type: ignore
+        return None, resp  # type: ignore
 
-    return node, None
+    return node, None  # type: ignore

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agent File &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chainfury CLI" href="chainfury.cli.html" />
+    <link rel="prev" title="Using ChainFury" href="../usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Agent File</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#agent">Agent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.AIAction"><code class="docutils literal notranslate"><span class="pre">AIAction</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIAction.FUNC"><code class="docutils literal notranslate"><span class="pre">AIAction.FUNC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIAction.JTYPE"><code class="docutils literal notranslate"><span class="pre">AIAction.JTYPE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIAction.from_dict"><code class="docutils literal notranslate"><span class="pre">AIAction.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIAction.to_dict"><code class="docutils literal notranslate"><span class="pre">AIAction.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.DB_REGISTER"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.DB_REGISTER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.get"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.get_count_for_nodes"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.get_count_for_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.get_nodes"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.get_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.get_tags"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.get_tags()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.register"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.register()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.to_action"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.to_action()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.AIActionsRegistry.unregister"><code class="docutils literal notranslate"><span class="pre">AIActionsRegistry.unregister()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.ModelRegistry"><code class="docutils literal notranslate"><span class="pre">ModelRegistry</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.get"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.get_count_for_model"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.get_count_for_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.get_models"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.get_models()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.get_tags"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.get_tags()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.has"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.has()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ModelRegistry.register"><code class="docutils literal notranslate"><span class="pre">ModelRegistry.register()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry.get"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry.get()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry.get_count_for_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry.get_nodes"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry.get_nodes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry.get_tags"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry.get_tags()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.agent.ProgramaticActionsRegistry.register"><code class="docutils literal notranslate"><span class="pre">ProgramaticActionsRegistry.register()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.ai_actions_registry"><code class="docutils literal notranslate"><span class="pre">ai_actions_registry</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.model_registry"><code class="docutils literal notranslate"><span class="pre">model_registry</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.agent.programatic_actions_registry"><code class="docutils literal notranslate"><span class="pre">programatic_actions_registry</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Agent File</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chainfury.agent.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="agent-file">
+<h1>Agent File<a class="headerlink" href="#agent-file" title="Permalink to this heading"></a></h1>
+<p>An agent is a singluar entity with a predefined set of actions to take.</p>
+<ul class="simple">
+<li><p>Read <a class="reference external" href="https://blog.nimblebox.ai/new-flow-engine-from-scratch">Why the Fury? Building a new flow engine from scratch</a> to understand more about the architecture behind what an Agent is.</p></li>
+</ul>
+<span class="target" id="module-chainfury.agent"></span><section id="agent">
+<h2>Agent<a class="headerlink" href="#agent" title="Permalink to this heading"></a></h2>
+<p>We follow registry pattern for models and actions.</p>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.agent.AIAction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">AIAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Model" title="chainfury.base.Model"><span class="pre">Model</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/agent.html#AIAction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIAction" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is a callable for all the AI actions.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.agent.AIAction.FUNC">
+<span class="sig-name descname"><span class="pre">FUNC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'python-function'</span></em><a class="headerlink" href="#chainfury.agent.AIAction.FUNC" title="Permalink to this definition"></a></dt>
+<dd><p>constant for Python function type</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.agent.AIAction.JTYPE">
+<span class="sig-name descname"><span class="pre">JTYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'jinja-template'</span></em><a class="headerlink" href="#chainfury.agent.AIAction.JTYPE" title="Permalink to this definition"></a></dt>
+<dd><p>constant for Jinja template type</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIAction.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/agent.html#AIAction.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIAction.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Deserialize the AIAction object from a dict.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIAction.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIAction.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIAction.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Serialize the AIAction object to a dict.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">AIActionsRegistry</span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class is a registry for all the AI actions.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.DB_REGISTER">
+<span class="sig-name descname"><span class="pre">DB_REGISTER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'db'</span></em><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.DB_REGISTER" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.get" title="Permalink to this definition"></a></dt>
+<dd><p>Get the node for the given node id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_id</strong> (<em>str</em>) – The node id for this action</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The node object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node">Node</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.get_count_for_nodes">
+<span class="sig-name descname"><span class="pre">get_count_for_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.get_count_for_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.get_count_for_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>Get number of times a particular node is called</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_id</strong> (<em>str</em>) – The node id for this action</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of times the node is called</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.get_nodes">
+<span class="sig-name descname"><span class="pre">get_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.get_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.get_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the nodes that are registered</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – The tag to filter the nodes. Defaults to “”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The dict of nodes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.get_tags">
+<span class="sig-name descname"><span class="pre">get_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.get_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.get_tags" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the tags that are registered</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The list of tags</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.register" title="Permalink to this definition"></a></dt>
+<dd><p>function to create an “Action” aka. <cite>chainfury.Node</cite>.</p>
+<p><strong>NOTE:</strong> If you do not pass <cite>node_id</cite> then this will create a <cite>uudi4</cite>. This behaviour is important when dev
+wants to play with the action without commiting it anywhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_id</strong> (<em>str</em>) – The node id for this action</p></li>
+<li><p><strong>model_id</strong> (<em>str</em>) – The model id that is to be used for this action</p></li>
+<li><p><strong>model_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The model params that are to be used for this action</p></li>
+<li><p><strong>fn</strong> (<em>object</em>) – The function that is to be used as a preprocessor for this action</p></li>
+<li><p><strong>outputs</strong> – This is a dict like <cite>{‘x’: (-1, ‘b’, ‘c’)}</cite>, if provided function returns a dictionary with key <cite>x</cite>
+and value automatically extracted from the model output at location <cite>(-1, ‘b’, ‘c’)</cite>.</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – The description for this action. Defaults to “”.</p></li>
+<li><p><strong>tags</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – The tags for this action. Defaults to [].</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.to_action">
+<span class="sig-name descname"><span class="pre">to_action</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.to_action"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.to_action" title="Permalink to this definition"></a></dt>
+<dd><p>function to create an “Action” aka. <cite>chainfury.Node</cite>.</p>
+<p><strong>NOTE:</strong> If you do not pass <cite>node_id</cite> then this will create a <cite>uudi4</cite>. This behaviour is important when dev
+wants to play with the action without commiting it anywhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_id</strong> (<em>str</em>) – The model id that is to be used for this action</p></li>
+<li><p><strong>model_params</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The model params that are to be used for this action</p></li>
+<li><p><strong>fn</strong> (<em>object</em>) – The function that is to be used as a preprocessor for this action</p></li>
+<li><p><strong>outputs</strong> – This is a dict like <cite>{‘x’: (-1, ‘b’, ‘c’)}</cite>, if provided function returns a dictionary with key <cite>x</cite>
+and value automatically extracted from the model output at location <cite>(-1, ‘b’, ‘c’)</cite>.</p></li>
+<li><p><strong>node_id</strong> (<em>str</em><em>, </em><em>optional</em>) – The node id for this action. Defaults to “”.</p></li>
+<li><p><strong>description</strong> (<em>str</em><em>, </em><em>optional</em>) – The description for this action. Defaults to “”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The node object that can be used to create a chain</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node">Node</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.AIActionsRegistry.unregister">
+<span class="sig-name descname"><span class="pre">unregister</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/agent.html#AIActionsRegistry.unregister"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.AIActionsRegistry.unregister" title="Permalink to this definition"></a></dt>
+<dd><p>Unregister an ai-node</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_id</strong> (<em>str</em>) – The node id for this action</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the node is not found</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">ModelRegistry</span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Model registry contains metadata for all the models that are provided in the components</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Model" title="chainfury.base.Model"><span class="pre">Model</span></a></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.get" title="Permalink to this definition"></a></dt>
+<dd><p>Get a model from the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – Id of the model</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Model</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="chainfury.base.html#chainfury.base.Model" title="chainfury.base.Model">Model</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.get_count_for_model">
+<span class="sig-name descname"><span class="pre">get_count_for_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.get_count_for_model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.get_count_for_model" title="Permalink to this definition"></a></dt>
+<dd><p>Get the number of times a model is used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – Id of the model</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of times the model is used</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.get_models">
+<span class="sig-name descname"><span class="pre">get_models</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.get_models"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.get_models" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the models that are registered in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Filter models by tag. Defaults to “”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of models</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.get_tags">
+<span class="sig-name descname"><span class="pre">get_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.get_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.get_tags" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the tags that are registered in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of tags</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.has">
+<span class="sig-name descname"><span class="pre">has</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.has"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.has" title="Permalink to this definition"></a></dt>
+<dd><p>A helper function to check if a model is registered or not</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ModelRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Model" title="chainfury.base.Model"><span class="pre">Model</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/agent.html#ModelRegistry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ModelRegistry.register" title="Permalink to this definition"></a></dt>
+<dd><p>Register a model in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Model" title="chainfury.base.Model"><em>Model</em></a>) – Model to register</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">ProgramaticActionsRegistry</span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Programatic actions registry contains metadata for all the programatic actions that are provided in the
+components</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry.get" title="Permalink to this definition"></a></dt>
+<dd><p>Get a node from the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_id</strong> (<em>str</em>) – Id of the node</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Node</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node">Node</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes">
+<span class="sig-name descname"><span class="pre">get_count_for_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry.get_count_for_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>Get the number of times a node is used</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node_id</strong> (<em>str</em>) – Id of the node</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Number of times the node is used</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry.get_nodes">
+<span class="sig-name descname"><span class="pre">get_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tag</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry.get_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry.get_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the nodes that are registered in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tag</strong> (<em>str</em><em>, </em><em>optional</em>) – Filter nodes by tag. Defaults to “”.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary of nodes</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry.get_tags">
+<span class="sig-name descname"><span class="pre">get_tags</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry.get_tags"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry.get_tags" title="Permalink to this definition"></a></dt>
+<dd><p>Get all the tags that are registered in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of tags</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.agent.ProgramaticActionsRegistry.register">
+<span class="sig-name descname"><span class="pre">register</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a></span></span><a class="reference internal" href="../_modules/chainfury/agent.html#ProgramaticActionsRegistry.register"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.agent.ProgramaticActionsRegistry.register" title="Permalink to this definition"></a></dt>
+<dd><p>Register a programatic action in the registry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>object</em>) – Function to register</p></li>
+<li><p><strong>node_id</strong> (<em>str</em>) – Id of the node</p></li>
+<li><p><strong>description</strong> (<em>str</em>) – Description of the node</p></li>
+<li><p><strong>returns</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of returns. Defaults to [].</p></li>
+<li><p><strong>outputs</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – [description]. Defaults to None.</p></li>
+<li><p><strong>tags</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List of tags. Defaults to [].</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>Exception</strong> – If the node is already registered</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Node</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="chainfury.base.html#chainfury.base.Node" title="chainfury.base.Node">Node</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="chainfury.agent.ai_actions_registry">
+<span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">ai_actions_registry</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;chainfury.agent.AIActionsRegistry</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#chainfury.agent.ai_actions_registry" title="Permalink to this definition"></a></dt>
+<dd><p><cite>ai_actions_registry</cite> is a global instance of <cite>AIActionsRegistry</cite> class. This is used to register and unregister
+<cite>AIAction</cite> instances. This is used by the server to serve the registered actions.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="chainfury.agent.model_registry">
+<span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">model_registry</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;chainfury.agent.ModelRegistry</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#chainfury.agent.model_registry" title="Permalink to this definition"></a></dt>
+<dd><p><cite>model_registry</cite> is a global variable that is used to register models. It is an instance of ModelRegistry class.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="chainfury.agent.programatic_actions_registry">
+<span class="sig-prename descclassname"><span class="pre">chainfury.agent.</span></span><span class="sig-name descname"><span class="pre">programatic_actions_registry</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;chainfury.agent.ProgramaticActionsRegistry</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#chainfury.agent.programatic_actions_registry" title="Permalink to this definition"></a></dt>
+<dd><p><cite>programatic_actions_registry</cite> is a global variable that is used to register programatic nodes. It is an instance of
+ProgramaticActionsRegistry class.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../usage.html" class="btn btn-neutral float-left" title="Using ChainFury" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.cli.html" class="btn btn-neutral float-right" title="chainfury CLI" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

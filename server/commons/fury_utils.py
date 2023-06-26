@@ -112,8 +112,6 @@ def get_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, start: float
         # commit the prompt to DB
         prompt_row.response = result.result  # type: ignore
         prompt_row.time_taken = float(time.time() - start)  # type: ignore
-        message = f"User: {prompt.new_message}\nBot: {result.result}"
-        # prompt_row.gpt_rating = ask_for_rating(message)  #  type: ignore
         prompt_row.num_tokens = result.num_tokens  # type: ignore
         db.commit()
 

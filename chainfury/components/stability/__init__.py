@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Tuple
+from typing import List, Dict, Union, Tuple, Optional
 
 from chainfury import Secret, model_registry, exponential_backoff, Model
 
@@ -10,12 +10,12 @@ def stability_text_to_image(
     width: int = 512,
     cfg_scale: float = 7,
     clip_guidance_preset: str = "NONE",
-    sampler: str = None,
+    sampler: str = None,  # type: ignore # see components README.md
     samples: int = 1,
     seed: int = 0,
     steps: int = 50,
-    style_preset: str = None,
-    extras: Dict[str, Union[str, int, float]] = None,
+    style_preset: str = None,  # type: ignore # see components README.md
+    extras: Dict[str, Union[str, int, float]] = None,  # type: ignore # see components README.md
 ) -> List[str]:
     """
     Generate an image from text prompts using the Stability API.
@@ -41,7 +41,6 @@ def stability_text_to_image(
     Returns:
         List[str]: A list of base64-encoded PNG images.
     """
-
     pass
 
 
@@ -103,7 +102,12 @@ model_registry.register(
 )
 
 
-def stability_image_to_image_upscale(stability_api_key: Secret, image: bytes, width: int = None, height: int = None) -> bytes:
+def stability_image_to_image_upscale(
+    stability_api_key: Secret,
+    image: bytes,
+    width: int = None,  # type: ignore # see components README.md
+    height: int = None,  # type: ignore # see components README.md
+) -> bytes:
     """
     Upscales an image to a specified width or height.
 
@@ -139,12 +143,12 @@ def stability_image_to_image_masking(
     mask_image: bytes,
     cfg_scale: float = 7,
     clip_guidance_preset: str = "NONE",
-    sampler: str = None,
+    sampler: str = None,  # type: ignore # see components README.md
     samples: int = 1,
     seed: int = 0,
     steps: int = 50,
-    style_preset: str = None,
-    extras: dict = None,
+    style_preset: str = None,  # type: ignore # see components README.md
+    extras: dict = None,  # type: ignore # see components README.md
 ) -> bytes:
     """
     Generates an image based on text prompts and an initial image. Returns the generated image as bytes.

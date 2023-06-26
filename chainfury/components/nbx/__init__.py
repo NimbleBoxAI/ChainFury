@@ -1,8 +1,8 @@
 import random
 import requests
-from typing import Any, List
+from typing import Any, List, Optional
 
-from chainfury import Secret, model_registry, exponential_backoff, Model
+from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
 
 
 def nbx_chat_api(
@@ -16,12 +16,12 @@ def nbx_chat_api(
     max_new_tokens: int = 20,
     repetition_penalty: float = 1.03,
     return_full_text: bool = False,
-    seed: int = None,
+    seed: int = None,  # type: ignore # see components README.md
     stop: List[str] = [],
     temperature: float = 0.5,
     top_k: int = 10,
     top_p: float = 0.95,
-    truncate: int = None,
+    truncate: int = None,  # type: ignore # see components README.md
     typical_p: float = 0.95,
     watermark: bool = True,
     *,
@@ -59,6 +59,8 @@ def nbx_chat_api(
                 },
             },
         )
+        if r.status_code == 401:
+            raise UnAuthException(r.text)
         if r.status_code != 200:
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()

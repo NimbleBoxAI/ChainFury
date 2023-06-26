@@ -1,5 +1,50 @@
+import os
 import time
+import logging
 from typing import Any, Dict
+
+
+def terminal_top_with_text(msg: str = "") -> str:
+    """Prints full wodth text message on the terminal
+
+    Args:
+        msg (str, optional): The message to print. Defaults to "".
+
+    Returns:
+        str: The message to print
+    """
+    width = os.get_terminal_size().columns
+    if len(msg) > width - 5:
+        x = "=" * width
+        x += "\n" + msg
+        x += "\n" + "=" * width // 2  # type: ignore
+    else:
+        x = "=" * (width - len(msg) - 1) + " " + msg
+    return x
+
+
+def get_logger() -> logging.Logger:
+    """Returns a logger object"""
+    logger = logging.getLogger("fury")
+    lvl = os.getenv("FURY_LOG_LEVEL", "info").upper()
+    logger.setLevel(getattr(logging, lvl))
+    log_handler = logging.StreamHandler()
+    log_handler.setFormatter(
+        logging.Formatter("[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z")
+    )
+    logger.addHandler(log_handler)
+    return logger
+
+
+logger = get_logger()
+"""
+This is the logger object that should be used across the entire package as well as by the user what wants to leverage
+existing logging infrastructure.
+"""
+
+
+class UnAuthException(Exception):
+    """Raised when the API returns a 401"""
 
 
 def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> Dict[str, Any]:
@@ -23,6 +68,9 @@ def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> D
         try:
             out = foo(*args, **kwargs)  # Call the function that may crash
             return out  # If successful, break out of the loop and return
+        except UnAuthException as e:
+            print(f"Unauth Error: {e}")
+            raise e
         except Exception as e:
             print(f"Function crashed: {e}")
             if attempt == max_retries - 1:
