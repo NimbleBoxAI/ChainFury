@@ -712,7 +712,7 @@ class Chain:
         out += "\n  ],\n  edges: ["
         for e in self.edges:
             out += f"\n    {e},"
-        out += "\n  ]\n)"
+        out += f"\n  ]\n  main_in: {self.main_in}\n  main_out: {self.main_out}\n)"
         return out
 
     def to_dict(self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}) -> Dict[str, Any]:
@@ -747,7 +747,10 @@ class Chain:
         return cls.from_dict(json.loads(data))
 
     def __call__(
-        self, data: Union[str, Dict[str, Any]], thoughts_callback: Optional[Callable] = None, print_thoughts: bool = False
+        self,
+        data: Union[str, Dict[str, Any]],
+        thoughts_callback: Optional[Callable] = None,
+        print_thoughts: bool = False,
     ) -> Tuple[Var, Dict[str, Any]]:
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
@@ -772,22 +775,28 @@ class Chain:
             logger.debug(f"Processing node: {node_id}")
             logger.debug(f"Current full_ir: {set(full_ir.keys())}")
             _data = {}
-            for edge in incoming_edges:
-                # need to check if this information is available in the IR buffer, if it is not
-                # then this is an error
-                logger.debug(f"Incoming edge: {edge}")
-                for conns in edge.connections:
-                    req_key = f"{edge.src_node_id}/{conns[0]}"
-                    logger.debug(f"Looking for key: {req_key}")
-                    ir_value = full_ir.get(req_key, {}).get("value", None)
-                    if ir_value is None:
-                        raise ValueError(f"Missing value for {req_key}")
-                    _data[conns[1]] = ir_value
 
+            # first check if this node has any fields that are in the data
             all_keys = list(data.keys())
             for k in all_keys:
                 if node.has_field(k):
                     _data[k] = data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
+                elif k.startswith(node.id):
+                    _data[k.split("/", 1)[1]] = data.pop(k)  # pop this, it is not needed anymore
+
+            # then merge from the ir buffer
+            for edge in incoming_edges:
+                logger.debug(f"Incoming edge: {edge}")
+                for conns in edge.connections:
+                    req_key = f"{edge.src_node_id}/{conns[0]}"
+                    logger.debug(f"Looking for key: {req_key}")
+                    # need to check if this information is available in the IR buffer, if it is not then this is an error
+                    ir_value = data.get(req_key, None) or full_ir.get(req_key, {}).get("value", None)
+                    if ir_value is None:
+                        raise ValueError(f"Missing value for {req_key}")
+                    _data[conns[1]] = ir_value
+
+            # then run the node
             out, err = node(_data, print_thoughts=print_thoughts)
             if err:
                 logger.error("TRACE: {out}")

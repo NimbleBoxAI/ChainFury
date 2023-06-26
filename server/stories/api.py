@@ -47,7 +47,7 @@ class AuthAPI:
 
 class ChatbotAPI:
     def init(self, name: str, v: bool = False):
-        out = sess.post(f"{URL}/chatbot/", json={"name": name, "dag": {}, "engine": "fury"})
+        out = sess.post(f"{URL}/chatbot/", json={"name": name, "engine": "fury"})
         if v:
             print(out.json())
         return out.json()
@@ -58,8 +58,20 @@ class ChatbotAPI:
             print(out.json())
         return out.json()
 
-    def update(self, id: str, name: str, dag: dict = {"key": "value"}, v: bool = False):
-        update_req = {"name": name, "dag": dag, "update_keys": ["name", "dag"]}
+    def update(self, id: str, name: str, dag: bool = False, v: bool = False):
+        update_req = {"name": name, "update_keys": ["name"]}
+        if dag:
+            update_req["dag"] = {
+                "nodes": [
+                    {"id": "unq-1", "position": {"x": 0, "y": 0}, "type": "FuryEngineNode", "width": 128, "height": 128},
+                    {"id": "unq-2", "position": {"x": 0, "y": 0}, "type": "FuryEngineNode", "width": 128, "height": 128},
+                ],
+                "edges": [
+                    {"source": "unq-1", "sourceHandle": "t", "target": "unq-2", "targetHandle": "o", "id": "<IDK>"},
+                ],
+            }
+            update_req["update_keys"].append("dag")
+
         out = sess.put(f"{URL}/chatbot/{id}", json=update_req)
         if v:
             print(out.json())

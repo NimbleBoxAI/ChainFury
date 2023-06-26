@@ -1,13 +1,14 @@
 import database
 from datetime import datetime
-from typing import Annotated, List
+from typing import Annotated, List, Dict, Any
 from database import ChatBot, User, ChatBotTypes
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from fastapi.requests import Request
 from fastapi.responses import Response
 from pydantic import BaseModel
-from commons.utils import get_user_from_jwt, verify_user, get_user_id_from_jwt
+from commons.utils import get_user_from_jwt, verify_user
+from commons.types import Dag
 from commons import config as c
 
 logger = c.get_logger(__name__)
@@ -17,7 +18,8 @@ chatbot_router = APIRouter(prefix="/chatbot", tags=["chatbot"])
 
 class ChatBotDetails(BaseModel):
     name: str
-    dag: dict
+    dag: Dag = None  # type: ignore
+    description: str = ""
     id: str = ""
     created_at: datetime = None  # type: ignore
     engine: str = ""
@@ -51,10 +53,11 @@ def create_chatbot(
         return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
 
     # actually create
+    dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
     chatbot = ChatBot(
         name=chatbot_data.name,
         created_by=user.id,
-        dag=chatbot_data.dag,
+        dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
     )
@@ -111,18 +114,18 @@ def update_chatbot(
         return {"message": f"Invalid keys {unq_keys.difference(valid_keys)}"}
 
     # find and update
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
+    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
 
     for field in unq_keys:
         if field == "name":
-            chatbot.name = chatbot_data.name
+            chatbot.name = chatbot_data.name  # type: ignore
         elif field == "description":
-            chatbot.description = chatbot_data.description
+            chatbot.description = chatbot_data.description  # type: ignore
         elif field == "dag":
-            chatbot.dag = chatbot_data.dag
+            chatbot.dag = chatbot_data.dag.dict()  # type: ignore
 
     db.commit()
     db.refresh(chatbot)

@@ -241,21 +241,21 @@ def update_fury_action(
             update_dict.update(node.to_dict())
 
     # find object
-    fury_action: FuryActions = db.query(FuryActions).get(fury_action_id)
-    if not fury_action:
+    fury_action_out: FuryActions = db.query(FuryActions).get(fury_action_id)
+    if not fury_action_out:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
 
     # update object
     try:
-        fury_action.update_from_dict(update_dict)
+        fury_action_out.update_from_dict(update_dict)
         db.commit()
-        db.refresh(fury_action)
+        db.refresh(fury_action_out)
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 500
         return {"error": "Internal server error"}
-    return fury_action
+    return fury_action_out
 
 
 # D - Delete a FuryAction by ID
