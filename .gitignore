@@ -144,3 +144,4 @@ dunmp.rdb
 server/stories/fury.json
 notebooks/*
 stories/fury.json
+workers/

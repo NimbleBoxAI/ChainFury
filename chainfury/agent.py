@@ -8,6 +8,7 @@ This file contains methods and functions that are used to create an agent, i.e.
 """
 
 import copy
+from uuid import uuid4
 from typing import Any, List, Optional, Dict, Tuple
 
 import jinja2
@@ -258,20 +259,26 @@ class AIActionsRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_nodes: Dict[str, List[str]] = {}
 
-    def to_node(
+    def to_action(
         self,
-        node_id: str,
         model_id: str,
         model_params: Dict[str, Any],
         fn: object,
         outputs: Dict[str, Any],
+        node_id: str = "",
         description: str = "",
     ) -> Node:
         """
+        function to create an "Action" aka. `chainfury.Node`.
+
+        **NOTE:** If you do not pass `node_id` then this will create a `uudi4`. This behaviour is important when dev
+        wants to play with the action without commiting it anywhere.
+
         Args:
             outputs: This is a dict like `{'x': (-1, 'b', 'c')}`, if provided function returns a dictionary with key `x`
               and value automatically extracted from the model output at location `(-1, 'b', 'c')`.
         """
+        node_id = node_id or str(uuid4())
         model = model_registry.get(model_id)
         if model is None:
             raise Exception(f"Model {model_id} not found")
@@ -308,7 +315,7 @@ class AIActionsRegistry:
         logger.debug(f"Registering ai-node '{node_id}'")
         if node_id != AIActionsRegistry.DB_REGISTER and node_id in self.nodes:
             raise ValueError(f"ai-node '{node_id}' already exists")
-        node = self.to_node(
+        node = self.to_action(
             node_id=node_id,
             model_id=model_id,
             model_params=model_params,

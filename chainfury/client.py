@@ -151,6 +151,8 @@ def get_client(url="", token: str = "") -> SpecSubway:
     return SpecSubway.from_openapi(openapi, url, session)
 
 
-client = None
 if not os.environ.get("CF_NO_LOAD_CLIENT", False):
-    client = get_client()
+    cf_client = get_client()
+else:
+    logger.warning("CF_NO_LOAD_CLIENT is set, client will not be loaded")
+    cf_client = None

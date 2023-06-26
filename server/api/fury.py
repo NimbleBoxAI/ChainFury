@@ -241,21 +241,21 @@ def update_fury_action(
             update_dict.update(node.to_dict())
 
     # find object
-    fury_action: FuryActions = db.query(FuryActions).get(fury_action_id)
-    if not fury_action:
+    fury_action_db: FuryActions = db.query(FuryActions).get(fury_action_id)
+    if not fury_action_db:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
 
     # update object
     try:
-        fury_action.update_from_dict(update_dict)
+        fury_action_db.update_from_dict(update_dict)
         db.commit()
-        db.refresh(fury_action)
+        db.refresh(fury_action_db)
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 500
         return {"error": "Internal server error"}
-    return fury_action
+    return fury_action_db
 
 
 # D - Delete a FuryAction by ID
@@ -322,7 +322,7 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
         return None, resp
 
     try:
-        node: Node = ai_actions_registry.to_node(
+        node: Node = ai_actions_registry.to_action(
             node_id=str(uuid4()),
             model_id=fury_action.fn.model_id,
             model_params=fury_action.fn.model_params,
