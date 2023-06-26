@@ -13,6 +13,10 @@
 
 ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs. 
 
+[ChainFury- Create LLM ChatBots in 4 clicks!](https://medium.com/@chandranih/chainfury-create-llm-chatbots-in-4-clicks-3663538db8c6)
+
+[Why the Fury? Building a new flow engine from scratch](https://blog.nimblebox.ai/new-flow-engine-from-scratch)
+
 With a simple GUI inspired by [LangFlow](https://github.com/logspace-ai/langflow), ChainFury enables you to chain components of [LangChain](https://github.com/hwchase17/langchain) together, allowing you to embed more complex chat applications with a simple JS snippet.
 
 ChainFury supports a range of features, including but not limited to:
@@ -63,12 +67,12 @@ docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306
 cd client
 yarn install
 yarn build
+cd ..
 ```
 
 To copy the frontend to the backend, run the following command:
 
 ```bash
-cd ..
 cp -r client/dist/ server/static/
 mkdir -p ./server/templates
 cp ./client/dist/index.html ./server/templates/index.html

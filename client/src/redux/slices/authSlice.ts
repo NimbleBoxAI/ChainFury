@@ -40,9 +40,62 @@ export interface MetricsInterface {
   average_openai_ratings: number;
 }
 
+export interface FuryComponentInterface {
+  name: string;
+  id: string;
+  collection_name?: string;
+  type: string;
+  fn?: {
+    node_id: string;
+    model: {
+      collection_name: string;
+      id: string;
+      description: string;
+      tags: string[];
+      vars: any[];
+    };
+  };
+  description: string;
+  fields: Field[];
+  outputs: Output[];
+}
+
+export interface Field {
+  type: FieldType[] | AdditionalFieldType;
+  required?: boolean;
+  show?: boolean;
+  name: string;
+  placeholder?: string;
+  items?: Item[];
+  additionalProperties?: {
+    type: FieldType[] | AdditionalFieldType;
+    placeholder?: string;
+  };
+}
+
+interface Item {
+  type: FieldType[] | AdditionalFieldType;
+}
+
+export type AdditionalFieldType = 'string' | 'number' | 'boolean' | 'array' | 'object';
+
+interface FieldType {
+  name: string;
+  show: boolean;
+  type: AdditionalFieldType;
+  placeholder: string;
+}
+
+export interface Output {
+  type: FieldType[] | AdditionalFieldType;
+  name: string;
+  loc?: string[];
+}
+
 type AuthState = {
   accessToken: string;
   components: ComponentsInterface;
+  furyComponents: Record<string, { type: string; components: FuryComponentInterface[] }>;
   typesMap: Record<string, string[]>;
   chatBots: Record<string, ChatBots>;
   selectedChatBot: ChatBots;
@@ -60,6 +113,7 @@ const slice = createSlice({
   initialState: {
     accessToken: localStorage.getItem('accessToken') ?? '',
     components: {},
+    furyComponents: {},
     typesMap: {},
     chatBots: {},
     selectedChatBot: {} as ChatBots,
@@ -94,6 +148,25 @@ const slice = createSlice({
         typesMap[componentKey] = baseClasses;
       });
       state.typesMap = typesMap;
+    },
+    setFuryCompKey: (
+      state,
+      { payload: { key, component } }: PayloadAction<{ key: string; component: any }>
+    ) => {
+      const current = JSON.parse(JSON.stringify(state.furyComponents));
+      current[key] = {
+        components: component,
+        type: key
+      };
+      state.furyComponents = current;
+    },
+    setFuryComponents: (
+      state,
+      { payload: { furyComponents } }: PayloadAction<{ furyComponents: any }>
+    ) => {
+      const current = JSON.parse(JSON.stringify(state.furyComponents));
+      furyComponents['actions'] = current['actions'] || {};
+      state.furyComponents = furyComponents;
     },
     setChatBots: (state, { payload: { chatBots } }: PayloadAction<{ chatBots: ChatBots[] }>) => {
       const tempChatBots = {} as Record<string, ChatBots>;
@@ -142,7 +215,9 @@ export const {
   setSelectedChatBot,
   setPrompts,
   setTemplates,
-  setMetrics
+  setMetrics,
+  setFuryComponents,
+  setFuryCompKey
 } = slice.actions;
 
 export default slice.reducer;

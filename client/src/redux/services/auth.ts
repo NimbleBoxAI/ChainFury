@@ -127,6 +127,23 @@ export const authApi = createApi({
         method: 'GET'
       })
     }),
+    furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
+      query: () => ({
+        url: '/fury/',
+        method: 'GET'
+      })
+    }),
+    furyComponentDetails: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        component_type: string;
+      }
+    >({
+      query: ({ component_type }) => ({
+        url: `/fury/components/${component_type}`,
+        method: 'GET'
+      })
+    }),
     getPrompts: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -205,12 +222,14 @@ export const authApi = createApi({
         nodes: any;
         edges: any;
         token: string;
+        engine: string;
       }
     >({
       query: (credentials) => ({
         url: '/chatbot/',
         method: 'POST',
         body: {
+          engine: credentials.engine,
           name: credentials.name,
           dag: {
             nodes: credentials.nodes,
@@ -240,6 +259,38 @@ export const authApi = createApi({
           }
         }
       })
+    }),
+    newAction: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        description: string;
+        tags: [];
+        fn: {
+          model_id: string;
+          model_params: {};
+          fn: {};
+        };
+        outputs: [
+          {
+            type: string;
+            name: string;
+            loc: string;
+          }
+        ];
+      }
+    >({
+      query: (credentials) => ({
+        url: `/fury/actions/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+    getActions: builder.mutation<DEFAULT_RESPONSE, {}>({
+      query: () => ({
+        url: `/fury/actions/`,
+        method: 'GET'
+      })
     })
   })
 });
@@ -259,5 +310,9 @@ export const {
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation
+  useGetAllBotMetricsMutation,
+  useFuryComponentsMutation,
+  useFuryComponentDetailsMutation,
+  useNewActionMutation,
+  useGetActionsMutation
 } = authApi;

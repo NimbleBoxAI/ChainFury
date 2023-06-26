@@ -14,6 +14,7 @@ from chainfury import (
     Edge,
 )
 
+
 def _get_openai_token() -> str:
     openai_token = os.environ.get("OPENAI_TOKEN", "")
     if not openai_token:
@@ -58,14 +59,12 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def callai(self, jtype: bool = False, fail: bool = False):
+    def callai(self, fail: bool = False):
         """Call the AI action"""
         if fail:
             action_id = "write-a-poem"
         else:
             action_id = "hello-world"
-            if jtype:
-                action_id += "-2"
         action = ai_actions_registry.get(action_id)
         # print(action)
 
@@ -83,19 +82,16 @@ class _Nodes:
             return
         print("OUT:", out)
 
-    def callai_chat(self, jtype: bool = False):
+    def callai_chat(self, character: str = "a mexican taco"):
         """Call the AI action"""
-        action_id = "chat-sum-numbers"
-        if jtype:
-            action_id += "-2"
+        action_id = "deep-rap-quote"
         action = ai_actions_registry.get(action_id)
         print("ACTION:", action)
 
         out, err = action(
             {
                 "openai_api_key": _get_openai_token(),
-                "num1": "a mexican taco",
-                "num2": "a spicy korean noodle",
+                "character": character,
             },
         )
         if err:
@@ -185,9 +181,9 @@ class _Chain:
     def calljj(self):
         j1 = ai_actions_registry.get("hello-world")
         print("ACTION:", j1)
-        j2 = ai_actions_registry.get("write-a-poem")
+        j2 = ai_actions_registry.get("deep-rap-quote")
         print("ACTION:", j2)
-        e = Edge(j1.id, j2.id, ("generation", "message"))
+        e = Edge(j1.id, j2.id, ("generations", "character"))
         c = Chain([j1, j2], [e])
         print("CHAIN:", c)
 
@@ -196,7 +192,6 @@ class _Chain:
             {
                 "openai_api_key": _get_openai_token(),
                 "message": "hello world",
-                "style": "snoop dogg",
             }
         )
         print("BUFF:", pformat(full_ir))

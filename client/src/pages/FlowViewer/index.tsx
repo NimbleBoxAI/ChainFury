@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -13,15 +13,18 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { ChainFuryNode } from '../../components/ChainFuryNode';
+import { FuryEngineNode } from '../../components/FuryEngineNode';
 import ChatComp from '../../components/ChatComp';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
 import {
   useComponentsMutation,
   useCreateBotMutation,
-  useEditBotMutation
+  useEditBotMutation,
+  useFuryComponentDetailsMutation,
+  useFuryComponentsMutation
 } from '../../redux/services/auth';
-import { setComponents } from '../../redux/slices/authSlice';
+import { setComponents, setFuryComponents } from '../../redux/slices/authSlice';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 
@@ -37,17 +40,20 @@ const FlowViewer = () => {
   };
   const [botName, setBotName] = useState('' as string);
   const [getComponents] = useComponentsMutation();
+  const [getFullComponents] = useFuryComponentsMutation();
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [templateId, setTemplateId] = useState('' as string);
   const [createBot] = useCreateBotMutation();
   const [editBot] = useEditBotMutation();
-  const navigate = useNavigate();
+  const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
+  const [engine, setEngine] = useState('' as '' | 'fury' | 'langflow');
 
   useEffect(() => {
+    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langflow') || 'langflow');
     if (location.search?.includes('?bot=') && flow_id === 'new') {
-      setBotName(location.search.split('?bot=')[1]);
+      setBotName(location.search.split('?bot=')[1]?.split('&engine=')[0]);
       setVariant('new');
       setNodes([]);
       setEdges([]);
@@ -59,8 +65,11 @@ const FlowViewer = () => {
     } else {
       setVariant('edit');
     }
-    fetchComponents();
   }, [location]);
+
+  useEffect(() => {
+    if (engine) fetchComponents();
+  }, [engine]);
 
   useEffect(() => {
     if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
@@ -70,18 +79,48 @@ const FlowViewer = () => {
   }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
   const fetchComponents = async () => {
-    getComponents()
-      .unwrap()
-      .then((res) => {
-        dispatch(
-          setComponents({
-            components: res
+    if (engine !== 'fury')
+      getComponents()
+        .unwrap()
+        .then((res) => {
+          dispatch(
+            setComponents({
+              components: res
+            })
+          );
+        })
+        ?.catch(() => {
+          alert('Error fetching components');
+        });
+    else {
+      const furyConfig = await getFullComponents().unwrap();
+      const components = {} as any;
+      if (furyConfig?.components) {
+        for (let i = 0; i < furyConfig?.components?.length; i++) {
+          await furyCompDetails({
+            component_type: furyConfig?.components[i]
           })
-        );
-      })
-      ?.catch(() => {
-        alert('Error fetching components');
-      });
+            .unwrap()
+            .then((res) => {
+              console.log({ [furyConfig?.components[i]]: res });
+              components[furyConfig?.components[i]] = {
+                components: Object.values(res),
+                type: furyConfig?.components[i]
+              };
+            });
+        }
+      }
+      if (furyConfig?.actions) {
+        components['actions'] = {
+          components: []
+        };
+      }
+      dispatch(
+        setFuryComponents({
+          furyComponents: components
+        })
+      );
+    }
   };
 
   const onConnect = useCallback(
@@ -141,7 +180,7 @@ const FlowViewer = () => {
   );
 
   const createChatBot = () => {
-    createBot({ name: botName, nodes, edges, token: auth?.accessToken })
+    createBot({ name: botName, nodes, edges, token: auth?.accessToken, engine: engine })
       .unwrap()
       ?.then((res) => {
         if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
@@ -220,30 +259,41 @@ const FlowViewer = () => {
         </Button>
       </div>
       {!loading ? (
-        <ReactFlowProvider>
-          <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
-            <ReactFlow
-              nodeTypes={nodeTypes}
-              proOptions={{ hideAttribution: true }}
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onInit={setReactFlowInstance}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              fitView={true}
-              defaultViewport={{
-                zoom: 0.8,
-                y: 0,
-                x: 0
-              }}
-            >
-              <Controls />
-            </ReactFlow>
-          </div>
-        </ReactFlowProvider>
+        engine === 'langflow' ? (
+          <ReactFlowProvider>
+            <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
+              <ReactFlow
+                nodeTypes={nodeTypes}
+                proOptions={{ hideAttribution: true }}
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                onInit={setReactFlowInstance}
+                onDrop={onDrop}
+                onDragOver={onDragOver}
+                fitView={true}
+                defaultViewport={{
+                  zoom: 0.8,
+                  y: 0,
+                  x: 0
+                }}
+              >
+                <Controls />
+              </ReactFlow>
+            </div>
+          </ReactFlowProvider>
+        ) : (
+          <FuryFlowViewer
+            nodes={nodes}
+            setNodes={setNodes}
+            onNodesChange={onNodesChange}
+            edges={edges}
+            setEdges={setEdges}
+            onEdgesChange={onEdgesChange}
+          />
+        )
       ) : (
         ''
       )}
@@ -259,3 +309,105 @@ const FlowViewer = () => {
 };
 
 export default FlowViewer;
+
+export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
+
+const FuryFlowViewer = ({
+  nodes,
+  setNodes,
+  onNodesChange,
+  edges,
+  setEdges,
+  onEdgesChange
+}: {
+  nodes: any;
+  setNodes: any;
+  onNodesChange: any;
+  edges: any;
+  setEdges: any;
+  onEdgesChange: any;
+}) => {
+  const reactFlowWrapper = useRef(null) as any;
+  const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
+
+  const onDrop = useCallback(
+    (event: {
+      preventDefault: () => void;
+      dataTransfer: { getData: (arg0: string) => any };
+      clientX: number;
+      clientY: number;
+    }) => {
+      event.preventDefault();
+      if (reactFlowInstance?.project && reactFlowWrapper?.current) {
+        let type = event.dataTransfer.getData('application/reactflow');
+        const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
+        const nodeData = JSON.parse(type);
+        const position = reactFlowInstance?.project({
+          x: event.clientX - reactFlowBounds.left,
+          y: event.clientY - reactFlowBounds.top
+        });
+        const newNode = {
+          id: nodeData.id,
+          position,
+          type: 'FuryEngineNode',
+          data: {
+            type: nodeData.type,
+            node: nodeData,
+            id: nodeData.id,
+            value: null,
+            deleteMe: () => {
+              setNodes((nds: any[]) =>
+                nds.filter((delnode: { id: any }) => delnode.id !== nodeData.id)
+              );
+            }
+          }
+        } as any;
+
+        setNodes((nds: string | any[]) => nds.concat(newNode));
+      }
+    },
+    [reactFlowInstance]
+  );
+
+  const onDragOver = useCallback(
+    (event: { preventDefault: () => void; dataTransfer: { dropEffect: string } }) => {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+    },
+    []
+  );
+
+  const onConnect = useCallback(
+    (params: Edge<any> | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)),
+    []
+  );
+
+  return (
+    <>
+      <ReactFlowProvider>
+        <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodeTypes={furyNodeTypes}
+            proOptions={{ hideAttribution: true }}
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onInit={setReactFlowInstance}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            fitView={true}
+            defaultViewport={{
+              zoom: 0.8,
+              y: 0,
+              x: 0
+            }}
+          >
+            <Controls />
+          </ReactFlow>
+        </div>
+      </ReactFlowProvider>
+    </>
+  );
+};

@@ -2,9 +2,7 @@ echo "######\n>      python3 -m stories.fury_form\n######" && python3 -m stories
 
 echo "######\n>      python3 -m stories.fury_core nodes callm\n######" && python3 -m stories.fury_core nodes callm
 echo "######\n>      python3 -m stories.fury_core nodes callai\n######" && python3 -m stories.fury_core nodes callai
-echo "######\n>      python3 -m stories.fury_core nodes callai\n######" && python3 -m stories.fury_core nodes callai --jtype
 echo "######\n>      python3 -m stories.fury_core nodes callai_chat\n######" && python3 -m stories.fury_core nodes callai_chat
-echo "######\n>      python3 -m stories.fury_core nodes callai_chat\n######" && python3 -m stories.fury_core nodes callai_chat --jtype
 
 QUOTE="to great men and women who defined a new era for humanity!"
 

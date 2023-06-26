@@ -197,7 +197,7 @@ class Template(Base):
 
 class FuryActions(Base):
     __tablename__ = "fury_actions"
-    id: str = Column(String(36), primary_key=True)
+    id: Column = Column(String(36), primary_key=True)
     created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
     type: str = Column(String(80), nullable=False)  # the AI Action type
     name: str = Column(String(80), unique=False)
