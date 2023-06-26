@@ -309,17 +309,17 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
     # if the function is to be updated then perform the full validation same as when creating a new action
     if len(fury_action.outputs) != 1:
         resp.status_code = 400
-        resp.body = {"error": "Only one output must be provided when modifying the function"}
-        return None, resp
+        resp.body = {"error": "Only one output must be provided when modifying the function"}  # type: ignore
+        return None, resp  # type: ignore
 
     try:
-        fury_action.outputs = fury_action.outputs[0].dict()
-        fury_action.outputs = {fury_action.outputs["name"]: fury_action.outputs["loc"]}
+        fury_action.outputs = fury_action.outputs[0].dict()  # type: ignore
+        fury_action.outputs = {fury_action.outputs["name"]: fury_action.outputs["loc"]}  # type: ignore
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 400
-        resp.body = {"error": f"Cannot parse outputs: {e}"}
-        return None, resp
+        resp.body = {"error": f"Cannot parse outputs: {e}"}  # type: ignore
+        return None, resp  # type: ignore
 
     try:
         node: Node = ai_actions_registry.to_action(
@@ -333,7 +333,7 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
     except Exception as e:
         logger.exception(traceback.format_exc())
         resp.status_code = 400
-        resp.body = {"error": str(e)}
-        return None, resp
+        resp.body = {"error": str(e)}  # type: ignore
+        return None, resp  # type: ignore
 
-    return node, None
+    return node, None  # type: ignore

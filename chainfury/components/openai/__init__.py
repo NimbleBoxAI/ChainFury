@@ -1,7 +1,7 @@
 import requests
 from typing import Any, List, Union, Dict
 
-from chainfury import Secret, model_registry, exponential_backoff, Model
+from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
 
 
 def openai_completion(
@@ -82,6 +82,8 @@ def openai_completion(
                 "user": user,
             },
         )
+        if r.status_code == 401:
+            raise UnAuthException(r.text)
         if r.status_code != 200:
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()
@@ -161,6 +163,8 @@ def openai_chat(
                 "user": user,
             },
         )
+        if r.status_code == 401:
+            raise UnAuthException(r.text)
         if r.status_code != 200:
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()

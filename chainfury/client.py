@@ -1,10 +1,25 @@
 import os
 import requests
-from chainfury.base import logger
+from chainfury.utils import logger
 
 
-class SpecSubway:
-    """Subway but for fastAPI OpenAPI spec."""
+class Subway:
+    """Subway provides a package based interface to any fastAPI server with validations in a realtime using
+    OpenAPI specification. This is inspired from gRPC style functional calls which hide the underlying complexity
+    of networking.
+
+    Note:
+        Use the **Subway.from_openapi** to instantiate. This class is **not meant to be instantiated directly**.
+
+    Example:
+        >>> from chainfury.client import Subway
+        >>> from requests import Session
+        >>> session = Session()
+        >>> session.headers.update({"token": token})
+        >>> stub = Subway.from_openapi("localhost:8080", session)
+        >>> resource = stub.api.v1.workspace.u('9jshufhsi')
+        >>> resource()
+    """
 
     def __init__(self, _url: str, _session: requests.Session, _spec, __name=None):
         self._url = _url.rstrip("/")
@@ -19,7 +34,14 @@ class SpecSubway:
         )
 
     @classmethod
-    def from_openapi(cls, openapi, _url, _session):
+    def from_openapi(cls, _url: str, _session: requests.Session):
+        """Build the Subway client from the OpenAPI specification of the server
+
+        Args:
+            _url (str): URL of the server
+            _session (requests.Session): Session object to be used for making requests
+        """
+        openapi = _session.get(f"{_url}/openapi.json").json()
         logger.debug("Loading for OpenAPI version latest")
         paths = openapi["paths"]
         spec = openapi["components"]["schemas"]
@@ -71,17 +93,23 @@ class SpecSubway:
         return cls(_url, _session, tree)
 
     def __repr__(self):
-        return f"<SpecSubway ({self._url})>"
+        return f"<Subway ({self._url})>"
 
-    def __getattr__(self, attr) -> "SpecSubway":
+    def __getattr__(self, attr) -> "Subway":
         # https://stackoverflow.com/questions/3278077/difference-between-getattr-vs-getattribute
         if self._caller and len(self._spec) == 1:
             raise AttributeError(f"'.{self._name}' does not have children")
         if attr not in self._spec:
             raise AttributeError(f"'.{attr}' is not a valid function")
-        return SpecSubway(f"{self._url}/{attr}", self._session, self._spec[attr], attr)
+        return Subway(f"{self._url}/{attr}", self._session, self._spec[attr], attr)
 
     def u(self, attr):
+        """In cases where the attibute might start with a number, this method can be used to access the attribute.
+
+        Example:
+            >>> stub.9jisjfi      # python will cry
+            >>> stub.u('9jisjfi') # do this instead
+        """
         return self.__getattr__(attr)
 
     def __call__(self, *args, _verbose=False, _parse=False, **kwargs):
@@ -137,7 +165,15 @@ class SpecSubway:
         return out
 
 
-def get_client(url="", token: str = "") -> SpecSubway:
+def get_client(url="", token: str = "") -> Subway:
+    """This function returns a Subway object that can be used to interact with the API.
+
+    Example:
+        >>> from chainfury import get_client
+        >>> client = get_client()
+        >>> cf_actions = client.api.v1.fury.actions.list()
+        >>> cf_actions
+    """
     url = url or os.environ.get("CF_URL", "")
     if not url:
         raise ValueError("No url provided, please set CF_URL environment variable or pass url as argument")
@@ -147,12 +183,11 @@ def get_client(url="", token: str = "") -> SpecSubway:
 
     session = requests.Session()
     session.headers.update({"token": token})
-    openapi = session.get(f"{url}/openapi.json").json()
-    return SpecSubway.from_openapi(openapi, url, session)
+    return Subway.from_openapi(url, session)
 
 
-if not os.environ.get("CF_NO_LOAD_CLIENT", False):
-    cf_client = get_client()
-else:
-    logger.warning("CF_NO_LOAD_CLIENT is set, client will not be loaded")
-    cf_client = None
+# if not os.environ.get("CF_NO_LOAD_CLIENT", False):
+#     cf_client = get_client()
+# else:
+#     logger.warning("CF_NO_LOAD_CLIENT is set, client will not be loaded")
+#     cf_client = None

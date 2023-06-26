@@ -1,4 +1,4 @@
-from chainfury import ai_actions_registry, cf_client
+# from chainfury import ai_actions_registry, cf_client
 
 # make an action
 sensational_story = ai_actions_registry.to_action(
@@ -20,5 +20,5 @@ sensational_story = ai_actions_registry.to_action(
 )
 
 #
-sensational_story = cf_client.get_or_create_node(sensational_story)
+# sensational_story = cf_client.get_or_create_node(sensational_story)
 out = sensational_story("there are times, when I don't know what to do!")
