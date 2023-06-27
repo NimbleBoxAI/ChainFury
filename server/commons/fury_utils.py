@@ -2,7 +2,7 @@ import time
 import traceback
 from functools import partial
 from fastapi import HTTPException
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List, Dict, Any, Generator, Union
 
 from database import ChatBot, Prompt, Session, FuryActions
 from schemas.prompt_schema import Prompt as PromptSchema
@@ -102,7 +102,13 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
     return out
 
 
-def get_streaming_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, start: float, stream: bool = False) -> CFPromptResult:
+def get_streaming_prompt(
+    chatbot: ChatBot,
+    prompt: PromptSchema,
+    db: Session,
+    start: float,
+    stream: bool = False,
+) -> Generator[Tuple[Union[CFPromptResult, Dict[str, Any]], bool], None, None]:
     try:
         logger.debug("Adding prompt to database")
         prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
@@ -120,7 +126,7 @@ def get_streaming_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, st
                 yield ir, False
             else:
                 mainline_out = ir
-                yield ir, True
+                yield ir, False
 
         result = CFPromptResult(
             result=str(mainline_out),
@@ -136,9 +142,8 @@ def get_streaming_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, st
         prompt_row.num_tokens = result.num_tokens  # type: ignore
         db.commit()
 
-        # result["prompt_id"] = prompt_row.id
         logger.debug("Processed graph")
-        yield result, True
+        yield result.to_dict(), True
 
     except Exception as e:
         traceback.print_exc()

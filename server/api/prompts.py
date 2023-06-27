@@ -1,9 +1,10 @@
 import time
+import json
 import logging
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.requests import Request
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from typing import Annotated, Any, Tuple, Dict
 from pydantic import BaseModel
 from schemas.prompt_schema import Prompt
@@ -70,13 +71,28 @@ def process_prompt(
     # call the engine
     result = call_engine(chatbot_id=chatbot_id, prompt=prompt, db=db, stream=stream)
 
-    # manage any callbacks
-    ph = get_phandler()
-    ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))
+    # # manage any callbacks
+    # ph = get_phandler()
+    # ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))
 
-    out = result.__dict__
-    out.pop("prompt")
-    return out
+    def _get_streaming_response(result):
+        for ir, done in result:
+            if done:
+                result = {**ir, "done": done}
+            else:
+                if type(ir) == str:
+                    ir = {"main_out": ir}
+                result = {**ir, "done": done}
+            yield json.dumps(result) + "\n"
+
+    if stream:
+        return StreamingResponse(
+            content=_get_streaming_response(result),
+        )
+    else:
+        out = result.__dict__
+        out.pop("prompt")
+        return out
 
 
 class InternalFeedbackModel(BaseModel):

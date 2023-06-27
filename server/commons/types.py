@@ -14,3 +14,11 @@ class CFPromptResult:
     num_tokens: int
     prompt_id: int
     prompt: PromptModel
+
+    def to_dict(self):
+        return {
+            "result": self.result,
+            "thought": self.thought,
+            "num_tokens": self.num_tokens,
+            "prompt_id": self.prompt_id,
+        }
