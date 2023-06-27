@@ -180,18 +180,20 @@ const FlowViewer = () => {
   );
 
   const createChatBot = () => {
-    createBot({ name: botName, nodes, edges, token: auth?.accessToken, engine: engine })
-      .unwrap()
-      ?.then((res) => {
-        if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
-        else {
+    TranslateNodes(nodes);
+    if (engine === 'langflow')
+      createBot({ name: botName, nodes, edges, token: auth?.accessToken, engine: engine })
+        .unwrap()
+        ?.then((res) => {
+          if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
+          else {
+            alert('Error creating bot');
+          }
+        })
+        .catch((err) => {
+          console.log(err);
           alert('Error creating bot');
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        alert('Error creating bot');
-      });
+        });
   };
 
   const createNodesForExistingBot = () => {
@@ -410,4 +412,20 @@ const FuryFlowViewer = ({
       </ReactFlowProvider>
     </>
   );
+};
+
+const TranslateNodes = (nodes: any) => {
+  let sample = {} as Record<string, any>;
+  nodes.forEach((node: any) => {
+    const passKeys = [] as string[];
+    node?.data?.node?.fields?.forEach((field: any) => {
+      if (field?.password) passKeys.push(field?.name);
+    });
+    Object?.entries(node?.data?.node?.fn?.model_params).forEach(([key, value]) => {
+      console.log(key, value);
+
+      sample[`${!(passKeys.includes(key) && !sample[key]) ? node?.id + '/' : ''}${key}`] = value;
+    });
+  });
+  console.log({ sample });
 };

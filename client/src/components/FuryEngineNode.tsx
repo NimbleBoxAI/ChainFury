@@ -140,7 +140,7 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
                     <Handle
                       type={'source'}
                       // position={left ? Position.Left : Position.Right}
-                      id={'id' + key}
+                      id={output?.name}
                       isValidConnection={(connection) => {
                         // const sourceArr = connection?.sourceHandle?.split('|')?.filter((t) => t !== '') ?? [];
                         // const targetArr = connection?.targetHandle?.split('|')?.filter((t) => t !== '') ?? [];
