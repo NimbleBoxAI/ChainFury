@@ -2,6 +2,7 @@
 
 # make an action
 sensational_story = ai_actions_registry.to_action(
+    name="sensational_story",
     model_id="openai-chat",
     model_params={
         "model": "gpt-3.5-turbo",

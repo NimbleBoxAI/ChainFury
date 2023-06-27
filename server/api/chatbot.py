@@ -13,7 +13,7 @@ from commons import config as c
 
 logger = c.get_logger(__name__)
 
-chatbot_router = APIRouter(prefix="/chatbot", tags=["chatbot"])
+chatbot_router = APIRouter(tags=["chatbot"])
 
 
 class ChatBotDetails(BaseModel):

@@ -45,14 +45,25 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
 
     # get all the actions by querying the db
     dag_nodes = dag.nodes
-    cf_action_ids = list(set([x.cf_id for x in dag_nodes]))
+    cf_action_ids = set()
+    actions_map = dict()
+    for x in dag_nodes:
+        if not x.cf_id and not x.cf_data:
+            raise HTTPException(status_code=400, detail=f"Action {x.id} has no cf_id or cf_data")
+        if x.cf_data:
+            actions_map[x.id] = x.cf_data
+        else:
+            cf_action_ids.add(x.cf_id)
     actions: List[FuryActions] = db.query(FuryActions).filter(FuryActions.id.in_(cf_action_ids)).all()
-    actions_map = {str(x.id): x.to_dict() for x in actions}
+    actions_map.update({str(x.id): x.to_dict() for x in actions})
     for node in dag_nodes:
-        if not node.cf_id:
-            raise HTTPException(status_code=400, detail=f"Action {node.id} has no cf_id")
-
         cf_action = actions_map.get(node.cf_id, None)
+        if node.cf_data:
+            cf_action = Node.from_dict(node.cf_data)
+        elif node.cf_id:
+            cf_action = actions_map.get(node.cf_id, None)
+        else:
+            raise HTTPException(status_code=400, detail=f"Action {node.id} has no cf_id or cf_data")
 
         # check if this action is in the registry
         if not cf_action:
@@ -79,7 +90,7 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
     for edge in dag_edges:
         if not (edge.source and edge.target and edge.sourceHandle and edge.targetHandle):
             raise HTTPException(status_code=400, detail=f"Invalid edge {edge}")
-        edges.append(Edge(edge.source, edge.target, (edge.sourceHandle, edge.targetHandle)))
+        edges.append(Edge(edge.source, edge.sourceHandle, edge.target, edge.targetHandle))
 
     out = Chain(
         nodes=nodes,
@@ -89,6 +100,50 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
         main_out=dag.main_out,
     )
     return out
+
+
+def get_streaming_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, start: float, stream: bool = False) -> CFPromptResult:
+    try:
+        logger.debug("Adding prompt to database")
+        prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
+
+        # Create a Fury chain then run the chain while logging all the intermediate steps
+        # prompt.chat_history
+        chain = convert_chatbot_dag_to_fury_chain(chatbot=chatbot, db=db)
+        callback = FuryThoughts(db, prompt_row.id)
+        iterator = chain.stream(prompt.new_message, thoughts_callback=callback, print_thoughts=False)
+        full_ir = {}
+        mainline_out = ""
+        for ir, done in iterator:
+            if not done:
+                full_ir.update(ir)
+                yield ir, False
+            else:
+                mainline_out = ir
+                yield ir, True
+
+        result = CFPromptResult(
+            result=str(mainline_out),
+            thought=[{"engine": "fury", "ir_steps": callback.count, "thoughts": list(full_ir.keys())}],
+            num_tokens=1,
+            prompt=prompt_row,
+            prompt_id=prompt_row.id,  # type: ignore
+        )
+
+        # commit the prompt to DB
+        prompt_row.response = result.result  # type: ignore
+        prompt_row.time_taken = float(time.time() - start)  # type: ignore
+        prompt_row.num_tokens = result.num_tokens  # type: ignore
+        db.commit()
+
+        # result["prompt_id"] = prompt_row.id
+        logger.debug("Processed graph")
+        yield result, True
+
+    except Exception as e:
+        traceback.print_exc()
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 def get_prompt(chatbot: ChatBot, prompt: PromptSchema, db: Session, start: float) -> CFPromptResult:

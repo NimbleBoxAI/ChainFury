@@ -21,7 +21,8 @@ def openai_completion(
     logit_bias: dict = {},
     user: str = "",
     *,
-    raw: bool = False,
+    retry_count: int = 3,
+    retry_delay: int = 1,
 ) -> Dict[str, Any]:
     """
     Generate text completion using OpenAI's GPT-3 API.
@@ -88,7 +89,7 @@ def openai_completion(
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()
 
-    return exponential_backoff(_fn)
+    return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
 
 
 model_registry.register(
@@ -116,8 +117,8 @@ def openai_chat(
     logit_bias: dict = {},
     user: str = "",
     *,
-    retry_count: int = 5,
-    max_retry_delay: int = 5,
+    retry_count: int = 3,
+    retry_delay: int = 1,
 ) -> Any:
     """
     Returns a JSON object containing the OpenAI's API chat response.
@@ -169,7 +170,7 @@ def openai_chat(
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()
 
-    return exponential_backoff(_fn)
+    return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
 
 
 model_registry.register(

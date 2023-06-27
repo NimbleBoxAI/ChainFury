@@ -35,8 +35,8 @@ def _get_nbx_token() -> Dict[str, str]:
 
 
 class Actions:
-    topic_to_synopsis = ai_actions_registry.register(
-        node_id="topic-to-synopsis",
+    topic_to_synopsis = ai_actions_registry.to_action(
+        action_name="topic-to-synopsis",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -70,8 +70,8 @@ class Actions:
         },
     )
 
-    sensational_story = ai_actions_registry.register(
-        node_id="sensation-story",
+    sensational_story = ai_actions_registry.to_action(
+        action_name="sensation-story",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -89,8 +89,8 @@ class Actions:
         },
     )
 
-    sensational_story_nbx = ai_actions_registry.register(
-        node_id="sensation-story-nbx",
+    sensational_story_nbx = ai_actions_registry.to_action(
+        action_name="sensation-story-nbx",
         model_id="nbx-deploy",
         model_params={
             "max_new_tokens": 256,
@@ -103,8 +103,8 @@ class Actions:
         },
     )
 
-    sensational_story_generator = ai_actions_registry.register(
-        node_id="story-multi-generator",
+    sensational_story_generator = ai_actions_registry.to_action(
+        action_name="story-multi-generator",
         model_id="openai-completion",
         model_params={
             "model": "text-babbage-001",
@@ -122,8 +122,8 @@ sub-headline: {{ sub_headline }}
         outputs={"story": ["choices", 0, "text"]},
     )
 
-    catchy_headline = ai_actions_registry.register(
-        node_id="catchy-headline",
+    catchy_headline = ai_actions_registry.to_action(
+        action_name="catchy-headline",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -141,8 +141,8 @@ sub-headline: {{ sub_headline }}
         },
     )
 
-    corrupt_editor_check = ai_actions_registry.register(
-        node_id="passes-editor",
+    corrupt_editor_check = ai_actions_registry.to_action(
+        action_name="passes-editor",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -180,8 +180,8 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
         },
     )
 
-    people_feedback = ai_actions_registry.register(
-        node_id="people-feedback",
+    people_feedback = ai_actions_registry.to_action(
+        action_name="people-feedback",
         model_id="openai-chat",
         model_params={
             "model": "gpt-3.5-turbo",
@@ -225,7 +225,7 @@ class Chains:
     news = Chain(
         [Actions.sensational_story, Actions.catchy_headline],
         [
-            Edge(Actions.sensational_story.id, Actions.catchy_headline.id, ("story", "story")),
+            Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
         sample={"openai_api_key": _get_openai_token(), "scene": ""},
         main_in="scene",
@@ -235,8 +235,8 @@ class Chains:
     topic_to_story = Chain(
         [Actions.topic_to_synopsis, Actions.sensational_story, Actions.catchy_headline],
         [
-            Edge(Actions.topic_to_synopsis.id, Actions.sensational_story.id, ("synopsis", "scene")),
-            Edge(Actions.sensational_story.id, Actions.catchy_headline.id, ("story", "story")),
+            Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story.id, "scene"),
+            Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
         sample={"openai_api_key": _get_openai_token(), "topics": ""},
         main_in="topics",
@@ -251,10 +251,10 @@ class Chains:
             Actions.sensational_story_generator,
         ],
         [
-            Edge(Actions.topic_to_synopsis.id, Actions.sensational_story.id, ("synopsis", "scene")),
-            Edge(Actions.sensational_story.id, Actions.catchy_headline.id, ("story", "story")),
-            Edge(Actions.catchy_headline.id, Actions.sensational_story_generator.id, ("headline", "headline")),
-            Edge(Actions.topic_to_synopsis.id, Actions.sensational_story_generator.id, ("synopsis", "sub_headline")),
+            Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story.id, "scene"),
+            Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
+            Edge(Actions.catchy_headline.id, "headline", Actions.sensational_story_generator.id, "headline"),
+            Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story_generator.id, "sub_headline"),
         ],
         sample={"openai_api_key": _get_openai_token(), "topics": ""},
         main_in="topics",
@@ -263,7 +263,7 @@ class Chains:
 
     good_story = Chain(
         [Actions.sensational_story, Actions.corrupt_editor_check],
-        [Edge(Actions.sensational_story.id, Actions.corrupt_editor_check.id, ("story", "story"))],  # type: ignore
+        [Edge(Actions.sensational_story.id, "story", Actions.corrupt_editor_check.id, "story")],  # type: ignore
         sample={"openai_api_key": _get_openai_token(), "scene": ""},
         main_in="scene",
         main_out=f"{Actions.corrupt_editor_check.id}/story_accepted",
@@ -348,7 +348,7 @@ class TreeOfThought:
                 print(" OUT:", out)
 
             # get feedback for the node
-            feedback, _ = Chains.feedback(thoughts["sensation-story/story"]["value"])  # type: ignore
+            feedback, _ = Chains.feedback(thoughts[f"{Actions.sensational_story.id}/story"]["value"])  # type: ignore
             if v:
                 print("FDBK:", feedback)
 

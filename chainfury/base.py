@@ -4,7 +4,7 @@ import inspect
 import datetime
 import traceback
 from pprint import pformat
-from typing import Any, Union, Optional, Dict, List, Tuple, Callable
+from typing import Any, Union, Optional, Dict, List, Tuple, Callable, Generator
 from collections import deque, defaultdict
 
 import jinja2schema
@@ -686,13 +686,16 @@ class Node:
         from chainfury.agent import AIAction
 
         fn = {}
+        name = self.id
         if isinstance(self.fn, AIAction):
             fn = self.fn.to_dict(no_vars=True)
+            name = fn.pop("action_name")
 
         return {
             "id": self.id,
             "type": self.type,
             "fn": fn,
+            "name": name,
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
             "outputs": [o.to_dict() for o in self.outputs],
@@ -797,30 +800,29 @@ class Node:
 
 
 class Edge:
-    def __init__(self, src_node_id: str, trg_node_id: str, *connections: Tuple[str, str]):
-        """Creates an edge between two nodes.
+    """Creates an edge between two nodes.
 
-        Args:
-            src_node_id (str): The id of the source node.
-            trg_node_id (str): The id of the target node.
-            *connections (Tuple[str, str]): The Var names between the source and target node.
-        """
-        # some basic checks
-        for c in connections:
-            assert isinstance(c, (tuple, list)), f"Invalid connection: {c}"
-            assert len(c) == 2, f"Invalid connection: {c}"
-            assert isinstance(c[0], str), f"Invalid connection: {c}"
-            assert isinstance(c[1], str), f"Invalid connection: {c}"
+    Args:
+        src_node_id (str): The id of the source node.
+        src_node_var (str): The name of the source node variable.
+        trg_node_id (str): The id of the target node.
+        trg_node_var (str): The name of the target node variable.
+    """
 
+    def __init__(
+        self,
+        src_node_id: str,
+        src_node_var: str,
+        trg_node_id: str,
+        trg_node_var,
+    ):
         self.src_node_id = src_node_id
         self.trg_node_id = trg_node_id
-        self.connections = connections
+        self.src_node_var = src_node_var
+        self.trg_node_var = trg_node_var
 
     def __repr__(self) -> str:
-        out = f"FuryEdge('{self.src_node_id}' => '{self.trg_node_id}',"
-        for c in self.connections:
-            out += f"\n  {c[0]} -> {c[1]},"
-        out += "\n)"
+        out = f"FuryEdge('{self.src_node_id}/{self.src_node_var}' => '{self.trg_node_id}/{self.trg_node_var}')"
         return out
 
     def to_dict(self) -> Dict[str, Any]:
@@ -830,9 +832,10 @@ class Edge:
             Dict[str, Any]: The dictionary representation of the edge.
         """
         return {
-            "src_node_id": self.src_node_id,
-            "trg_node_id": self.trg_node_id,
-            "connections": self.connections,
+            "source": self.src_node_id,
+            "sourceHandle": self.src_node_var,
+            "target": self.trg_node_id,
+            "targetHandle": self.trg_node_var,
         }
 
     @classmethod
@@ -846,9 +849,10 @@ class Edge:
             Edge: The edge created from the dictionary.
         """
         return cls(
-            data["src_node_id"],
-            data["trg_node_id"],
-            *data["connections"],
+            data["source"],
+            data["sourceHandle"],
+            data["target"],
+            data["targetHandle"],
         )
 
 
@@ -858,6 +862,16 @@ class Edge:
 
 
 class Chain:
+    """A chain is a full flow of nodes and edges.
+
+    Args:
+        nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].
+        edges (List[Edge], optional): The list of edges in the chain. Defaults to [].
+        sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.
+        main_in (str, optional): The name of the input var for the chat input. Defaults to "".
+        main_out (str, optional): The name of the output var for the chat output. Defaults to "".
+    """
+
     def __init__(
         self,
         nodes: List[Node] = [],
@@ -867,15 +881,6 @@ class Chain:
         main_in: str = "",
         main_out: str = "",
     ):
-        """A chain is a full flow of nodes and edges.
-
-        Args:
-            nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].
-            edges (List[Edge], optional): The list of edges in the chain. Defaults to [].
-            sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.
-            main_in (str, optional): The name of the input var for the chat input. Defaults to "".
-            main_out (str, optional): The name of the output var for the chat output. Defaults to "".
-        """
         self.nodes = {node.id: node for node in nodes}
         self.edges = edges
 
@@ -890,6 +895,9 @@ class Chain:
 
         for node_id in self.topo_order:
             assert node_id in self.nodes, f"Missing node from an edge: {node_id}"
+
+        # to a dry run to validate everything
+        self.to_dict()
 
     def __repr__(self) -> str:
         # return f"FuryDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})"
@@ -916,7 +924,9 @@ class Chain:
         main_in = main_in or self.main_in
         main_out = main_out or self.main_out
         sample = sample or self.sample
-        assert main_in in sample, f"Invalid key: {main_in}"
+        if main_in not in sample:
+            logger.error(f"Key should be present in 'sample': {main_in}")
+        # assert main_in in sample, f"Invalid key: {main_in}"
 
         if not (main_in or main_out or sample):
             logger.warning("No main_in, main_out or sample provided, using defaults")
@@ -964,19 +974,117 @@ class Chain:
         """
         return cls.from_dict(json.loads(data))
 
+    @classmethod
+    def from_id(cls, id: str):
+        from chainfury.client import get_chain_from_id
+
+        return get_chain_from_id(id)
+
+    def step(
+        self,
+        node_id: str,
+        pre_data: Dict[str, Any],
+        full_ir: Dict[str, Any],
+        print_thoughts: bool = False,
+        thoughts_callback: Optional[Callable] = None,
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """Performs a single step in the chain, useful for manual debugging.
+
+        Args:
+            node_id (str): The id of the node to step.
+            pre_data (Dict[str, Any]): The data to use for the step.
+            full_ir (Dict[str, Any]): The full IR to use for the step.
+            print_thoughts (bool, optional): Whether to print the thoughts. Defaults to False.
+            thoughts_callback (Optional[Callable], optional): A callback to call with the thoughts. Defaults to None.
+
+        Returns:
+            Tuple[Dict[str, Any], Dict[str, Any]]: The currrent output and updated thoughts ir buffer.
+        """
+        node = self.nodes[node_id]
+        incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
+
+        # clear out all the nodes that this thing needs into a separate rep
+        logger.debug(f"Processing node: {node_id}")
+        logger.debug(f"Current full_ir: {set(full_ir.keys())}")
+        _data = {}
+
+        # first check if this node has any fields that are in the data
+        all_keys = list(pre_data.keys())
+        for k in all_keys:
+            if node.has_field(k):
+                _data[k] = pre_data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
+            elif k.startswith(node.id):
+                _data[k.split("/", 1)[1]] = pre_data.pop(k)  # pop this, it is not needed anymore
+
+        # then merge from the ir buffer
+        for edge in incoming_edges:
+            logger.debug(f"Incoming edge: {edge}")
+            req_key = f"{edge.src_node_id}/{edge.src_node_var}"
+            logger.debug(f"Looking for key: {req_key}")
+            # need to check if this information is available in the IR buffer, if it is not then this is an error
+            ir_value = pre_data.get(req_key, None) or full_ir.get(req_key, {}).get("value", None)
+            if ir_value is None:
+                raise ValueError(f"Missing value for {req_key}")
+            _data[edge.trg_node_var] = ir_value
+
+        # then run the node
+        out, err = node(_data, print_thoughts=print_thoughts)
+        if err:
+            logger.error(f"TRACE: {out}")
+            raise err
+
+        yield_dict = {}
+        for k, v in out.items():
+            key = f"{node_id}/{k}"
+            value = {
+                "value": v,
+                "timestamp": datetime.datetime.now().isoformat(),
+            }
+            full_ir[key] = value
+            thought = {"key": key, **value}
+            yield_dict[key] = value
+            if thoughts_callback is not None:
+                thoughts_callback(thought)
+                if print_thoughts:
+                    print(thought)
+
+        return yield_dict, full_ir
+
     def __call__(
         self,
         data: Union[str, Dict[str, Any]],
         thoughts_callback: Optional[Callable] = None,
         print_thoughts: bool = False,
     ) -> Tuple[Var, Dict[str, Any]]:
-        """Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer
+        """
+        Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer
         and a simple callback system at each step.
+
+        Example:
+            >>> chain = Chain(...)
+            >>> out, thoughts = chain("Hello world")
+            >>> print(out)
+            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            >>> print(thoughts)
+            ... {
+                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                        'timestamp': '2023-06-27T16:50:04.178833',
+                        'value': '...'
+                    }
+                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                        'timestamp': '2023-06-27T16:50:07.818709',
+                        'value': '...'
+                    }
+                }
+
+        You can also stream the intermediate responses by setting using `stream_call` method. You can get the exact same
+        result as above by iterating over the response and getting the last response.
 
         Args:
             data (Union[str, Dict[str, Any]]): The data to run the chain on.
             thoughts_callback (Optional[Callable], optional): The callback function to call at each step. Defaults to None.
             print_thoughts (bool, optional): Whether to print the thoughts buffer at each step. Defaults to False.
+            stream (bool, optional): Whether to stream the output or not. Defaults to False.
 
         Returns:
             Tuple[Var, Dict[str, Any]]: The output of the chain and the thoughts buffer.
@@ -997,52 +1105,91 @@ class Chain:
         full_ir = {}
         out = None
         for node_id in self.topo_order:
-            node = self.nodes[node_id]
-            incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
+            yield_dict, full_ir = self.step(
+                node_id=node_id,
+                pre_data=data,
+                full_ir=full_ir,
+                print_thoughts=print_thoughts,
+                thoughts_callback=thoughts_callback,
+            )
 
-            # clear out all the nodes that this thing needs into a separate rep
-            logger.debug(f"Processing node: {node_id}")
-            logger.debug(f"Current full_ir: {set(full_ir.keys())}")
-            _data = {}
+        if self.main_out:
+            out = full_ir.get(self.main_out)["value"]  # type: ignore
 
-            # first check if this node has any fields that are in the data
-            all_keys = list(data.keys())
-            for k in all_keys:
-                if node.has_field(k):
-                    _data[k] = data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
-                elif k.startswith(node.id):
-                    _data[k.split("/", 1)[1]] = data.pop(k)  # pop this, it is not needed anymore
+        if print_thoughts:
+            print(terminal_top_with_text("Chain Last"))
+            print("Outputs:\n------")
+            print(pformat(out))
+            print(terminal_top_with_text("Chain Ends"))
 
-            # then merge from the ir buffer
-            for edge in incoming_edges:
-                logger.debug(f"Incoming edge: {edge}")
-                for conns in edge.connections:
-                    req_key = f"{edge.src_node_id}/{conns[0]}"
-                    logger.debug(f"Looking for key: {req_key}")
-                    # need to check if this information is available in the IR buffer, if it is not then this is an error
-                    ir_value = data.get(req_key, None) or full_ir.get(req_key, {}).get("value", None)
-                    if ir_value is None:
-                        raise ValueError(f"Missing value for {req_key}")
-                    _data[conns[1]] = ir_value
+        return out, full_ir  # type: ignore
 
-            # then run the node
-            out, err = node(_data, print_thoughts=print_thoughts)
-            if err:
-                logger.error("TRACE: {out}")
-                raise err
+    def stream(
+        self,
+        data: Union[str, Dict[str, Any]],
+        thoughts_callback: Optional[Callable] = None,
+        print_thoughts: bool = False,
+    ) -> Generator[Tuple[Union[Any, Dict[str, Any]], bool], None, None]:
+        """
+        This is a streaming version of __call__ method. It will yield the intermediate responses as they come in.
 
-            for k, v in out.items():
-                key = f"{node_id}/{k}"
-                value = {
-                    "value": v,
-                    "timestamp": datetime.datetime.now().isoformat(),
+        Example:
+            >>> chain = Chain(...)
+            >>> cf_response_gen = chain.stream("Hello world")
+            >>> out = None
+            >>> thoughts = {}
+            >>> for ir, done in cf_response_gen:
+            ...     if done:
+            ...         out = ir
+            ...     else:
+            ...         thoughts.update(ir)
+            >>> print(out)
+            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            >>> print(thoughts)
+            ... {
+                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                        'timestamp': '2023-06-27T16:50:04.178833',
+                        'value': '...'
+                    }
+                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                        'timestamp': '2023-06-27T16:50:07.818709',
+                        'value': '...'
+                    }
                 }
-                full_ir[key] = value
-                thought = {"key": key, **value}
-                if thoughts_callback is not None:
-                    thoughts_callback(thought)
-                    if print_thoughts:
-                        print(thought)
+
+        Args:
+            data (Union[str, Dict[str, Any]]): The data to run the chain on.
+            thoughts_callback (Optional[Callable], optional): The callback function to call at each step. Defaults to None.
+            print_thoughts (bool, optional): Whether to print the thoughts buffer at each step. Defaults to False.
+
+        Yields:
+            Generator[Tuple[Union[Any, Dict[str, Any]], bool], None, None]: The intermediate responses and whether the
+            response is the final response or not.
+        """
+        if not isinstance(data, dict):
+            assert isinstance(data, str), f"Invalid data type: {type(data)}"
+            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            data = {self.main_in: data}
+        _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
+        _data.update(data)
+        data = _data
+
+        if print_thoughts:
+            print(terminal_top_with_text("Chain Starts"))
+            print("Inputs:\n------")
+            print(pformat(data))
+
+        full_ir = {}
+        out = None
+        for node_id in self.topo_order:
+            yield_dict, full_ir = self.step(
+                node_id=node_id,
+                pre_data=data,
+                full_ir=full_ir,
+                print_thoughts=print_thoughts,
+                thoughts_callback=thoughts_callback,
+            )
+            yield yield_dict, False
 
         if print_thoughts:
             print(terminal_top_with_text("Chain Last"))
@@ -1052,7 +1199,7 @@ class Chain:
 
         if self.main_out:
             out = full_ir.get(self.main_out)["value"]  # type: ignore
-        return out, full_ir  # type: ignore
+        yield out, True
 
 
 #
@@ -1079,7 +1226,7 @@ def adjacency_list_to_edge_map(adjacency_list) -> List[Edge]:
     edges = []
     for src, dsts in adjacency_list.items():
         for dst in dsts:
-            edges.append(Edge(src_node_id=src, trg_node_id=dst))
+            edges.append(Edge(src_node_id=src, src_node_var="", trg_node_id=dst, trg_node_var=""))
     return edges
 
 

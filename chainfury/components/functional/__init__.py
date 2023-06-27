@@ -54,8 +54,8 @@ programatic_actions_registry.register(
 # a few functions that do regex things
 
 
-def regex_search(pattern: str, text: str) -> Tuple[List[str], Optional[Exception]]:
-    return re.findall(pattern, text), None
+def regex_search(pattern: str, text: str) -> Tuple[Dict[str, str], Optional[Exception]]:
+    return {"items": re.findall(pattern, text)}, None
 
 
 programatic_actions_registry.register(
@@ -66,8 +66,8 @@ programatic_actions_registry.register(
 )
 
 
-def regex_substitute(pattern: str, repl: str, text: str) -> Tuple[str, Optional[Exception]]:
-    return re.sub(pattern, repl, text), None
+def regex_substitute(pattern: str, repl: str, text: str) -> Tuple[Dict[str, str], Optional[Exception]]:
+    return {"text": re.sub(pattern, repl, text)}, None
 
 
 programatic_actions_registry.register(

@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from commons.utils import get_user_from_jwt, verify_user
 
 from commons.langflow_utils import get_prompt as get_prompt_lf, CFPromptResult
-from commons.fury_utils import get_prompt as get_prompt_fury
+from commons.fury_utils import get_prompt as get_prompt_fury, get_streaming_prompt
 from commons.utils import update_internal_user_rating
 from database import fastapi_db_session, ChatBotTypes, Prompt as PromptModel, IntermediateStep
 from database_constants import PromptRating
@@ -60,15 +60,16 @@ def process_prompt(
     token: Annotated[str, Header()],
     chatbot_id: str,
     prompt: Prompt,
+    stream: bool = False,
     db: Session = Depends(fastapi_db_session),
 ):
     # validate user
     username = get_user_from_jwt(token)
     user = verify_user(db, username)
 
-    # result = get_prompt(chatbot_id, prompt, db)
-    result = call_engine(chatbot_id, prompt, db)
-    # print(result)
+    # call the engine
+    result = call_engine(chatbot_id=chatbot_id, prompt=prompt, db=db, stream=stream)
+
     # manage any callbacks
     ph = get_phandler()
     ph.handle(Event(event_type=Event.types.PROCESS_PROMPT, data=result))
@@ -154,14 +155,19 @@ def delete_prompt(
 #
 
 
-def call_engine(chatbot_id: str, prompt: Prompt, db: Session):
+def call_engine(chatbot_id: str, prompt: Prompt, db: Session, stream: bool) -> CFPromptResult:
     start = time.time()
     chatbot = get_chatbot(db, chatbot_id)
     if chatbot.engine == ChatBotTypes.LANGFLOW:
+        if stream:
+            raise HTTPException(status_code=404, detail=f"Streaming not supported for engine: {chatbot.engine}")
         result = get_prompt_lf(chatbot, prompt, db, start)
         return result
     elif chatbot.engine == ChatBotTypes.FURY:
-        result = get_prompt_fury(chatbot, prompt, db, start)
+        if stream:
+            result = get_streaming_prompt(chatbot, prompt, db, start)
+        else:
+            result = get_prompt_fury(chatbot, prompt, db, start)
         return result
 
     raise HTTPException(status_code=404, detail=f"Invalid chatbot type: {chatbot.type}")

@@ -105,19 +105,19 @@ class _Chain:
     def callpp(self):
         p1 = programatic_actions_registry.get("call_api_requests")
         p2 = programatic_actions_registry.get("regex_substitute")
-        e = Edge(p1.id, p2.id, ("text", "text"))
-        c = Chain([p1, p2], [e])
+        e = Edge(p1.id, "text", p2.id, "text")
+        c = Chain([p1, p2], [e], sample={"url": ""}, main_in="url", main_out=f"{p2.id}/text")
         print("CHAIN:", c)
 
         # run the chain
         out, full_ir = c(
             {
                 "method": "get",
-                "url": "http://127.0.0.1:8000/api/v1/fury/components/",
+                "url": "http://127.0.0.1:8000/api/v1/fury/",
                 "headers": {"token": "booboo"},
-                "pattern": "components",
-                "repl": "booboo",
-            }
+                "pattern": "JWT",
+                "repl": "booboo-hooooo",
+            },
         )
         print("BUFF:", pformat(full_ir))
         print("OUT:", pformat(out))
@@ -156,13 +156,16 @@ class _Chain:
         )
         print("ACTION:", j)
 
-        e = Edge(p.id, j.id, ("text", "json_thingy"))
+        e = Edge(p.id, "text", j.id, "json_thingy")
 
         c = Chain(
             [p, j],
-            [
-                e,
-            ],
+            [e],
+            sample={
+                "method": "get",
+            },
+            main_in="url",
+            main_out=f"{j.id}/chat_reply",
         )
         print("CHAIN:", c)
 
@@ -170,7 +173,7 @@ class _Chain:
         out, full_ir = c(
             {
                 "method": "get",
-                "url": "http://127.0.0.1:8000/api/v1/components/",
+                "url": "http://127.0.0.1:8000/api/v1/fury/",
                 "headers": {"token": "booboo"},
                 "openai_api_key": _get_openai_token(),
             }
@@ -183,8 +186,8 @@ class _Chain:
         print("ACTION:", j1)
         j2 = ai_actions_registry.get("deep-rap-quote")
         print("ACTION:", j2)
-        e = Edge(j1.id, j2.id, ("generations", "character"))
-        c = Chain([j1, j2], [e])
+        e = Edge(j1.id, "generations", j2.id, "character")
+        c = Chain([j1, j2], [e], sample={"message": "hello world"}, main_in="message", main_out=f"{j2.id}/chat_reply")
         print("CHAIN:", c)
 
         # run the chain
@@ -233,9 +236,15 @@ class _Chain:
             },
         )
         rapMaker = ai_actions_registry.get("deep-rap-quote")
-        e1 = Edge(findQuote.id, charStory.id, ("chat_reply", "character_name"))
-        e2 = Edge(charStory.id, rapMaker.id, ("characters_story", "character"))
-        c = Chain([findQuote, charStory, rapMaker], [e1, e2])
+        e1 = Edge(findQuote.id, "chat_reply", charStory.id, "character_name")
+        e2 = Edge(charStory.id, "characters_story", rapMaker.id, "character")
+        c = Chain(
+            [findQuote, charStory, rapMaker],
+            [e1, e2],
+            sample={"quote": quote},
+            main_in="quote",
+            main_out=f"{rapMaker.id}/chat_reply",
+        )
         print("CHAIN:", c)
 
         sample_input = {"openai_api_key": _get_openai_token(), "quote": quote, "story_size": n}  # these will also act like defaults

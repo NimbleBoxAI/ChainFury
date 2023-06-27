@@ -237,7 +237,14 @@ ProgramaticActionsRegistry class.
 
 
 class AIAction:
-    """This class is a callable for all the AI actions."""
+    """This class is a callable for all the AI actions.
+
+    Args:
+        node_id (str): The id of the node
+        model (Model): The model that is used for this action
+        model_params (Dict[str, Any]): The parameters for the model
+        fn (object): The function that is used for this action
+    """
 
     # do not remove these from here it is used in base.py if you do then put in a third file
     JTYPE = "jinja-template"
@@ -246,14 +253,7 @@ class AIAction:
     FUNC = "python-function"
     """constant for Python function type"""
 
-    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object):
-        """
-        Args:
-            node_id (str): The id of the node
-            model (Model): The model that is used for this action
-            model_params (Dict[str, Any]): The parameters for the model
-            fn (object): The function that is used for this action
-        """
+    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object, action_name: str):
         # do some basic checks that we can do before anything else like checking if model_params
         # is a subset of the model.vars
         fields = set(x.name for x in model.vars)
@@ -287,6 +287,7 @@ class AIAction:
         self.model = model
         self.model_params = model_params
         self.fn = fn
+        self.action_name = action_name
         self.action_source = action_source
         self.fields = fields
 
@@ -297,6 +298,7 @@ class AIAction:
             "model": self.model.to_dict(no_vars=no_vars),
             "model_params": self.model_params,
             "fn": self.fn,
+            "action_name": self.action_name,
             "action_source": self.action_source,
         }
 
@@ -308,6 +310,7 @@ class AIAction:
             model=model_registry.get(data["model"]["id"]),
             model_params=data["model_params"],
             fn=data["fn"],
+            action_name=data.get("action_name", data["node_id"]),
         )
 
     def __call__(self, **data: Dict[str, Any]) -> Tuple[Any, Optional[Exception]]:
@@ -367,6 +370,7 @@ class AIActionsRegistry:
 
     def to_action(
         self,
+        action_name: str,
         model_id: str,
         model_params: Dict[str, Any],
         fn: object,
@@ -401,6 +405,7 @@ class AIActionsRegistry:
             model=model,
             model_params=model_params,
             fn=fn,
+            action_name=action_name,
         )
         if not outputs:
             output_field = func_to_return_vars(func=ai_action.__call__, returns={"model_output": ()})
@@ -423,11 +428,15 @@ class AIActionsRegistry:
         model_params: Dict[str, Any],
         fn: object,
         outputs: Dict[str, Any],
+        action_name: str = "",
         description: str = "",
         tags: List[str] = [],
     ) -> Node:
         """
-        function to create an "Action" aka. `chainfury.Node`.
+        This function will register this action in the local AI registry so it is accesible everywhere. Use this when
+        you are hosting your own chainfury server and want to serve private functions not available in the public DB.
+        If you are using this just for your local usecase and have no interest in the serving capabilities then
+        use `to_action` instead.
 
         **NOTE:** If you do not pass `node_id` then this will create a `uudi4`. This behaviour is important when dev
         wants to play with the action without commiting it anywhere.
@@ -446,6 +455,7 @@ class AIActionsRegistry:
         if node_id != AIActionsRegistry.DB_REGISTER and node_id in self.nodes:
             raise ValueError(f"ai-node '{node_id}' already exists")
         node = self.to_action(
+            action_name=action_name or node_id,
             node_id=node_id,
             model_id=model_id,
             model_params=model_params,

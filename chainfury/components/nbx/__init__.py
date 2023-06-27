@@ -25,8 +25,8 @@ def nbx_chat_api(
     typical_p: float = 0.95,
     watermark: bool = True,
     *,
-    retry_count: int = 5,
-    max_retry_delay: int = 5,
+    retry_count: int = 3,
+    retry_delay: int = 1,
 ) -> Any:
     """
     Returns a JSON object containing the OpenAI's API chat response.
@@ -65,7 +65,7 @@ def nbx_chat_api(
             raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
         return r.json()
 
-    return exponential_backoff(_fn, max_retries=retry_count, max_delay=max_retry_delay)
+    return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
 
 
 model_registry.register(

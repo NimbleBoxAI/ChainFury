@@ -54,13 +54,13 @@ app.include_router(user_router, prefix=c.API_URL)
 app.include_router(metrics_router, prefix=c.API_URL)
 app.include_router(feedback_router, prefix=c.API_URL)
 app.include_router(intermediate_steps_router, prefix=c.API_URL)
-app.include_router(chatbot_router, prefix=c.API_URL)
+app.include_router(chatbot_router, prefix=c.API_URL + "/chatbot")
 app.include_router(auth_router, prefix=c.API_URL)
 app.include_router(langflow_router, prefix=c.API_URL)
 app.include_router(prompts_router, prefix=c.API_URL)
 app.include_router(template_router, prefix=c.API_URL)
 app.include_router(dashboard_router, prefix=c.API_URL)
-app.include_router(fury_router, prefix=c.API_URL)
+app.include_router(fury_router, prefix=c.API_URL + "/fury")
 ####################################################
 ################ APIs ##############################
 ####################################################

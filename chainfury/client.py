@@ -1,171 +1,135 @@
 import os
 import requests
+from functools import lru_cache
+from typing import Dict, Any, Tuple
+
 from chainfury.utils import logger
+from chainfury.base import Chain, Node, Edge
+from chainfury.agent import ai_actions_registry, programatic_actions_registry
+from chainfury.types import Dag
 
 
 class Subway:
-    """Subway provides a package based interface to any fastAPI server with validations in a realtime using
-    OpenAPI specification. This is inspired from gRPC style functional calls which hide the underlying complexity
-    of networking.
+    """
+    Simple code that allows writing APIs by `.attr.ing` them. This is inspired from gRPC style functional calls which
+    hides the complexity of underlying networking. This is useful when you are trying to debug live server directly.
 
     Note:
-        Use the **Subway.from_openapi** to instantiate. This class is **not meant to be instantiated directly**.
+        User is solely responsible for checking if the certain API endpoint exists or not. This simply wraps the API
+        calls and does not do any validation.
 
     Example:
         >>> from chainfury.client import Subway
         >>> from requests import Session
         >>> session = Session()
         >>> session.headers.update({"token": token})
-        >>> stub = Subway.from_openapi("localhost:8080", session)
-        >>> resource = stub.api.v1.workspace.u('9jshufhsi')
-        >>> resource()
+        >>> stub = Subway.from_openapi("http://localhost:8000", session)
+        >>> get_chain = stub.chatbot.u("6ln9ksln")       # u is a special method to access attributes that start with a number
+        >>> chain = get_chain()                          # call like a function
+        ... {'name': 'funny-bot-1',
+            'description': None,
+            'dag': {'nodes': [
+                {'id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034',
+                 'cf_id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5',
+                 'position': {'x': -271.25233176301117, 'y': 78.20693852768798},
+                 'type': 'FuryEngineNode',
+                 'width': 350,
+                 'height': 553,
+                 'selected': True,
+                 'position_absolute': None,
+                 'dragging': False,
+                 'data': {}
+                }
+            ],
+            'edges': [],
+            'sample': {'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model': 'gpt-3.5-turbo'},
+            'main_in': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal',
+            'main_out': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text'},
+            'engine': 'fury',
+            'deleted_at': None,
+            'created_by': 'cihua4hh',
+            'id': 'l6lnksln',
+            'meta': None,
+            'created_at': '2023-06-27T18:05:17.395260'}
+
+    Args:
+        _url (str): The url to use for the client
+        _session (requests.Session): The session to use for the client
     """
 
-    def __init__(self, _url: str, _session: requests.Session, _spec, __name=None):
+    def __init__(self, _url, _session):
         self._url = _url.rstrip("/")
         self._session = _session
-        self._spec = _spec
-        self._name = __name
-
-        self._caller = (
-            (len(_spec) == 3 and set(_spec) == set(["method", "meta", "src"]))
-            or (len(_spec) == 4 and set(_spec) == set(["method", "meta", "src", "response_kwargs_dict"]))
-            or "/" in self._spec
-        )
-
-    @classmethod
-    def from_openapi(cls, _url: str, _session: requests.Session):
-        """Build the Subway client from the OpenAPI specification of the server
-
-        Args:
-            _url (str): URL of the server
-            _session (requests.Session): Session object to be used for making requests
-        """
-        openapi = _session.get(f"{_url}/openapi.json").json()
-        logger.debug("Loading for OpenAPI version latest")
-        paths = openapi["paths"]
-        spec = openapi["components"]["schemas"]
-
-        tree = {}
-        for p in tuple(paths.keys()):
-            t = tree
-            for part in p.split("/")[1:]:
-                part = "/" if part == "" else part
-                t = t.setdefault(part, {})
-
-        def _dfs(tree, trail=[]):
-            for t in tree:
-                if tree[t] == {}:
-                    src = "/" + "/".join(trail)
-                    if t != "/":
-                        src = src + "/" if src != "/" else src
-                        src = src + t
-
-                    try:
-                        data = paths[src]
-                    except:
-                        src = src + "/"
-                        data = paths[src]
-                    method = tuple(data.keys())[0]
-                    body = data[method]
-                    dict_ = {"method": method, "meta": None, "src": src}
-                    if "requestBody" in body:
-                        schema_ref = body["requestBody"]["content"]["application/json"]["schema"]["$ref"].split("/")[-1]
-                        _req_body = spec[schema_ref]
-                        kwargs_dict = list(_req_body["properties"])
-                        dict_["meta"] = {"kwargs_dict": kwargs_dict, "required": _req_body.get("required", None)}
-                    if "responses" in body:
-                        schema = body["responses"]["200"]["content"]["application/json"]["schema"]
-                        if "$ref" in schema:
-                            schema_ref = schema["$ref"].split("/")[-1]
-                            _req_body = spec[schema_ref]
-                            kwargs_dict = list(_req_body["properties"])
-                            if dict_["meta"] != None:
-                                dict_["meta"].update({"response_kwargs_dict": kwargs_dict})
-                            else:
-                                dict_["meta"] = {"response_kwargs_dict": kwargs_dict}
-                    tree[t] = dict_
-                else:
-                    _dfs(tree[t], trail + [t])
-
-        _dfs(tree)
-
-        return cls(_url, _session, tree)
 
     def __repr__(self):
         return f"<Subway ({self._url})>"
 
-    def __getattr__(self, attr) -> "Subway":
+    def __getattr__(self, attr: str):
         # https://stackoverflow.com/questions/3278077/difference-between-getattr-vs-getattribute
-        if self._caller and len(self._spec) == 1:
-            raise AttributeError(f"'.{self._name}' does not have children")
-        if attr not in self._spec:
-            raise AttributeError(f"'.{attr}' is not a valid function")
-        return Subway(f"{self._url}/{attr}", self._session, self._spec[attr], attr)
+        return Subway(f"{self._url}/{attr}", self._session)
 
-    def u(self, attr):
-        """In cases where the attibute might start with a number, this method can be used to access the attribute.
+    def u(self, attr: str) -> "Subway":
+        """In cases where the api might start with a number you cannot write in python, this method can be used to
+        access the attribute.
 
         Example:
-            >>> stub.9jisjfi      # python will cry
+            >>> stub.9jisjfi      # python will cry, invalid syntax: cannot start with a number
             >>> stub.u('9jisjfi') # do this instead
+
+        Args:
+            attr (str): The attribute to access
+
+        Returns:
+            Subway: The new subway object
         """
-        return self.__getattr__(attr)
+        return getattr(self, attr)
 
-    def __call__(self, *args, _verbose=False, _parse=False, **kwargs):
-        # from pprint import pprint
-        # pprint(self._spec)
-        if not self._caller:
-            raise AttributeError(f"'.{self._name}' is not an endpoint")
-        spec = self._spec
-        if self._caller and "/" in self._spec:
-            spec = self._spec["/"]
+    def __call__(
+        self,
+        method="get",
+        trailing="",
+        json={},
+        data=None,
+        params: Dict = {},
+        _verbose=False,
+        **kwargs,
+    ) -> Tuple[Dict[str, Any], bool]:
+        """Call the API endpoint as if it is a function.
 
-        data = None
-        if spec["meta"] == None:
-            assert len(args) == len(kwargs) == 0, "This method does not accept any arguments"
-        else:
-            spec_meta = spec["meta"]
-            if "kwargs_dict" not in spec_meta:
-                assert len(args) == len(kwargs) == 0, "This method does not accept any arguments"
-            else:
-                kwargs_dict = spec["meta"]["kwargs_dict"]
-                required = spec["meta"]["required"]
-                data = {}
-                for i in range(len(args)):
-                    if required != None:
-                        data[required[i]] = args[i]
-                    else:
-                        data[kwargs_dict[i]] = args[i]
-                for key in kwargs:
-                    if key not in kwargs_dict:
-                        raise ValueError(f"{key} is not a valid argument")
-                    data[key] = kwargs[key]
-                if required != None:
-                    for key in required:
-                        if key not in data:
-                            raise ValueError(f"{key} is a required argument")
+        Args:
+            method (str, optional): The method to use. Defaults to "get".
+            trailing (str, optional): The trailing url to use. Defaults to "".
+            json (Dict[str, Any], optional): The json to use. Defaults to {}.
+            data ([type], optional): The data to use. Defaults to None.
+            params (Dict, optional): The params to use. Defaults to {}.
+            _verbose (bool, optional): Whether to print the response or not. Defaults to False.
 
-        fn = getattr(self._session, spec["method"])
-        url = f"{self._url}"
-        if self._caller and "/" in self._spec:
-            url += "/"
-        # if _verbose:
-        logger.debug(f"{spec['method'].upper()} {url}")
-        logger.debug(f"-->> {data}")
-        r = fn(url, json=data)
-        if not r.status_code == 200:
-            raise ValueError(r.content.decode())
-
-        out = r.json()
-        if _parse and self._spec["meta"] != None and "response_kwargs_dict" in self._spec["meta"]:
-            out = [out[k] for k in self._spec["meta"]["response_kwargs_dict"]]
-            if len(out) == 1:
-                return out[0]
-        return out
+        Returns:
+            Tuple[Dict[str, Any], bool]: The response and whether there was an error or not
+        """
+        fn = getattr(self._session, method)
+        url = f"{self._url}{trailing}"
+        if _verbose:
+            logger.info(f"Calling {url}")
+        items = {}
+        if json:
+            items["json"] = json
+        if data:
+            items["data"] = data
+        if params:
+            items["params"] = params
+        r = fn(url, **items, **kwargs)
+        if _verbose:
+            logger.info(r.content.decode())
+        try:
+            r.raise_for_status()  # good when server is good
+            return r.json(), False
+        except:
+            return r.content.decode(), True
 
 
-def get_client(url="", token: str = "") -> Subway:
+@lru_cache(maxsize=1)
+def get_client(prefix: str = "api/v1", url="", token: str = "") -> Subway:
     """This function returns a Subway object that can be used to interact with the API.
 
     Example:
@@ -173,6 +137,21 @@ def get_client(url="", token: str = "") -> Subway:
         >>> client = get_client()
         >>> cf_actions = client.api.v1.fury.actions.list()
         >>> cf_actions
+
+    Note:
+        The `get_client` function is a convenience function that can be used to get a client object. It is not required
+        to use the library. Under the hood, it still will call the chainfury REST endpoints.
+
+    Args:
+        prefix (str, optional): The prefix to use for the client. Defaults to "api/v1".
+        url (str, optional): The url to use for the client or picks from `CF_URL` env var. Defaults to "".
+        token (str, optional): The token to use for the client or picks from `CF_TOKEN` env var. Defaults to "".
+
+    Raises:
+        ValueError: If no url or token is provided.
+
+    Returns:
+        Subway: A Subway object that can be used to interact with the API.
     """
     url = url or os.environ.get("CF_URL", "")
     if not url:
@@ -183,11 +162,179 @@ def get_client(url="", token: str = "") -> Subway:
 
     session = requests.Session()
     session.headers.update({"token": token})
-    return Subway.from_openapi(url, session)
+    sub = Subway(url, session)
+    for p in prefix.split("/"):
+        sub = getattr(sub, p)
+    return sub
 
 
-# if not os.environ.get("CF_NO_LOAD_CLIENT", False):
-#     cf_client = get_client()
-# else:
-#     logger.warning("CF_NO_LOAD_CLIENT is set, client will not be loaded")
-#     cf_client = None
+def get_chain_from_id(id: str) -> Chain:
+    """Helper function to load a chain from the given chatbot ID. This assumed that everything was created correctly
+
+    Example:
+        >>> from chainfury.client import get_chain_from_id
+        >>> chain = get_chain_from_id("l6lnksln")
+        >>> chain
+
+    Args:
+        id (str): The id of the chain to load
+
+    Returns:
+        Chain: The chain object
+    """
+    # first we call the API to get the chains
+    stub = get_client()
+    chain, err = stub.chatbot.u(id)()
+    if err:
+        raise ValueError(f"Could not get chain with id {id}: {chain}")
+
+    # convert to dag and checks
+    nodes = []
+    edges = []
+
+    # convert to dag and checks
+    dag = Dag(**chain["dag"])
+    if not dag.sample:
+        raise ValueError("Dag has no sample")
+    if not dag.main_in:
+        raise ValueError("Dag has no main_in")
+    if not dag.main_out:
+        raise ValueError("Dag has no main_out")
+
+    # get all the actions by querying the APIs
+    dag_nodes = dag.nodes
+    actions_map = {}  # this is the map between the cf_id and the node object
+    for node in dag_nodes:
+        if not node.cf_id and not node.cf_data:
+            raise ValueError(f"Action {node.id} has no cf_id or cf_data")
+        if node.cf_data:
+            cf_action = Node.from_dict(node.cf_data)
+        else:
+            cf_action = actions_map.get(node.cf_id, None)
+
+        # check if this action is in the registry
+        if not cf_action:
+            # check if present in the AI registry
+            try:
+                # print("ai_actions_registry")
+                cf_action = ai_actions_registry.get(node.cf_id)
+            except ValueError:
+                pass
+        if not cf_action:
+            # check if present in the programatic registry
+            try:
+                # print("programatic_actions_registry")
+                cf_action = programatic_actions_registry.get(node.cf_id)
+            except ValueError:
+                pass
+        if not cf_action:
+            # check available on the API
+            try:
+                # print("stub.fury.actions.u(node.cf_id)()")
+                action, err = stub.fury.actions.u(node.cf_id)()
+                if err:
+                    raise ValueError(f"Action {node.cf_id} not loaded: {action}")
+                cf_action = Node.from_dict(action)
+                actions_map[node.cf_id] = cf_action  # cache it
+            except:
+                raise ValueError(f"Action {node.cf_id} not found")
+
+        # standardsize everything to node
+        if not isinstance(cf_action, Node):
+            cf_action = Node.from_dict(cf_action)
+        cf_action.id = node.id  # override the id
+        nodes.append(cf_action)
+    # print(nodes)
+
+    # now create all the edges
+    dag_edges = dag.edges
+    for edge in dag_edges:
+        if not (edge.source and edge.target and edge.sourceHandle and edge.targetHandle):
+            raise ValueError(f"Invalid edge {edge}")
+        edges.append(Edge.from_dict(edge.dict()))
+
+    out = Chain(
+        nodes=nodes,
+        edges=edges,
+        sample=dag.sample,
+        main_in=dag.main_in,
+        main_out=dag.main_out,
+    )
+    return out
+
+
+def create_new_chain(name: str, chain: Chain, create_actions: bool = False) -> Dict[str, Any]:
+    """
+    Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
+    on the API.
+
+    Example:
+        >>> from chainfury import Chain
+        >>> from chainfury.client import create_new_chain
+        >>> api_resp = create_new_chain("my chain", chain)
+        >>> chain_new = Chain.from_dict(api_resp)
+        >>> chain_new
+
+    Args:
+        name (str): The name of the chain
+        chain (Chain): The chain object
+        create_actions (bool, optional): Whether to create the actions or not. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: The API response
+    """
+    stub = get_client()
+    chain_dict = chain.to_dict()
+    nodes = chain_dict["nodes"]
+    dag_nodes = []
+    for i, node in enumerate(nodes):
+        _node_data = {
+            "id": node["id"],
+            "position": {"x": i * 100, "y": i * 100},
+            "type": "FuryEngineNode",
+            "width": 100,
+            "height": 100,
+            "selected": False,
+            "positionAbsolute": {
+                "x": i * 100,
+                "y": i * 100,
+            },
+            "dragging": False,
+        }
+
+        if create_actions:
+            # in this case call the API and store the actions in which case the DAG only knows about the `cf_id`
+            out, err = stub.fury.actions(
+                "post",
+                trailing="/",
+                json={
+                    "name": node["name"],
+                    "description": "",
+                    "fn": {
+                        "model_id": node["fn"]["model"]["id"],
+                        "model_params": node["fn"]["model_params"],
+                        "fn": node["fn"]["fn"],
+                    },
+                    "outputs": node["outputs"],
+                },
+            )
+            if err:
+                raise ValueError(f"Could not create node: {out}")
+            logger.info(f"Created new action with ID: {out['id']}")
+            _node_data["cf_id"] = out["id"]
+        else:
+            # in this case the entire action is stored with the DAG object
+            _node_data["cf_data"] = node
+
+        # add the node to the list
+        dag_nodes.append(_node_data)
+
+    # update the chain_dict
+    chain_dict["nodes"] = dag_nodes
+    for e in chain_dict["edges"]:
+        e["id"] = f"{e['source']}/{e['sourceHandle']}-{e['target']}{e['targetHandle']}"
+    data = {"name": name, "dag": chain_dict, "engine": "fury"}
+    out, err = stub.chatbot("post", trailing="/", json=data)
+    if err:
+        raise ValueError(f"Could not create chain: {out}")
+    return out

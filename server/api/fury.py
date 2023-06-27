@@ -14,7 +14,7 @@ from chainfury.agent import model_registry, programatic_actions_registry, ai_act
 from chainfury.base import Node
 
 # build router
-fury_router = APIRouter(prefix="/fury", tags=["fury"])
+fury_router = APIRouter(tags=["fury"])
 
 # add docs to router
 fury_router.__doc__ = """
@@ -156,7 +156,10 @@ def create_fury_action(
 
     # insert into db
     try:
-        fury_action_data = FuryActions(created_by=user.id, name=fury_action.name, **node.to_dict())
+        _node = node.to_dict()
+        _node["created_by"] = user.id
+        _node["name"] = fury_action.name
+        fury_action_data = FuryActions(**_node)
         db.add(fury_action_data)
         db.commit()
         db.refresh(fury_action_data)
@@ -323,6 +326,7 @@ def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp
 
     try:
         node: Node = ai_actions_registry.to_action(
+            action_name=fury_action.name,
             node_id=str(uuid4()),
             model_id=fury_action.fn.model_id,
             model_params=fury_action.fn.model_params,
