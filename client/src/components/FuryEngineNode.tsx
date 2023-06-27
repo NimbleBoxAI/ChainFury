@@ -5,7 +5,7 @@ import SvgTrash from './SvgComps/Trash';
 import { useEffect, useRef, useState } from 'react';
 import SvgClose from './SvgComps/Close';
 
-interface FuryData {
+export interface FuryData {
   deleteMe: () => void;
   id: string;
   type: string;
@@ -69,7 +69,7 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
           ) : (
             <></>
           )}
-          <div className="w-full text-gray-500 text-sm py-[4px]">{data.node?.description}</div>
+          <div className="w-full text-gray-500 text-sm py-[4px]">{data?.node?.description}</div>
           <div className="flex flex-col">
             {data?.node?.fields?.map((field, key) => {
               return field.required ? (
@@ -78,7 +78,7 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
                     <Handle
                       type={'target'}
                       // position={left ? Position.Left : Position.Right}
-                      id={'input' + key}
+                      id={field?.name}
                       isValidConnection={(connection) => {
                         // const sourceArr = connection?.sourceHandle?.split('|')?.filter((t) => t !== '') ?? [];
                         // const targetArr = connection?.targetHandle?.split('|')?.filter((t) => t !== '') ?? [];

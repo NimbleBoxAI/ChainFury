@@ -223,6 +223,9 @@ export const authApi = createApi({
         edges: any;
         token: string;
         engine: string;
+        sample?: Record<string, any>;
+        main_in?: string;
+        main_out?: string;
       }
     >({
       query: (credentials) => ({
@@ -232,8 +235,11 @@ export const authApi = createApi({
           engine: credentials.engine,
           name: credentials.name,
           dag: {
-            nodes: credentials.nodes,
-            edges: credentials.edges
+            nodes: credentials.nodes ?? [],
+            edges: credentials.edges ?? [],
+            sample: credentials.sample ?? undefined,
+            main_in: credentials.main_in ?? undefined,
+            main_out: credentials.main_out ?? undefined
           }
         }
       })
