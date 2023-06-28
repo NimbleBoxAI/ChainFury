@@ -25,8 +25,11 @@ import {
   useFuryComponentsMutation
 } from '../../redux/services/auth';
 import { setComponents, setFuryComponents } from '../../redux/slices/authSlice';
+import FuryFlowViewer from '../../components/fury/FuryFlowViewer';
+import { TranslateNodes } from '../../utils';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
+export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
 
 const FlowViewer = () => {
   const reactFlowWrapper = useRef(null) as any;
@@ -192,7 +195,7 @@ const FlowViewer = () => {
     )
       .unwrap()
       ?.then((res) => {
-        if (res?.chatbot?.id) window.location.href = '/ui/dashboard/' + res?.chatbot?.id;
+        if (res?.id) window.location.href = '/ui/dashboard/' + res?.id;
         else {
           alert('Error creating bot');
         }
@@ -318,209 +321,3 @@ const FlowViewer = () => {
 };
 
 export default FlowViewer;
-
-export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
-
-const FuryFlowViewer = ({
-  nodes,
-  setNodes,
-  onNodesChange,
-  edges,
-  setEdges,
-  onEdgesChange
-}: {
-  nodes: any;
-  setNodes: any;
-  onNodesChange: any;
-  edges: any;
-  setEdges: any;
-  onEdgesChange: any;
-}) => {
-  const reactFlowWrapper = useRef(null) as any;
-  const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
-  const initialNodes = [
-    {
-      id: 'chatin',
-      position: { x: 0, y: 0 },
-      data: { label: 'Chat In' },
-      deletable: false,
-      type: 'input'
-    },
-    {
-      id: 'chatout',
-      position: { x: 0, y: 100 },
-      data: { label: 'Chat Out' },
-      deletable: false,
-      type: 'output'
-    }
-  ];
-
-  useEffect(() => {
-    setNodes(initialNodes);
-  }, []);
-
-  const onDrop = useCallback(
-    (event: {
-      preventDefault: () => void;
-      dataTransfer: { getData: (arg0: string) => any };
-      clientX: number;
-      clientY: number;
-    }) => {
-      event.preventDefault();
-      if (reactFlowInstance?.project && reactFlowWrapper?.current) {
-        let type = event.dataTransfer.getData('application/reactflow');
-        const reactFlowBounds = reactFlowWrapper?.current?.getBoundingClientRect();
-        const nodeData = JSON.parse(type);
-        const position = reactFlowInstance?.project({
-          x: event.clientX - reactFlowBounds.left,
-          y: event.clientY - reactFlowBounds.top
-        });
-        const newId = nodeData.id + '_' + Math.random() * 100000;
-        const newNode = {
-          id: newId,
-          cf_id: nodeData.id,
-          position,
-          type: 'FuryEngineNode',
-          data: {
-            type: nodeData.type,
-            node: nodeData,
-            id: nodeData.id,
-            value: null,
-            deleteMe: () => {
-              setNodes((nds: any[]) => nds.filter((delnode: { id: any }) => delnode.id !== newId));
-            }
-          }
-        } as any;
-
-        setNodes((nds: string | any[]) => nds.concat(newNode));
-      }
-    },
-    [reactFlowInstance]
-  );
-
-  const onDragOver = useCallback(
-    (event: { preventDefault: () => void; dataTransfer: { dropEffect: string } }) => {
-      event.preventDefault();
-      event.dataTransfer.dropEffect = 'move';
-    },
-    []
-  );
-
-  const onConnect = useCallback(
-    (params: Edge<any> | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)),
-    []
-  );
-
-  return (
-    <>
-      <ReactFlowProvider>
-        <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodeTypes={furyNodeTypes}
-            proOptions={{ hideAttribution: true }}
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onInit={setReactFlowInstance}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            fitView={true}
-            defaultViewport={{
-              zoom: 0.8,
-              y: 0,
-              x: 0
-            }}
-          >
-            <Controls />
-          </ReactFlow>
-        </div>
-      </ReactFlowProvider>
-    </>
-  );
-};
-// Todo: Move to utils
-const TranslateNodes = ({
-  nodes,
-  edges
-}: {
-  nodes: any;
-  edges: any;
-}): {
-  nodes: any;
-  edges: any;
-  sample: Record<string, any>;
-  main_in: string;
-  main_out: string;
-} => {
-  let sample = {} as Record<string, any>;
-  let chatIn = null as string | null;
-  let chatOut = null as string | null;
-  let nodeIds = [] as string[];
-
-  // Generate sample data from nodes
-  for (let key in nodes) {
-    nodeIds.push(nodes[key].id);
-    let node = nodes[key];
-    const passKeys = [] as string[];
-    node?.data?.node?.fields?.forEach((field: any) => {
-      if (field?.password) passKeys.push(field?.name);
-    });
-    Object?.entries(node?.data?.node?.fn?.model_params ?? {}).forEach(([key, value]) => {
-      sample[`${!(passKeys.includes(key) && !sample[key]) ? node?.id + '/' : ''}${key}`] = value;
-    });
-    delete node.data;
-  }
-  for (let key in edges) {
-    let edge = edges[key];
-    if (edge?.source === 'chatin') {
-      chatIn = edge?.target + '/' + edge?.targetHandle;
-    }
-    if (edge?.target === 'chatout') {
-      chatOut = edge?.source + '/' + edge?.sourceHandle;
-    }
-    if (chatIn && chatOut) {
-      break;
-    }
-  }
-  nodes = nodes.filter((node: { id: string }) => node.id !== 'chatin' && node.id !== 'chatout');
-  FilterEdges({
-    edges,
-    nodeIds
-  });
-
-  return {
-    sample,
-    edges: FilterEdges({
-      edges,
-      nodeIds
-    }),
-    nodes,
-    main_in: chatIn ?? '',
-    main_out: chatOut ?? ''
-  };
-};
-
-const FilterEdges = ({
-  edges,
-  nodeIds
-}: {
-  edges: {
-    source: string;
-    sourceHandle: string;
-    targetHandle: string;
-    target: string;
-  }[];
-  nodeIds: string[];
-}) => {
-  const filteredEdges = edges.filter((edge: { source: string; target: string }) => {
-    return (
-      nodeIds.includes(edge.source) &&
-      nodeIds.includes(edge.target) &&
-      edge.source !== 'chatin' &&
-      edge.target !== 'chatout'
-    );
-  });
-  console.log({ filteredEdges });
-};

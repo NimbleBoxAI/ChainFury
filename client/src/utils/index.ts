@@ -74,3 +74,87 @@ export function convertStringToJson(x: string) {
     return null;
   }
 }
+
+export const TranslateNodes = ({
+  nodes,
+  edges
+}: {
+  nodes: any;
+  edges: any;
+}): {
+  nodes: any;
+  edges: any;
+  sample: Record<string, any>;
+  main_in: string;
+  main_out: string;
+} => {
+  let sample = {} as Record<string, any>;
+  let chatIn = null as string | null;
+  let chatOut = null as string | null;
+  let nodeIds = [] as string[];
+
+  // Generate sample data from nodes
+  for (let key in nodes) {
+    nodeIds.push(nodes[key].id);
+    let node = nodes[key];
+    const passKeys = [] as string[];
+    node?.data?.node?.fields?.forEach((field: any) => {
+      if (field?.password) passKeys.push(field?.name);
+    });
+    Object?.entries(node?.data?.node?.fn?.model_params ?? {}).forEach(([key, value]) => {
+      sample[`${!(passKeys.includes(key) && !sample[key]) ? node?.id + '/' : ''}${key}`] = value;
+    });
+    delete node.data;
+  }
+  for (let key in edges) {
+    let edge = edges[key];
+    if (edge?.source === 'chatin') {
+      chatIn = edge?.target + '/' + edge?.targetHandle;
+    }
+    if (edge?.target === 'chatout') {
+      chatOut = edge?.source + '/' + edge?.sourceHandle;
+    }
+    if (chatIn && chatOut) {
+      break;
+    }
+  }
+  nodes = nodes.filter((node: { id: string }) => node.id !== 'chatin' && node.id !== 'chatout');
+  FilterEdges({
+    edges,
+    nodeIds
+  });
+
+  return {
+    sample,
+    edges: FilterEdges({
+      edges,
+      nodeIds
+    }),
+    nodes,
+    main_in: chatIn ?? '',
+    main_out: chatOut ?? ''
+  };
+};
+
+export const FilterEdges = ({
+  edges,
+  nodeIds
+}: {
+  edges: {
+    source: string;
+    sourceHandle: string;
+    targetHandle: string;
+    target: string;
+  }[];
+  nodeIds: string[];
+}) => {
+  const filteredEdges = edges.filter((edge: { source: string; target: string }) => {
+    return (
+      nodeIds.includes(edge.source) &&
+      nodeIds.includes(edge.target) &&
+      edge.source !== 'chatin' &&
+      edge.target !== 'chatout'
+    );
+  });
+  console.log({ filteredEdges });
+};

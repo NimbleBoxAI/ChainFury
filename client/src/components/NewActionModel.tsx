@@ -15,9 +15,6 @@ const locMap = {
 
 const NewActionModel = ({ onClose, refresh }: { onClose: () => void; refresh: () => void }) => {
   const [actionName, setActionName] = useState('' as string);
-  const [inputName, setinputName] = useState([''] as string[]);
-  const [fieldType, setFieldType] = useState(['string'] as AdditionalFieldType[]);
-  const [defaultValue, setDefaultValue] = useState([''] as string[]);
   const [selectedModal, setSelectedModal] = useState('' as string);
   const [promptValue, setPromptValue] = useState('' as string);
   const [newAction] = useNewActionMutation();
@@ -73,7 +70,9 @@ Give a polite professional reply to \\"Why did the {{ animal }} cross the road?\
       tags: [],
       fn: {
         model_id: selectedModal,
-        model_params: {},
+        model_params: {
+          model: selectedModal === 'openai-chat' ? 'gpt-3.5-turbo' : 'text-davinci-003'
+        },
         fn: functinVals
       },
       outputs: [
