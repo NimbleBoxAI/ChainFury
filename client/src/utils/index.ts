@@ -104,6 +104,7 @@ export const TranslateNodes = ({
     Object?.entries(node?.data?.node?.fn?.model_params ?? {}).forEach(([key, value]) => {
       sample[`${!(passKeys.includes(key) && !sample[key]) ? node?.id + '/' : ''}${key}`] = value;
     });
+    node['cf_data'] = node.data;
     delete node.data;
   }
   for (let key in edges) {

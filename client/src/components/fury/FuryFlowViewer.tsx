@@ -9,6 +9,23 @@ import ReactFlow, {
 } from 'reactflow';
 import { furyNodeTypes } from '../../pages/FlowViewer';
 
+export const initialFuryNodes = [
+  {
+    id: 'chatin',
+    position: { x: 0, y: 0 },
+    data: { label: 'Chat In' },
+    deletable: false,
+    type: 'input'
+  },
+  {
+    id: 'chatout',
+    position: { x: 0, y: 100 },
+    data: { label: 'Chat Out' },
+    deletable: false,
+    type: 'output'
+  }
+];
+
 const FuryFlowViewer = ({
   nodes,
   setNodes,
@@ -26,25 +43,9 @@ const FuryFlowViewer = ({
 }) => {
   const reactFlowWrapper = useRef(null) as any;
   const [reactFlowInstance, setReactFlowInstance] = useState(null as null | ReactFlowInstance);
-  const initialNodes = [
-    {
-      id: 'chatin',
-      position: { x: 0, y: 0 },
-      data: { label: 'Chat In' },
-      deletable: false,
-      type: 'input'
-    },
-    {
-      id: 'chatout',
-      position: { x: 0, y: 100 },
-      data: { label: 'Chat Out' },
-      deletable: false,
-      type: 'output'
-    }
-  ];
 
   useEffect(() => {
-    setNodes(initialNodes);
+    if (!nodes.length) setNodes(initialFuryNodes);
   }, []);
 
   const onDrop = useCallback(

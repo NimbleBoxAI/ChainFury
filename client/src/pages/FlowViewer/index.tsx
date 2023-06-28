@@ -25,7 +25,7 @@ import {
   useFuryComponentsMutation
 } from '../../redux/services/auth';
 import { setComponents, setFuryComponents } from '../../redux/slices/authSlice';
-import FuryFlowViewer from '../../components/fury/FuryFlowViewer';
+import FuryFlowViewer, { initialFuryNodes } from '../../components/fury/FuryFlowViewer';
 import { TranslateNodes } from '../../utils';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
@@ -237,8 +237,66 @@ const FlowViewer = () => {
         (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
       );
     } else {
+      const furyIONodes = initialFuryNodes;
+      console.log({ furyIONodes: auth.chatBots?.[flow_id] });
+      const inputNode = auth.chatBots?.[flow_id]?.dag?.main_in;
+      const outputNode = auth.chatBots?.[flow_id]?.dag?.main_out;
+      const inputPos = { x: 0, y: 0 };
+      const outputPos = { x: 0, y: 0 };
       if (!window.location.href?.includes('engine=fury'))
         navigate(window.location.pathname + '?engine=fury');
+
+      (variant === 'edit'
+        ? auth.chatBots?.[flow_id]
+        : auth?.templates?.[templateId]
+      )?.dag?.nodes?.forEach((node: any) => {
+        if (node?.id === inputNode?.split('/')[0]) {
+          console.log({ in: node });
+          inputPos.x = node?.position?.x - 200;
+          inputPos.y = node?.position?.y;
+        }
+        if (node?.id === outputNode?.split('/')[0]) {
+          outputPos.x = node?.position?.x + 500;
+          outputPos.y = node?.position?.y;
+        }
+
+        const newNode = {
+          id: node?.id ?? '',
+          position: node?.position ?? { x: 0, y: 0 },
+          type: 'FuryEngineNode',
+          data: {
+            ...node?.cf_data,
+            deleteMe: () => {
+              setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
+            }
+          }
+        };
+        furyIONodes[0].position = inputPos;
+        furyIONodes[1].position = outputPos;
+
+        setNodes((nds) => {
+          console.log({ nds });
+          return nds.concat(newNode);
+        });
+        setEdges(
+          (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag
+            ?.edges
+        );
+      });
+      const inputEdge = {
+        id: 'inputEdge',
+        source: 'chatin',
+        target: inputNode?.split('/')[0],
+        targetHandle: inputNode?.split('/')[1]
+      };
+      const outputEdge = {
+        id: 'outputEdge',
+        source: outputNode?.split('/')[0],
+        sourceHandle: outputNode?.split('/')[1],
+        target: 'chatout'
+      };
+      setEdges((eds) => eds.concat(inputEdge).concat(outputEdge));
+      setNodes((nds) => nds.concat(furyIONodes));
     }
   };
 
