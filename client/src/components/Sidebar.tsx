@@ -39,7 +39,9 @@ const Sidebar = () => {
   const [getFuryActions] = useGetActionsMutation();
 
   useEffect(() => {
-    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langchain') || 'langchain');
+    const params = new URLSearchParams(location.search);
+    const engine = params.get('engine');
+    setEngine(engine as 'fury' | 'langchain');
   }, [location.search]);
 
   useEffect(() => {
@@ -126,17 +128,21 @@ const Sidebar = () => {
           >
             Go Back
           </Button>
-          <Button
-            onClick={() => {
-              setNewAction(true);
-            }}
-            variant="outlined"
-            className="my-[8px!important] border-light-success-green-600"
-            color="primary"
-            fullWidth
-          >
-            + Action
-          </Button>
+          {engine === 'fury' ? (
+            <Button
+              onClick={() => {
+                setNewAction(true);
+              }}
+              variant="outlined"
+              className="my-[8px!important] border-light-success-green-600"
+              color="primary"
+              fullWidth
+            >
+              + Action
+            </Button>
+          ) : (
+            ''
+          )}
         </div>
       ) : (
         <Button

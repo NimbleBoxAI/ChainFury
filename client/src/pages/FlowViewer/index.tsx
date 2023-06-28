@@ -1,6 +1,6 @@
 import { Button } from '@mui/material';
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -52,6 +52,7 @@ const FlowViewer = () => {
   const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
   const [engine, setEngine] = useState('' as '' | 'fury' | 'langflow');
+  const navigate = useNavigate();
 
   useEffect(() => {
     setEngine((location.search.split('&engine=')[1] as 'fury' | 'langflow') || 'langflow');
@@ -77,6 +78,11 @@ const FlowViewer = () => {
   useEffect(() => {
     if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
       setLoading(false);
+      if (auth?.chatBots?.[flow_id]?.dag?.main_in) {
+        setEngine('fury');
+        createNodesForExistingBot('fury');
+        return;
+      }
       createNodesForExistingBot();
     }
   }, [auth.chatBots, location, auth.templates, templateId, variant]);
@@ -206,29 +212,34 @@ const FlowViewer = () => {
       });
   };
 
-  const createNodesForExistingBot = () => {
-    (variant === 'edit'
-      ? auth.chatBots?.[flow_id]
-      : auth?.templates?.[templateId]
-    )?.dag?.nodes?.forEach((node: any) => {
-      const newNode = {
-        id: node?.id ?? '',
-        position: node?.position ?? { x: 0, y: 0 },
-        type: 'ChainFuryNode',
-        data: {
-          type: node?.id,
-          ...node?.data,
-          node: JSON.parse(JSON.stringify(node?.data?.node)),
-          deleteMe: () => {
-            setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
+  const createNodesForExistingBot = (engine = 'langflow') => {
+    if (engine === 'langflow') {
+      (variant === 'edit'
+        ? auth.chatBots?.[flow_id]
+        : auth?.templates?.[templateId]
+      )?.dag?.nodes?.forEach((node: any) => {
+        const newNode = {
+          id: node?.id ?? '',
+          position: node?.position ?? { x: 0, y: 0 },
+          type: 'ChainFuryNode',
+          data: {
+            type: node?.id,
+            ...node?.data,
+            node: JSON.parse(JSON.stringify(node?.data?.node)),
+            deleteMe: () => {
+              setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
+            }
           }
-        }
-      };
-      setNodes((nds) => nds.concat(newNode));
-    });
-    setEdges(
-      (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
-    );
+        };
+        setNodes((nds) => nds.concat(newNode));
+      });
+      setEdges(
+        (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
+      );
+    } else {
+      if (!window.location.href?.includes('engine=fury'))
+        navigate(window.location.pathname + '?engine=fury');
+    }
   };
 
   const editChatBot = () => {

@@ -8,6 +8,7 @@ interface ChatBots {
   name: string;
   description?: string;
   dag: {
+    main_in: any;
     edges: any;
     nodes: any;
   };
