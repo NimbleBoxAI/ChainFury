@@ -82,8 +82,7 @@ const FlowViewer = () => {
         setEngine('fury');
         createNodesForExistingBot('fury');
         return;
-      }
-      createNodesForExistingBot();
+      } else createNodesForExistingBot();
     }
   }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
@@ -237,8 +236,8 @@ const FlowViewer = () => {
         (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
       );
     } else {
-      const furyIONodes = initialFuryNodes;
-      console.log({ furyIONodes: auth.chatBots?.[flow_id] });
+      const tempNodes = [] as any;
+      const furyIONodes = initialFuryNodes as any;
       const inputNode = auth.chatBots?.[flow_id]?.dag?.main_in;
       const outputNode = auth.chatBots?.[flow_id]?.dag?.main_out;
       const inputPos = { x: 0, y: 0 };
@@ -262,27 +261,25 @@ const FlowViewer = () => {
 
         const newNode = {
           id: node?.id ?? '',
+          cf_id: node?.cf_id ?? '',
           position: node?.position ?? { x: 0, y: 0 },
           type: 'FuryEngineNode',
           data: {
-            ...node?.cf_data,
+            ...JSON.parse(JSON.stringify(node?.cf_data)),
             deleteMe: () => {
               setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
             }
           }
         };
-        furyIONodes[0].position = inputPos;
-        furyIONodes[1].position = outputPos;
-
-        setNodes((nds) => {
-          console.log({ nds });
-          return nds.concat(newNode);
-        });
-        setEdges(
-          (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag
-            ?.edges
-        );
+        tempNodes.push(newNode);
       });
+      furyIONodes[0].position = inputPos;
+      furyIONodes[1].position = outputPos;
+      console.log({ tempNodes });
+      setNodes([...tempNodes, ...furyIONodes]);
+      setEdges(
+        (variant === 'edit' ? auth.chatBots?.[flow_id] : auth?.templates?.[templateId])?.dag?.edges
+      );
       const inputEdge = {
         id: 'inputEdge',
         source: 'chatin',
@@ -296,18 +293,28 @@ const FlowViewer = () => {
         target: 'chatout'
       };
       setEdges((eds) => eds.concat(inputEdge).concat(outputEdge));
-      setNodes((nds) => nds.concat(furyIONodes));
     }
   };
 
   const editChatBot = () => {
-    editBot({
-      id: flow_id,
-      name: auth?.chatBots?.[flow_id]?.name,
-      nodes,
-      edges,
-      token: auth?.accessToken
-    })
+    editBot(
+      engine === 'langflow'
+        ? {
+            id: flow_id,
+            name: auth?.chatBots?.[flow_id]?.name,
+            nodes,
+            edges,
+            token: auth?.accessToken,
+            engine: engine
+          }
+        : {
+            id: flow_id,
+            name: auth?.chatBots?.[flow_id]?.name,
+            engine: engine,
+            token: auth?.accessToken,
+            ...TranslateNodes({ nodes, edges })
+          }
+    )
       .unwrap()
       ?.then((res) => {
         alert('Bot edited successfully');

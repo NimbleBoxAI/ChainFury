@@ -148,7 +148,7 @@ export const FuryEngineNode = ({ data }: { data: FuryData }) => {
                         // if (hasCommonElement) {
                         //   return true;
                         // }
-                        console.log(connection);
+                        // console.log(connection);
                         return true;
                       }}
                       className={
@@ -302,8 +302,18 @@ const AdditionalFieldsModal = ({ data, onClose }: { data: FuryData; onClose: () 
                 <div key={key} className="flex flex-col gap-[8px] relative w-full">
                   <span className="medium400 text-light-neutral-grey-600 flex items-center gap-[4px] p-[8px]">
                     {typeof field?.type === 'string'
-                      ? GetFuryInput(data, field?.name, field?.type, key)
-                      : GetFuryInput(data, field?.name, field?.type?.[0]?.type, key)}
+                      ? GetFuryInput(
+                          JSON.parse(JSON.stringify(data)),
+                          field?.name,
+                          field?.type,
+                          key
+                        )
+                      : GetFuryInput(
+                          JSON.parse(JSON.stringify(data)),
+                          field?.name,
+                          field?.type?.[0]?.type,
+                          key
+                        )}
                     {/* {field?.placeholder} */}
                   </span>
                 </div>

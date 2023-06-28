@@ -88,15 +88,22 @@ export const TranslateNodes = ({
   main_in: string;
   main_out: string;
 } => {
+  const tempNodes = JSON.parse(JSON.stringify(nodes));
+  const tempEdges = JSON.parse(JSON.stringify(edges));
+  console.log('prev', { tempNodes, edges });
   let sample = {} as Record<string, any>;
   let chatIn = null as string | null;
   let chatOut = null as string | null;
   let nodeIds = [] as string[];
+  let restructuredNodes = [] as any;
 
   // Generate sample data from nodes
-  for (let key in nodes) {
-    nodeIds.push(nodes[key].id);
-    let node = nodes[key];
+  for (let key in tempNodes) {
+    if (nodeIds.includes(tempNodes[key].id)) {
+      continue;
+    }
+    nodeIds.push(tempNodes[key].id);
+    let node = tempNodes[key];
     const passKeys = [] as string[];
     node?.data?.node?.fields?.forEach((field: any) => {
       if (field?.password) passKeys.push(field?.name);
@@ -106,6 +113,7 @@ export const TranslateNodes = ({
     });
     node['cf_data'] = node.data;
     delete node.data;
+    restructuredNodes.push(node);
   }
   for (let key in edges) {
     let edge = edges[key];
@@ -119,19 +127,18 @@ export const TranslateNodes = ({
       break;
     }
   }
-  nodes = nodes.filter((node: { id: string }) => node.id !== 'chatin' && node.id !== 'chatout');
-  FilterEdges({
-    edges,
-    nodeIds
-  });
+  restructuredNodes = restructuredNodes.filter(
+    (node: { id: string }) => node.id !== 'chatin' && node.id !== 'chatout'
+  );
+  console.log('prev', { restructuredNodes, edges });
 
   return {
     sample,
     edges: FilterEdges({
-      edges,
+      edges: tempEdges,
       nodeIds
     }),
-    nodes,
+    nodes: restructuredNodes,
     main_in: chatIn ?? '',
     main_out: chatOut ?? ''
   };
@@ -157,5 +164,5 @@ export const FilterEdges = ({
       edge.target !== 'chatout'
     );
   });
-  console.log({ filteredEdges });
+  return filteredEdges;
 };
