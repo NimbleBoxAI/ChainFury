@@ -90,6 +90,11 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
                 key={key}
                 onClick={() => {
                   setSelectedTemplate(template?.id);
+                  if (template?.dag?.main_out) {
+                    setEngine('fury');
+                  } else {
+                    setEngine('');
+                  }
                 }}
                 className={`${
                   selectedTemplate === template?.id
@@ -111,7 +116,9 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
           disabled={selectedFlow === 'scratch' ? !botName : !botName || !selectedTemplate}
           onClick={() => {
             if (selectedFlow === 'template') {
-              navigate(`/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}`);
+              navigate(
+                `/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}&engine=${engine}`
+              );
             } else navigate(`/ui/dashboard/new?bot=${botName}&engine=${engine}`);
             onClose();
           }}

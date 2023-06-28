@@ -55,7 +55,9 @@ const FlowViewer = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setEngine((location.search.split('&engine=')[1] as 'fury' | 'langflow') || 'langflow');
+    const params = new URLSearchParams(location.search);
+    const engine = params.get('engine');
+    setEngine((engine as 'fury' | 'langflow') || 'langflow');
     if (location.search?.includes('?bot=') && flow_id === 'new') {
       setBotName(location.search.split('?bot=')[1]?.split('&engine=')[0]);
       setVariant('new');
@@ -64,7 +66,7 @@ const FlowViewer = () => {
       setLoading(false);
     } else if (flow_id === 'template' && location.search?.includes('?bot=')) {
       setBotName(location.search.split('?bot=')[1]?.split('&id=')[0]);
-      setTemplateId(location.search.split('&id=')[1]);
+      setTemplateId(params.get('id') as string);
       setVariant('template');
     } else {
       setVariant('edit');
@@ -76,9 +78,11 @@ const FlowViewer = () => {
   }, [engine]);
 
   useEffect(() => {
+    console.log({ auth, templateId });
+
     if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
       setLoading(false);
-      if (auth?.chatBots?.[flow_id]?.dag?.main_in) {
+      if (auth?.chatBots?.[flow_id]?.dag?.main_in || auth.templates?.[templateId]) {
         setEngine('fury');
         createNodesForExistingBot('fury');
         return;
@@ -238,8 +242,14 @@ const FlowViewer = () => {
     } else {
       const tempNodes = [] as any;
       const furyIONodes = initialFuryNodes as any;
-      const inputNode = auth.chatBots?.[flow_id]?.dag?.main_in;
-      const outputNode = auth.chatBots?.[flow_id]?.dag?.main_out;
+      const inputNode =
+        variant === 'edit'
+          ? auth.chatBots?.[flow_id]?.dag?.main_in
+          : auth?.templates?.[templateId]?.dag?.main_in;
+      const outputNode =
+        variant === 'edit'
+          ? auth.chatBots?.[flow_id]?.dag?.main_out
+          : auth?.templates?.[templateId]?.dag?.main_out;
       const inputPos = { x: 0, y: 0 };
       const outputPos = { x: 0, y: 0 };
       if (!window.location.href?.includes('engine=fury'))
@@ -249,6 +259,7 @@ const FlowViewer = () => {
         ? auth.chatBots?.[flow_id]
         : auth?.templates?.[templateId]
       )?.dag?.nodes?.forEach((node: any) => {
+        console.log({ node, inputNode });
         if (node?.id === inputNode?.split('/')[0]) {
           console.log({ in: node });
           inputPos.x = node?.position?.x - 200;
