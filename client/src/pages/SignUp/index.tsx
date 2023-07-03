@@ -1,5 +1,5 @@
-import { Button, CircularProgress } from '@mui/material';
-import React, { useEffect, useRef, useState } from 'react';
+import { Button } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignupMutation } from '../../redux/services/auth';
 
@@ -10,6 +10,12 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_MAGICLINK_KEY) {
+      navigate('/ui/login');
+    }
+  }, []);
 
   const isValidEmail = (email: string) => {
     const re = /\S+@\S+\.\S+/;

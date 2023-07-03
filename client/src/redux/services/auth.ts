@@ -30,6 +30,18 @@ export const authApi = createApi({
         body: credentials
       })
     }),
+    magicLogin: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: '/magic-login',
+        method: 'POST',
+        body: credentials
+      })
+    }),
     signup: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -245,8 +257,7 @@ export const authApi = createApi({
 });
 
 export const {
-  useLoginMutation,
-  useSignupMutation,
+  useMagicLoginMutation,
   useComponentsMutation,
   useCreateBotMutation,
   useGetBotsMutation,
@@ -259,5 +270,7 @@ export const {
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation
+  useGetAllBotMetricsMutation,
+  useLoginMutation,
+  useSignupMutation
 } = authApi;
