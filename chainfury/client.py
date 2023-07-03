@@ -168,32 +168,15 @@ def get_client(prefix: str = "api/v1", url="", token: str = "") -> Subway:
     return sub
 
 
-def get_chain_from_id(id: str) -> Chain:
-    """Helper function to load a chain from the given chatbot ID. This assumed that everything was created correctly
-
-    Example:
-        >>> from chainfury.client import get_chain_from_id
-        >>> chain = get_chain_from_id("l6lnksln")
-        >>> chain
-
-    Args:
-        id (str): The id of the chain to load
-
-    Returns:
-        Chain: The chain object
-    """
-    # first we call the API to get the chains
+def get_chain_from_dict(data: Dict[str, Any]) -> Chain:
     stub = get_client()
-    chain, err = stub.chatbot.u(id)()
-    if err:
-        raise ValueError(f"Could not get chain with id {id}: {chain}")
 
     # convert to dag and checks
     nodes = []
     edges = []
 
     # convert to dag and checks
-    dag = Dag(**chain["dag"])
+    dag = Dag(**data)
     if not dag.sample:
         raise ValueError("Dag has no sample")
     if not dag.main_in:
@@ -244,7 +227,6 @@ def get_chain_from_id(id: str) -> Chain:
             cf_action = Node.from_dict(cf_action)
         cf_action.id = node.id  # override the id
         nodes.append(cf_action)
-    # print(nodes)
 
     # now create all the edges
     dag_edges = dag.edges
@@ -253,13 +235,35 @@ def get_chain_from_id(id: str) -> Chain:
             raise ValueError(f"Invalid edge {edge}")
         edges.append(Edge.from_dict(edge.dict()))
 
-    out = Chain(
+    return Chain(
         nodes=nodes,
         edges=edges,
         sample=dag.sample,
         main_in=dag.main_in,
         main_out=dag.main_out,
     )
+
+
+def get_chain_from_id(id: str) -> Chain:
+    """Helper function to load a chain from the given chatbot ID. This assumed that everything was created correctly
+
+    Example:
+        >>> from chainfury.client import get_chain_from_id
+        >>> chain = get_chain_from_id("l6lnksln")
+        >>> chain
+
+    Args:
+        id (str): The id of the chain to load
+
+    Returns:
+        Chain: The chain object
+    """
+    # first we call the API to get the chains
+    stub = get_client()
+    chain, err = stub.chatbot.u(id)()
+    if err:
+        raise ValueError(f"Could not get chain with id {id}: {chain}")
+    out = get_chain_from_dict(chain["dag"])
     return out
 
 

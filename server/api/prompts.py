@@ -78,6 +78,7 @@ def process_prompt(
     def _get_streaming_response(result):
         for ir, done in result:
             if done:
+                ir.pop("result")
                 result = {**ir, "done": done}
             else:
                 if type(ir) == str:

@@ -702,7 +702,7 @@ class Node:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Node":
+    def from_dict(cls, data: Dict[str, Any], verbose: bool = False) -> "Node":
         """Creates a node from a dictionary.
 
         Args:
@@ -711,6 +711,8 @@ class Node:
         Returns:
             Node: The node created from the dictionary.
         """
+        if verbose:
+            logger.info("Creating node from dict: %s", data)
         fields = [Var.from_dict(x) for x in data["fields"]]
         outputs = [Var.from_dict(x) for x in data["outputs"]]
         fn = data["fn"]
@@ -839,7 +841,7 @@ class Edge:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Edge":
+    def from_dict(cls, data: Dict[str, Any], verbose: bool = False) -> "Edge":
         """Creates an edge from a dictionary.
 
         Args:
@@ -941,7 +943,7 @@ class Chain:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Chain":
+    def from_dict(cls, data: Dict[str, Any], verbose: bool = False) -> "Chain":
         """Creates a chain from a dictionary.
 
         Args:
@@ -950,8 +952,8 @@ class Chain:
         Returns:
             Chain: The chain created from the dictionary.
         """
-        nodes = [Node.from_dict(x) for x in data["nodes"]]
-        edges = [Edge.from_dict(x) for x in data["edges"]]
+        nodes = [Node.from_dict(data=x, verbose=verbose) for x in data["nodes"]]
+        edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
         return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
 
     def to_json(self) -> str:

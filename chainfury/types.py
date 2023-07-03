@@ -4,7 +4,7 @@ from typing import Dict, Any, List
 from pydantic import BaseModel
 
 
-class Node(BaseModel):
+class FENode(BaseModel):
     class Position(BaseModel):
         x: float
         y: float
@@ -31,7 +31,7 @@ class Edge(BaseModel):
 
 
 class Dag(BaseModel):
-    nodes: List[Node]
+    nodes: List[FENode]
     edges: List[Edge]
     sample: Dict[str, Any] = {}  # type: ignore
     main_in: str = ""

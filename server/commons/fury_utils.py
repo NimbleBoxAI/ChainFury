@@ -1,5 +1,6 @@
 import time
 import traceback
+from pprint import pprint, pformat
 from functools import partial
 from fastapi import HTTPException
 from typing import Tuple, List, Dict, Any, Generator, Union
@@ -59,7 +60,15 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
     for node in dag_nodes:
         cf_action = actions_map.get(node.cf_id, None)
         if node.cf_data:
-            cf_action = Node.from_dict(node.cf_data)
+            # programmatic ones should always be picked from the registry also FE will always send this
+            # so server should always check for programatic ones via registry
+            if node.cf_data.get("type", None) == Node.types.PROGRAMATIC:
+                try:
+                    cf_action = programatic_actions_registry.get(node.cf_id)
+                except ValueError:
+                    raise HTTPException(status_code=400, detail=f"Action {node.id} not found")
+            else:
+                cf_action = Node.from_dict(node.cf_data.get("node", {}))
         elif node.cf_id:
             cf_action = actions_map.get(node.cf_id, None)
         else:

@@ -160,7 +160,7 @@ class ProgramaticActionsRegistry:
         else:
             assert len(outputs), "If returns is not provided then outputs must be provided"
         ops = func_to_return_vars(func=fn, returns=outputs)
-        self.nodes[node_id] = Node(
+        node = Node(
             id=node_id,
             type=Node.types.PROGRAMATIC,
             fn=fn,
@@ -169,6 +169,7 @@ class ProgramaticActionsRegistry:
             outputs=ops,
             tags=tags,
         )
+        self.nodes[node_id] = node
         for tag in tags:
             self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
         return self.nodes[node_id]

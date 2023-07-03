@@ -4,7 +4,7 @@ from typing import Dict, Any, List
 from database import Prompt as PromptModel
 from pydantic import BaseModel
 
-from chainfury.types import Dag, Node, Edge
+from chainfury.types import Dag, FENode, Edge
 
 
 @dataclass
