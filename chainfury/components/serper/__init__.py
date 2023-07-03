@@ -1,6 +1,6 @@
 import json
 import requests
-from typing import Dict, Tuple, Optional
+from typing import Dict, Tuple, Optional, List
 
 from chainfury import programatic_actions_registry, exponential_backoff, Secret, UnAuthException
 from chainfury.base import get_value_by_keys
@@ -17,7 +17,6 @@ VALID_SEARCH_TYPES = [
 def serper_api(
     serper_api_key: Secret,
     query: str,
-    resolver: Dict[str, str],
     search_type: str = "search",
     location: str = "in",
     locale: str = "en",
@@ -31,32 +30,6 @@ def serper_api(
     Search the web with Serper.
 
     **NOTE**: This action requires a Serper API key. You can get one for free at https://serper.dev.
-
-    `resolver` is a dictionary that tells the location of the output that you want and the target locations
-
-    .. code-block:: python
-
-      >>> x = {
-      ...   "a": {
-      ...     "b": [1, 2, 3],
-      ...     "c": {
-      ...       "d": "hello",
-      ...       "e": "world",
-      ...     }
-      ...   },
-      ...   "f": "foo",
-      ... }
-      >>> resolver = {
-      ...   "x": ["a", "b", 0],
-      ...   "y": ["a", "c", "d"],
-      ...   "z": ["f"],
-      ... }
-      >>> # expected output
-      >>> {
-      ...   "x": 1,
-      ...   "y": "hello",
-      ...   "z": "foo",
-      ... }
 
     Here's a few types of responses that the different serper APIs return (this was written on 3rd July, 2023):
 
@@ -195,11 +168,7 @@ def serper_api(
         if r.status_code != 200:
             raise Exception(f"Serper API returned status code {r.status_code}: {r.text}")
 
-        data = r.json()
-        out = {}
-        for k, v in resolver.items():
-            out[k] = get_value_by_keys(data, v)
-        return json.dumps(out), r.status_code
+        return r.text, r.status_code
 
     try:
         text, status_code = exponential_backoff(foo=_fn, max_retries=retry_count, retry_delay=retry_delay)
