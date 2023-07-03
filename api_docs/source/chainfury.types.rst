@@ -1,7 +1,7 @@
-ai\_actions components
+chainfury.types module
 ======================
 
-.. automodule:: chainfury.components.ai_actions
+.. automodule:: chainfury.types
    :members:
    :undoc-members:
    :show-inheritance:

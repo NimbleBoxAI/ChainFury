@@ -1,5 +1,5 @@
-chainfury.components.nbx package
-================================
+nbx components
+==============
 
 .. automodule:: chainfury.components.nbx
    :members:

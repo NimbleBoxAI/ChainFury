@@ -1,5 +1,5 @@
-chainfury.components.ai\_actions package
-========================================
+ai\_actions components
+======================
 
 .. automodule:: chainfury.components.ai_actions
    :members:

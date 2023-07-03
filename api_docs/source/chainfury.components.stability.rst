@@ -1,5 +1,5 @@
-chainfury.components.stability package
-======================================
+stability AI components
+=======================
 
 .. automodule:: chainfury.components.stability
    :members:

@@ -1,5 +1,7 @@
-chainfury.components.openai package
-===================================
+openai components
+=================
+
+All the components here are for OpenAI systems. Read more at https://openai.com/
 
 .. automodule:: chainfury.components.openai
    :members:

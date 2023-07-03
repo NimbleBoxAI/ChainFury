@@ -209,7 +209,7 @@ class ProgramaticActionsRegistry:
         out = self.nodes.get(node_id, None)
         if out is None:
             raise ValueError(f"p-node '{node_id}' not found")
-        return out
+        return copy.deepcopy(out)
 
     def get_count_for_nodes(self, node_id: str) -> int:
         """Get the number of times a node is used
@@ -531,7 +531,7 @@ class AIActionsRegistry:
         out = self.nodes.get(node_id, None)
         if out is None:
             raise ValueError(f"ai-node '{node_id}' not found")
-        return out
+        return copy.deepcopy(out)
 
     def get_count_for_nodes(self, node_id: str) -> int:
         """Get number of times a particular node is called

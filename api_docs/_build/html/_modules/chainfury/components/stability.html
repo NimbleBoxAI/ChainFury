@@ -42,13 +42,20 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installing ChainFury</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.cli.html">chainfury CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.components.html">chainfury Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.cli.html">chainfury CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.base.html">chainfury.base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.client.html">chainfury.client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.utils.html">chainfury.utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.version.html">chainfury.version module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.components.html">chainfury Components</a></li>
 </ul>
 
         </div>
@@ -150,22 +157,22 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate an image using the Stability AI API.</span>
 
-<span class="sd">    Parameters:</span>
-<span class="sd">    - text_prompts: A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.</span>
-<span class="sd">    - init_image: An image used to initialize the diffusion process, in lieu of random noise.</span>
-<span class="sd">    - init_image_mode: Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is &quot;IMAGE_STRENGTH&quot;.</span>
-<span class="sd">    - image_strength: How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.</span>
-<span class="sd">    - cfg_scale: How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.</span>
-<span class="sd">    - clip_guidance_preset: A preset to guide the diffusion process towards a particular style. Default is &quot;NONE&quot;.</span>
-<span class="sd">    - sampler: Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.</span>
-<span class="sd">    - samples: Number of images to generate. Default is 1.</span>
-<span class="sd">    - seed: Random noise seed (omit this option or use 0 for a random seed). Default is 0.</span>
-<span class="sd">    - steps: Number of diffusion steps to run. Default is 50.</span>
-<span class="sd">    - style_preset: Pass in a style preset to guide the diffusion process towards a particular style. Default is &quot;&quot;.</span>
-<span class="sd">    - extras: Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        text_prompts (List[Tuple[str, float]]): A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.</span>
+<span class="sd">        init_image (bytes): An image used to initialize the diffusion process, in lieu of random noise.</span>
+<span class="sd">        init_image_mode (str): Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is &quot;IMAGE_STRENGTH&quot;.</span>
+<span class="sd">        image_strength (float): How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.</span>
+<span class="sd">        cfg_scale (int): How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.</span>
+<span class="sd">        clip_guidance_preset (str): A preset to guide the diffusion process towards a particular style. Default is &quot;NONE&quot;.</span>
+<span class="sd">        sampler (str): Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.</span>
+<span class="sd">        samples (int): Number of images to generate. Default is 1.</span>
+<span class="sd">        seed (int): Random noise seed (omit this option or use 0 for a random seed). Default is 0.</span>
+<span class="sd">        steps (int): Number of diffusion steps to run. Default is 50.</span>
+<span class="sd">        style_preset (str): Pass in a style preset to guide the diffusion process towards a particular style. Default is &quot;&quot;.</span>
+<span class="sd">        extras (dict): Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    - A list of bytes representing the generated images.</span>
+<span class="sd">        List[bytes]: A list of base64-encoded PNG images.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
@@ -190,12 +197,12 @@
 <span class="sd">    Upscales an image to a specified width or height.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    image (bytes): The image to upscale.</span>
-<span class="sd">    width (int, optional): Desired width of the output image. Only one of width or height may be specified.</span>
-<span class="sd">    height (int, optional): Desired height of the output image. Only one of width or height may be specified.</span>
+<span class="sd">        image (bytes): The image to upscale.</span>
+<span class="sd">        width (int, optional): Desired width of the output image. Only one of width or height may be specified.</span>
+<span class="sd">        height (int, optional): Desired height of the output image. Only one of width or height may be specified.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    bytes: The upscaled image.</span>
+<span class="sd">        bytes: The upscaled image.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 

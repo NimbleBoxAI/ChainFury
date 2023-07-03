@@ -1,5 +1,5 @@
-chainfury.components.functional package
-=======================================
+functional components
+=====================
 
 .. automodule:: chainfury.components.functional
    :members:

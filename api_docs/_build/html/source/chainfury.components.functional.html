@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chainfury.components.functional package &mdash; ChainFury 0.1.1 documentation</title>
+  <title>functional components &mdash; ChainFury 0.1.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="chainfury.components.nbx package" href="chainfury.components.nbx.html" />
-    <link rel="prev" title="chainfury.components.ai_actions package" href="chainfury.components.ai_actions.html" /> 
+    <link rel="next" title="nbx components" href="chainfury.components.nbx.html" />
+    <link rel="prev" title="ai_actions components" href="chainfury.components.ai_actions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -43,31 +43,36 @@
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="chainfury.components.html">chainfury Components</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="chainfury.components.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.ai_actions.html">chainfury.components.ai_actions package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">chainfury.components.functional package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.functional.call_api_requests"><code class="docutils literal notranslate"><span class="pre">call_api_requests()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.functional.regex_search"><code class="docutils literal notranslate"><span class="pre">regex_search()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.functional.regex_substitute"><code class="docutils literal notranslate"><span class="pre">regex_substitute()</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
 </ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.nbx.html">chainfury.components.nbx package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.openai.html">chainfury.components.openai package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.redis.html">chainfury.components.redis package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.stability.html">chainfury.components.stability package</a></li>
-</ul>
-</li>
-</ul>
-</li>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury.utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">chainfury.version module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="chainfury.components.html">chainfury Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">functional components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.functional.call_api_requests"><code class="docutils literal notranslate"><span class="pre">call_api_requests()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.functional.regex_search"><code class="docutils literal notranslate"><span class="pre">regex_search()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.functional.regex_substitute"><code class="docutils literal notranslate"><span class="pre">regex_substitute()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html">serper components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -85,7 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="chainfury.components.html">chainfury Components</a></li>
-      <li class="breadcrumb-item active">chainfury.components.functional package</li>
+      <li class="breadcrumb-item active">functional components</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/source/chainfury.components.functional.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -96,7 +101,7 @@
            <div itemprop="articleBody">
              
   <section id="module-chainfury.components.functional">
-<span id="chainfury-components-functional-package"></span><h1>chainfury.components.functional package<a class="headerlink" href="#module-chainfury.components.functional" title="Permalink to this heading"></a></h1>
+<span id="functional-components"></span><h1>functional components<a class="headerlink" href="#module-chainfury.components.functional" title="Permalink to this heading"></a></h1>
 <p>Functional components are the programatic components that are available to the fury
 system. These are mostly for demo examples, we expect the user to register their
 unique components into programatic_action_registry.</p>
@@ -107,12 +112,12 @@ unique components into programatic_action_registry.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="chainfury.components.functional.regex_search">
-<span class="sig-prename descclassname"><span class="pre">chainfury.components.functional.</span></span><span class="sig-name descname"><span class="pre">regex_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/functional.html#regex_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.functional.regex_search" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">chainfury.components.functional.</span></span><span class="sig-name descname"><span class="pre">regex_search</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/functional.html#regex_search"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.functional.regex_search" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="chainfury.components.functional.regex_substitute">
-<span class="sig-prename descclassname"><span class="pre">chainfury.components.functional.</span></span><span class="sig-name descname"><span class="pre">regex_substitute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/functional.html#regex_substitute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.functional.regex_substitute" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">chainfury.components.functional.</span></span><span class="sig-name descname"><span class="pre">regex_substitute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repl</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/functional.html#regex_substitute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.functional.regex_substitute" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -121,8 +126,8 @@ unique components into programatic_action_registry.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="chainfury.components.ai_actions.html" class="btn btn-neutral float-left" title="chainfury.components.ai_actions package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="chainfury.components.nbx.html" class="btn btn-neutral float-right" title="chainfury.components.nbx package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="chainfury.components.ai_actions.html" class="btn btn-neutral float-left" title="ai_actions components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.components.nbx.html" class="btn btn-neutral float-right" title="nbx components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

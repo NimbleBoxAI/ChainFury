@@ -245,7 +245,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span> <span class="s2">&quot;If returns is not provided then outputs must be provided&quot;</span>
         <span class="n">ops</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
             <span class="nb">id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
             <span class="nb">type</span><span class="o">=</span><span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">PROGRAMATIC</span><span class="p">,</span>
             <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
@@ -254,6 +254,7 @@
             <span class="n">outputs</span><span class="o">=</span><span class="n">ops</span><span class="p">,</span>
             <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
         <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span></div>
@@ -293,7 +294,7 @@
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;p-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span></div>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProgramaticActionsRegistry.get_count_for_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_count_for_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of times a node is used</span>
@@ -322,7 +323,14 @@
 
 
 <div class="viewcode-block" id="AIAction"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction">[docs]</a><span class="k">class</span> <span class="nc">AIAction</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is a callable for all the AI actions.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is a callable for all the AI actions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        node_id (str): The id of the node</span>
+<span class="sd">        model (Model): The model that is used for this action</span>
+<span class="sd">        model_params (Dict[str, Any]): The parameters for the model</span>
+<span class="sd">        fn (object): The function that is used for this action</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># do not remove these from here it is used in base.py if you do then put in a third file</span>
     <span class="n">JTYPE</span> <span class="o">=</span> <span class="s2">&quot;jinja-template&quot;</span>
@@ -331,14 +339,7 @@
     <span class="n">FUNC</span> <span class="o">=</span> <span class="s2">&quot;python-function&quot;</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for Python function type&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Args:</span>
-<span class="sd">            node_id (str): The id of the node</span>
-<span class="sd">            model (Model): The model that is used for this action</span>
-<span class="sd">            model_params (Dict[str, Any]): The parameters for the model</span>
-<span class="sd">            fn (object): The function that is used for this action</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="c1"># do some basic checks that we can do before anything else like checking if model_params</span>
         <span class="c1"># is a subset of the model.vars</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">vars</span><span class="p">)</span>
@@ -372,6 +373,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span> <span class="o">=</span> <span class="n">model_params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span> <span class="o">=</span> <span class="n">action_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span> <span class="o">=</span> <span class="n">action_source</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span>
 
@@ -382,6 +384,7 @@
             <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">no_vars</span><span class="o">=</span><span class="n">no_vars</span><span class="p">),</span>
             <span class="s2">&quot;model_params&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span><span class="p">,</span>
             <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span>
+            <span class="s2">&quot;action_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span><span class="p">,</span>
             <span class="s2">&quot;action_source&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span><span class="p">,</span>
         <span class="p">}</span></div>
 
@@ -393,9 +396,10 @@
             <span class="n">model</span><span class="o">=</span><span class="n">model_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]),</span>
             <span class="n">model_params</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;model_params&quot;</span><span class="p">],</span>
             <span class="n">fn</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">],</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action_name&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;node_id&quot;</span><span class="p">]),</span>
         <span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
+<div class="viewcode-block" id="AIAction.__call__"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;This is a callable that takes in all the arguments that the underlying models take.</span>
 
 <span class="sd">        Args:</span>
@@ -437,7 +441,7 @@
         <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">err</span>
 
-        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span></div>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span></div></div>
 
 
 <div class="viewcode-block" id="AIActionsRegistry"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry">[docs]</a><span class="k">class</span> <span class="nc">AIActionsRegistry</span><span class="p">:</span>
@@ -452,6 +456,7 @@
 
 <div class="viewcode-block" id="AIActionsRegistry.to_action"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.to_action">[docs]</a>    <span class="k">def</span> <span class="nf">to_action</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
+        <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
@@ -486,6 +491,7 @@
             <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
             <span class="n">model_params</span><span class="o">=</span><span class="n">model_params</span><span class="p">,</span>
             <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">action_name</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">outputs</span><span class="p">:</span>
             <span class="n">output_field</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">ai_action</span><span class="o">.</span><span class="fm">__call__</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_output&quot;</span><span class="p">:</span> <span class="p">()})</span>
@@ -508,11 +514,15 @@
         <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
         <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
         <span class="n">outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        function to create an &quot;Action&quot; aka. `chainfury.Node`.</span>
+<span class="sd">        This function will register this action in the local AI registry so it is accesible everywhere. Use this when</span>
+<span class="sd">        you are hosting your own chainfury server and want to serve private functions not available in the public DB.</span>
+<span class="sd">        If you are using this just for your local usecase and have no interest in the serving capabilities then</span>
+<span class="sd">        use `to_action` instead.</span>
 
 <span class="sd">        **NOTE:** If you do not pass `node_id` then this will create a `uudi4`. This behaviour is important when dev</span>
 <span class="sd">        wants to play with the action without commiting it anywhere.</span>
@@ -531,6 +541,7 @@
         <span class="k">if</span> <span class="n">node_id</span> <span class="o">!=</span> <span class="n">AIActionsRegistry</span><span class="o">.</span><span class="n">DB_REGISTER</span> <span class="ow">and</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; already exists&quot;</span><span class="p">)</span>
         <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_action</span><span class="p">(</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">action_name</span> <span class="ow">or</span> <span class="n">node_id</span><span class="p">,</span>
             <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
             <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
             <span class="n">model_params</span><span class="o">=</span><span class="n">model_params</span><span class="p">,</span>
@@ -605,7 +616,7 @@
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">out</span></div>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AIActionsRegistry.get_count_for_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_count_for_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_count_for_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number of times a particular node is called</span>

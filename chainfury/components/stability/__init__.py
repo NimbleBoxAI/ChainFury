@@ -72,22 +72,22 @@ def stability_image_to_image(
     """
     Generate an image using the Stability AI API.
 
-    Parameters:
-    - text_prompts: A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.
-    - init_image: An image used to initialize the diffusion process, in lieu of random noise.
-    - init_image_mode: Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is "IMAGE_STRENGTH".
-    - image_strength: How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.
-    - cfg_scale: How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.
-    - clip_guidance_preset: A preset to guide the diffusion process towards a particular style. Default is "NONE".
-    - sampler: Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.
-    - samples: Number of images to generate. Default is 1.
-    - seed: Random noise seed (omit this option or use 0 for a random seed). Default is 0.
-    - steps: Number of diffusion steps to run. Default is 50.
-    - style_preset: Pass in a style preset to guide the diffusion process towards a particular style. Default is "".
-    - extras: Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.
+    Args:
+        text_prompts (List[Tuple[str, float]]): A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.
+        init_image (bytes): An image used to initialize the diffusion process, in lieu of random noise.
+        init_image_mode (str): Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is "IMAGE_STRENGTH".
+        image_strength (float): How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.
+        cfg_scale (int): How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.
+        clip_guidance_preset (str): A preset to guide the diffusion process towards a particular style. Default is "NONE".
+        sampler (str): Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.
+        samples (int): Number of images to generate. Default is 1.
+        seed (int): Random noise seed (omit this option or use 0 for a random seed). Default is 0.
+        steps (int): Number of diffusion steps to run. Default is 50.
+        style_preset (str): Pass in a style preset to guide the diffusion process towards a particular style. Default is "".
+        extras (dict): Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.
 
     Returns:
-    - A list of bytes representing the generated images.
+        List[bytes]: A list of base64-encoded PNG images.
     """
     pass
 
@@ -112,12 +112,12 @@ def stability_image_to_image_upscale(
     Upscales an image to a specified width or height.
 
     Args:
-    image (bytes): The image to upscale.
-    width (int, optional): Desired width of the output image. Only one of width or height may be specified.
-    height (int, optional): Desired height of the output image. Only one of width or height may be specified.
+        image (bytes): The image to upscale.
+        width (int, optional): Desired width of the output image. Only one of width or height may be specified.
+        height (int, optional): Desired height of the output image. Only one of width or height may be specified.
 
     Returns:
-    bytes: The upscaled image.
+        bytes: The upscaled image.
     """
     pass
 

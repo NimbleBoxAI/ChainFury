@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chainfury.components.stability package &mdash; ChainFury 0.1.1 documentation</title>
+  <title>stability AI components &mdash; ChainFury 0.1.1 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="chainfury.components.redis package" href="chainfury.components.redis.html" /> 
+    <link rel="prev" title="serper components" href="chainfury.components.serper.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -58,19 +58,17 @@
 <p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="chainfury.components.html">chainfury Components</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="chainfury.components.html#components">Components</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.ai_actions.html">chainfury.components.ai_actions package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.functional.html">chainfury.components.functional package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.nbx.html">chainfury.components.nbx package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.openai.html">chainfury.components.openai package</a></li>
-<li class="toctree-l3"><a class="reference internal" href="chainfury.components.redis.html">chainfury.components.redis package</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">chainfury.components.stability package</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image_masking"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_masking()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image_upscale"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_upscale()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chainfury.components.stability.stability_text_to_image"><code class="docutils literal notranslate"><span class="pre">stability_text_to_image()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.functional.html">functional components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html">serper components</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">stability AI components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image_masking"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_masking()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.stability.stability_image_to_image_upscale"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_upscale()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.stability.stability_text_to_image"><code class="docutils literal notranslate"><span class="pre">stability_text_to_image()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -92,7 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="chainfury.components.html">chainfury Components</a></li>
-      <li class="breadcrumb-item active">chainfury.components.stability package</li>
+      <li class="breadcrumb-item active">stability AI components</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/source/chainfury.components.stability.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -103,26 +101,35 @@
            <div itemprop="articleBody">
              
   <section id="module-chainfury.components.stability">
-<span id="chainfury-components-stability-package"></span><h1>chainfury.components.stability package<a class="headerlink" href="#module-chainfury.components.stability" title="Permalink to this heading"></a></h1>
+<span id="stability-ai-components"></span><h1>stability AI components<a class="headerlink" href="#module-chainfury.components.stability" title="Permalink to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="chainfury.components.stability.stability_image_to_image">
 <span class="sig-prename descclassname"><span class="pre">chainfury.components.stability.</span></span><span class="sig-name descname"><span class="pre">stability_image_to_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stability_api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_prompts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_image_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'IMAGE_STRENGTH'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_strength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg_scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clip_guidance_preset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'NONE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style_preset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extras</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">bytes</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/stability.html#stability_image_to_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.stability.stability_image_to_image" title="Permalink to this definition"></a></dt>
 <dd><p>Generate an image using the Stability AI API.</p>
-<p>Parameters:
-- text_prompts: A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.
-- init_image: An image used to initialize the diffusion process, in lieu of random noise.
-- init_image_mode: Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is “IMAGE_STRENGTH”.
-- image_strength: How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.
-- cfg_scale: How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.
-- clip_guidance_preset: A preset to guide the diffusion process towards a particular style. Default is “NONE”.
-- sampler: Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.
-- samples: Number of images to generate. Default is 1.
-- seed: Random noise seed (omit this option or use 0 for a random seed). Default is 0.
-- steps: Number of diffusion steps to run. Default is 50.
-- style_preset: Pass in a style preset to guide the diffusion process towards a particular style. Default is “”.
-- extras: Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.</p>
-<p>Returns:
-- A list of bytes representing the generated images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text_prompts</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>]</em>) – A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.</p></li>
+<li><p><strong>init_image</strong> (<em>bytes</em>) – An image used to initialize the diffusion process, in lieu of random noise.</p></li>
+<li><p><strong>init_image_mode</strong> (<em>str</em>) – Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is “IMAGE_STRENGTH”.</p></li>
+<li><p><strong>image_strength</strong> (<em>float</em>) – How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.</p></li>
+<li><p><strong>cfg_scale</strong> (<em>int</em>) – How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.</p></li>
+<li><p><strong>clip_guidance_preset</strong> (<em>str</em>) – A preset to guide the diffusion process towards a particular style. Default is “NONE”.</p></li>
+<li><p><strong>sampler</strong> (<em>str</em>) – Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.</p></li>
+<li><p><strong>samples</strong> (<em>int</em>) – Number of images to generate. Default is 1.</p></li>
+<li><p><strong>seed</strong> (<em>int</em>) – Random noise seed (omit this option or use 0 for a random seed). Default is 0.</p></li>
+<li><p><strong>steps</strong> (<em>int</em>) – Number of diffusion steps to run. Default is 50.</p></li>
+<li><p><strong>style_preset</strong> (<em>str</em>) – Pass in a style preset to guide the diffusion process towards a particular style. Default is “”.</p></li>
+<li><p><strong>extras</strong> (<em>dict</em>) – Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of base64-encoded PNG images.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[bytes]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -161,12 +168,21 @@
 <dt class="sig sig-object py" id="chainfury.components.stability.stability_image_to_image_upscale">
 <span class="sig-prename descclassname"><span class="pre">chainfury.components.stability.</span></span><span class="sig-name descname"><span class="pre">stability_image_to_image_upscale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stability_api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bytes</span></span></span><a class="reference internal" href="../_modules/chainfury/components/stability.html#stability_image_to_image_upscale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.stability.stability_image_to_image_upscale" title="Permalink to this definition"></a></dt>
 <dd><p>Upscales an image to a specified width or height.</p>
-<p>Args:
-image (bytes): The image to upscale.
-width (int, optional): Desired width of the output image. Only one of width or height may be specified.
-height (int, optional): Desired height of the output image. Only one of width or height may be specified.</p>
-<p>Returns:
-bytes: The upscaled image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> (<em>bytes</em>) – The image to upscale.</p></li>
+<li><p><strong>width</strong> (<em>int</em><em>, </em><em>optional</em>) – Desired width of the output image. Only one of width or height may be specified.</p></li>
+<li><p><strong>height</strong> (<em>int</em><em>, </em><em>optional</em>) – Desired height of the output image. Only one of width or height may be specified.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The upscaled image.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bytes</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -209,7 +225,7 @@ All other engines: 262,144 ≤ height * width ≤ 1,048,576</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="chainfury.components.redis.html" class="btn btn-neutral float-left" title="chainfury.components.redis package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.components.serper.html" class="btn btn-neutral float-left" title="serper components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

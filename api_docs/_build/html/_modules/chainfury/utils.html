@@ -154,16 +154,16 @@
             <span class="n">out</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># Call the function that may crash</span>
             <span class="k">return</span> <span class="n">out</span>  <span class="c1"># If successful, break out of the loop and return</span>
         <span class="k">except</span> <span class="n">UnAuthException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unauth Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unauth Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">e</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function crashed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function crashed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">attempt</span> <span class="o">==</span> <span class="n">max_retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Max retries reached. Exiting...&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Max retries reached. Exiting...&quot;</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="n">e</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">delay</span> <span class="o">=</span> <span class="n">retry_delay</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">attempt</span><span class="p">)</span>  <span class="c1"># Calculate the backoff delay</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrying in </span><span class="si">{</span><span class="n">delay</span><span class="si">}</span><span class="s2"> seconds...&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrying in </span><span class="si">{</span><span class="n">delay</span><span class="si">}</span><span class="s2"> seconds...&quot;</span><span class="p">)</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>  <span class="c1"># Wait for the calculated delay</span>
     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;This should never happen&quot;</span><span class="p">)</span></div>
 </pre></div>

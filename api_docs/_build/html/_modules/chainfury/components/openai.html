@@ -42,13 +42,20 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../install.html">Installing ChainFury</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.cli.html">chainfury CLI</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.components.html">chainfury Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.cli.html">chainfury CLI</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.base.html">chainfury.base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.client.html">chainfury.client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.utils.html">chainfury.utils module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.version.html">chainfury.version module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.components.html">chainfury Components</a></li>
 </ul>
 
         </div>
@@ -99,7 +106,8 @@
     <span class="n">logit_bias</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
     <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">raw</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">retry_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">retry_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate text completion using OpenAI&#39;s GPT-3 API.</span>
@@ -166,7 +174,7 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OpenAI API returned status code </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">exponential_backoff</span><span class="p">(</span><span class="n">_fn</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">exponential_backoff</span><span class="p">(</span><span class="n">_fn</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">retry_count</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="n">retry_delay</span><span class="p">)</span></div>
 
 
 <span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
@@ -194,8 +202,8 @@
     <span class="n">logit_bias</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
     <span class="n">user</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">retry_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-    <span class="n">max_retry_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">retry_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">retry_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a JSON object containing the OpenAI&#39;s API chat response.</span>
@@ -247,7 +255,7 @@
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OpenAI API returned status code </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">exponential_backoff</span><span class="p">(</span><span class="n">_fn</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">exponential_backoff</span><span class="p">(</span><span class="n">_fn</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">retry_count</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="n">retry_delay</span><span class="p">)</span></div>
 
 
 <span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>

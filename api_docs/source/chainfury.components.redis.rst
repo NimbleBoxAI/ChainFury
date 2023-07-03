@@ -1,5 +1,5 @@
-chainfury.components.redis package
-==================================
+redis components
+================
 
 .. automodule:: chainfury.components.redis
    :members:

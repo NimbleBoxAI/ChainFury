@@ -89,7 +89,7 @@
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">from</span> <span class="nn">pprint</span> <span class="kn">import</span> <span class="n">pformat</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Generator</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span><span class="p">,</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span> <span class="nn">jinja2schema</span>
@@ -669,7 +669,7 @@
             <span class="s2">&quot;tags&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags</span><span class="p">,</span>
         <span class="p">}</span></div>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
+<div class="viewcode-block" id="Model.__call__"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Model.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls the model with the given data.</span>
 
 <span class="sd">        Args:</span>
@@ -682,7 +682,7 @@
             <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">model_data</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
             <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span> <span class="n">e</span></div>
+            <span class="k">return</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">(),</span> <span class="n">e</span></div></div>
 
 
 <span class="c1">#</span>
@@ -771,20 +771,23 @@
         <span class="kn">from</span> <span class="nn">chainfury.agent</span> <span class="kn">import</span> <span class="n">AIAction</span>
 
         <span class="n">fn</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span> <span class="n">AIAction</span><span class="p">):</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">no_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;action_name&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
             <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
             <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">fn</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
             <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">description</span><span class="p">,</span>
             <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">],</span>
             <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">o</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">],</span>
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Node.from_dict"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Node.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Node&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Node&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a node from a dictionary.</span>
 
 <span class="sd">        Args:</span>
@@ -793,6 +796,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Node: The node created from the dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating node from dict: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
         <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">Var</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fields&quot;</span><span class="p">]]</span>
         <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Var</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">]]</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">]</span>
@@ -835,7 +840,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">print_thoughts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
+<div class="viewcode-block" id="Node.__call__"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Node.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">print_thoughts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calls the node with the given data.</span>
 
 <span class="sd">        Args:</span>
@@ -873,7 +878,7 @@
             <span class="k">return</span> <span class="n">fout</span><span class="p">,</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">tb</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">tb</span><span class="p">,</span> <span class="n">e</span></div>
+            <span class="k">return</span> <span class="n">tb</span><span class="p">,</span> <span class="n">e</span></div></div>
 
 
 <span class="c1">#</span>
@@ -882,30 +887,29 @@
 
 
 <div class="viewcode-block" id="Edge"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Edge">[docs]</a><span class="k">class</span> <span class="nc">Edge</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">src_node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trg_node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">*</span><span class="n">connections</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an edge between two nodes.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates an edge between two nodes.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            src_node_id (str): The id of the source node.</span>
-<span class="sd">            trg_node_id (str): The id of the target node.</span>
-<span class="sd">            *connections (Tuple[str, str]): The Var names between the source and target node.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># some basic checks</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">connections</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)),</span> <span class="sa">f</span><span class="s2">&quot;Invalid connection: </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid connection: </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid connection: </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">str</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid connection: </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        src_node_id (str): The id of the source node.</span>
+<span class="sd">        src_node_var (str): The name of the source node variable.</span>
+<span class="sd">        trg_node_id (str): The id of the target node.</span>
+<span class="sd">        trg_node_var (str): The name of the target node variable.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">src_node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">src_node_var</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">trg_node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">trg_node_var</span><span class="p">,</span>
+    <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">src_node_id</span> <span class="o">=</span> <span class="n">src_node_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">trg_node_id</span> <span class="o">=</span> <span class="n">trg_node_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connections</span> <span class="o">=</span> <span class="n">connections</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">src_node_var</span> <span class="o">=</span> <span class="n">src_node_var</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trg_node_var</span> <span class="o">=</span> <span class="n">trg_node_var</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;FuryEdge(&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">src_node_id</span><span class="si">}</span><span class="s2">&#39; =&gt; &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">trg_node_id</span><span class="si">}</span><span class="s2">&#39;,&quot;</span>
-        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">connections</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">,&quot;</span>
-        <span class="n">out</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">)&quot;</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;FuryEdge(&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">src_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">src_node_var</span><span class="si">}</span><span class="s2">&#39; =&gt; &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">trg_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">trg_node_var</span><span class="si">}</span><span class="s2">&#39;)&quot;</span>
         <span class="k">return</span> <span class="n">out</span>
 
 <div class="viewcode-block" id="Edge.to_dict"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Edge.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
@@ -915,13 +919,14 @@
 <span class="sd">            Dict[str, Any]: The dictionary representation of the edge.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span>
-            <span class="s2">&quot;src_node_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_node_id</span><span class="p">,</span>
-            <span class="s2">&quot;trg_node_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trg_node_id</span><span class="p">,</span>
-            <span class="s2">&quot;connections&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">connections</span><span class="p">,</span>
+            <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_node_id</span><span class="p">,</span>
+            <span class="s2">&quot;sourceHandle&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_node_var</span><span class="p">,</span>
+            <span class="s2">&quot;target&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trg_node_id</span><span class="p">,</span>
+            <span class="s2">&quot;targetHandle&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">trg_node_var</span><span class="p">,</span>
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Edge.from_dict"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Edge.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Edge&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Edge&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates an edge from a dictionary.</span>
 
 <span class="sd">        Args:</span>
@@ -931,9 +936,10 @@
 <span class="sd">            Edge: The edge created from the dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;src_node_id&quot;</span><span class="p">],</span>
-            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;trg_node_id&quot;</span><span class="p">],</span>
-            <span class="o">*</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;connections&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;source&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;sourceHandle&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;target&quot;</span><span class="p">],</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">&quot;targetHandle&quot;</span><span class="p">],</span>
         <span class="p">)</span></div></div>
 
 
@@ -943,6 +949,16 @@
 
 
 <div class="viewcode-block" id="Chain"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain">[docs]</a><span class="k">class</span> <span class="nc">Chain</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A chain is a full flow of nodes and edges.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].</span>
+<span class="sd">        edges (List[Edge], optional): The list of edges in the chain. Defaults to [].</span>
+<span class="sd">        sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.</span>
+<span class="sd">        main_in (str, optional): The name of the input var for the chat input. Defaults to &quot;&quot;.</span>
+<span class="sd">        main_out (str, optional): The name of the output var for the chat output. Defaults to &quot;&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">nodes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
@@ -952,15 +968,6 @@
         <span class="n">main_in</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">main_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;A chain is a full flow of nodes and edges.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].</span>
-<span class="sd">            edges (List[Edge], optional): The list of edges in the chain. Defaults to [].</span>
-<span class="sd">            sample (Dict[str, Any], optional): The sample data to use for the chain. Defaults to {}.</span>
-<span class="sd">            main_in (str, optional): The name of the input var for the chat input. Defaults to &quot;&quot;.</span>
-<span class="sd">            main_out (str, optional): The name of the output var for the chat output. Defaults to &quot;&quot;.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span>
 
@@ -975,6 +982,9 @@
 
         <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topo_order</span><span class="p">:</span>
             <span class="k">assert</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Missing node from an edge: </span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="c1"># to a dry run to validate everything</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="c1"># return f&quot;FuryDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})&quot;</span>
@@ -1001,7 +1011,9 @@
         <span class="n">main_in</span> <span class="o">=</span> <span class="n">main_in</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_in</span>
         <span class="n">main_out</span> <span class="o">=</span> <span class="n">main_out</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_out</span>
         <span class="n">sample</span> <span class="o">=</span> <span class="n">sample</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span>
-        <span class="k">assert</span> <span class="n">main_in</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid key: </span><span class="si">{</span><span class="n">main_in</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">main_in</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Key should be present in &#39;sample&#39;: </span><span class="si">{</span><span class="n">main_in</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># assert main_in in sample, f&quot;Invalid key: {main_in}&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">main_in</span> <span class="ow">or</span> <span class="n">main_out</span> <span class="ow">or</span> <span class="n">sample</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No main_in, main_out or sample provided, using defaults&quot;</span><span class="p">)</span>
@@ -1016,7 +1028,7 @@
         <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Chain.from_dict"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;Chain&quot;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Chain&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a chain from a dictionary.</span>
 
 <span class="sd">        Args:</span>
@@ -1025,8 +1037,8 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Chain: The chain created from the dictionary.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Node</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]]</span>
-        <span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">Edge</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]]</span>
+        <span class="n">nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">Node</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]]</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">Edge</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]]</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">nodes</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="o">=</span><span class="n">edges</span><span class="p">,</span> <span class="n">sample</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;sample&quot;</span><span class="p">],</span> <span class="n">main_in</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;main_in&quot;</span><span class="p">],</span> <span class="n">main_out</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;main_out&quot;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Chain.to_json"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.to_json">[docs]</a>    <span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1049,19 +1061,117 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+<div class="viewcode-block" id="Chain.from_id"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.from_id">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_id</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">chainfury.client</span> <span class="kn">import</span> <span class="n">get_chain_from_id</span>
+
+        <span class="k">return</span> <span class="n">get_chain_from_id</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Chain.step"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.step">[docs]</a>    <span class="k">def</span> <span class="nf">step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">pre_data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">full_ir</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">print_thoughts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">thoughts_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs a single step in the chain, useful for manual debugging.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): The id of the node to step.</span>
+<span class="sd">            pre_data (Dict[str, Any]): The data to use for the step.</span>
+<span class="sd">            full_ir (Dict[str, Any]): The full IR to use for the step.</span>
+<span class="sd">            print_thoughts (bool, optional): Whether to print the thoughts. Defaults to False.</span>
+<span class="sd">            thoughts_callback (Optional[Callable], optional): A callback to call with the thoughts. Defaults to None.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[Dict[str, Any], Dict[str, Any]]: The currrent output and updated thoughts ir buffer.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="n">incoming_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">edge</span><span class="p">:</span> <span class="n">edge</span><span class="o">.</span><span class="n">trg_node_id</span> <span class="o">==</span> <span class="n">node_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">))</span>
+
+        <span class="c1"># clear out all the nodes that this thing needs into a separate rep</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing node: </span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current full_ir: </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">full_ir</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># first check if this node has any fields that are in the data</span>
+        <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pre_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">has_field</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+                <span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">pre_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>  <span class="c1"># don&#39;t pop this, some things are shared between actions eg. openai_api_key</span>
+            <span class="k">elif</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
+                <span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">pre_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># pop this, it is not needed anymore</span>
+
+        <span class="c1"># then merge from the ir buffer</span>
+        <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">incoming_edges</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incoming edge: </span><span class="si">{</span><span class="n">edge</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">req_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">edge</span><span class="o">.</span><span class="n">src_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">edge</span><span class="o">.</span><span class="n">src_node_var</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Looking for key: </span><span class="si">{</span><span class="n">req_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># need to check if this information is available in the IR buffer, if it is not then this is an error</span>
+            <span class="n">ir_value</span> <span class="o">=</span> <span class="n">pre_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">req_key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">full_ir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">req_key</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ir_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing value for </span><span class="si">{</span><span class="n">req_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">_data</span><span class="p">[</span><span class="n">edge</span><span class="o">.</span><span class="n">trg_node_var</span><span class="p">]</span> <span class="o">=</span> <span class="n">ir_value</span>
+
+        <span class="c1"># then run the node</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">node</span><span class="p">(</span><span class="n">_data</span><span class="p">,</span> <span class="n">print_thoughts</span><span class="o">=</span><span class="n">print_thoughts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TRACE: </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="n">yield_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">,</span>
+                <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="p">}</span>
+            <span class="n">full_ir</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">thought</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">value</span><span class="p">}</span>
+            <span class="n">yield_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">if</span> <span class="n">thoughts_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">thoughts_callback</span><span class="p">(</span><span class="n">thought</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">print_thoughts</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">thought</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">yield_dict</span><span class="p">,</span> <span class="n">full_ir</span></div>
+
+<div class="viewcode-block" id="Chain.__call__"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
         <span class="n">thoughts_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">print_thoughts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Var</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer</span>
 <span class="sd">        and a simple callback system at each step.</span>
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; chain = Chain(...)</span>
+<span class="sd">            &gt;&gt;&gt; out, thoughts = chain(&quot;Hello world&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; print(out)</span>
+<span class="sd">            ... The first man chuckled and shook his head, &quot;You always have the weirdest explanations for everything.&quot;</span>
+<span class="sd">            &gt;&gt;&gt; print(thoughts)</span>
+<span class="sd">            ... {</span>
+<span class="sd">                    &#39;38c813a2-850c-448b-8cfb-bd5775cc4b61/answer&#39;: {</span>
+<span class="sd">                        &#39;timestamp&#39;: &#39;2023-06-27T16:50:04.178833&#39;,</span>
+<span class="sd">                        &#39;value&#39;: &#39;...&#39;</span>
+<span class="sd">                    }</span>
+<span class="sd">                    &#39;1378538b-a15e-475b-9a9d-a31a261165c0/out&#39;: {</span>
+<span class="sd">                        &#39;timestamp&#39;: &#39;2023-06-27T16:50:07.818709&#39;,</span>
+<span class="sd">                        &#39;value&#39;: &#39;...&#39;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+
+<span class="sd">        You can also stream the intermediate responses by setting using `stream_call` method. You can get the exact same</span>
+<span class="sd">        result as above by iterating over the response and getting the last response.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            data (Union[str, Dict[str, Any]]): The data to run the chain on.</span>
 <span class="sd">            thoughts_callback (Optional[Callable], optional): The callback function to call at each step. Defaults to None.</span>
 <span class="sd">            print_thoughts (bool, optional): Whether to print the thoughts buffer at each step. Defaults to False.</span>
+<span class="sd">            stream (bool, optional): Whether to stream the output or not. Defaults to False.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple[Var, Dict[str, Any]]: The output of the chain and the thoughts buffer.</span>
@@ -1082,52 +1192,91 @@
         <span class="n">full_ir</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topo_order</span><span class="p">:</span>
-            <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
-            <span class="n">incoming_edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">edge</span><span class="p">:</span> <span class="n">edge</span><span class="o">.</span><span class="n">trg_node_id</span> <span class="o">==</span> <span class="n">node_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">))</span>
+            <span class="n">yield_dict</span><span class="p">,</span> <span class="n">full_ir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+                <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+                <span class="n">pre_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">full_ir</span><span class="o">=</span><span class="n">full_ir</span><span class="p">,</span>
+                <span class="n">print_thoughts</span><span class="o">=</span><span class="n">print_thoughts</span><span class="p">,</span>
+                <span class="n">thoughts_callback</span><span class="o">=</span><span class="n">thoughts_callback</span><span class="p">,</span>
+            <span class="p">)</span>
 
-            <span class="c1"># clear out all the nodes that this thing needs into a separate rep</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing node: </span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Current full_ir: </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">full_ir</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_out</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">full_ir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_out</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
 
-            <span class="c1"># first check if this node has any fields that are in the data</span>
-            <span class="n">all_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">all_keys</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">has_field</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
-                    <span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>  <span class="c1"># don&#39;t pop this, some things are shared between actions eg. openai_api_key</span>
-                <span class="k">elif</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">):</span>
-                    <span class="n">_data</span><span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>  <span class="c1"># pop this, it is not needed anymore</span>
+        <span class="k">if</span> <span class="n">print_thoughts</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">terminal_top_with_text</span><span class="p">(</span><span class="s2">&quot;Chain Last&quot;</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Outputs:</span><span class="se">\n</span><span class="s2">------&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">terminal_top_with_text</span><span class="p">(</span><span class="s2">&quot;Chain Ends&quot;</span><span class="p">))</span>
 
-            <span class="c1"># then merge from the ir buffer</span>
-            <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">incoming_edges</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incoming edge: </span><span class="si">{</span><span class="n">edge</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">conns</span> <span class="ow">in</span> <span class="n">edge</span><span class="o">.</span><span class="n">connections</span><span class="p">:</span>
-                    <span class="n">req_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">edge</span><span class="o">.</span><span class="n">src_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">conns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Looking for key: </span><span class="si">{</span><span class="n">req_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="c1"># need to check if this information is available in the IR buffer, if it is not then this is an error</span>
-                    <span class="n">ir_value</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">req_key</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="n">full_ir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">req_key</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">ir_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing value for </span><span class="si">{</span><span class="n">req_key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">_data</span><span class="p">[</span><span class="n">conns</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">ir_value</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">full_ir</span>  <span class="c1"># type: ignore</span></div>
 
-            <span class="c1"># then run the node</span>
-            <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">node</span><span class="p">(</span><span class="n">_data</span><span class="p">,</span> <span class="n">print_thoughts</span><span class="o">=</span><span class="n">print_thoughts</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;TRACE: </span><span class="si">{out}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">raise</span> <span class="n">err</span>
+<div class="viewcode-block" id="Chain.stream"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Chain.stream">[docs]</a>    <span class="k">def</span> <span class="nf">stream</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+        <span class="n">thoughts_callback</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">print_thoughts</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="nb">bool</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is a streaming version of __call__ method. It will yield the intermediate responses as they come in.</span>
 
-            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">v</span><span class="p">,</span>
-                    <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-                <span class="p">}</span>
-                <span class="n">full_ir</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-                <span class="n">thought</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="o">**</span><span class="n">value</span><span class="p">}</span>
-                <span class="k">if</span> <span class="n">thoughts_callback</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">thoughts_callback</span><span class="p">(</span><span class="n">thought</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">print_thoughts</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">thought</span><span class="p">)</span>
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; chain = Chain(...)</span>
+<span class="sd">            &gt;&gt;&gt; cf_response_gen = chain.stream(&quot;Hello world&quot;)</span>
+<span class="sd">            &gt;&gt;&gt; out = None</span>
+<span class="sd">            &gt;&gt;&gt; thoughts = {}</span>
+<span class="sd">            &gt;&gt;&gt; for ir, done in cf_response_gen:</span>
+<span class="sd">            ...     if done:</span>
+<span class="sd">            ...         out = ir</span>
+<span class="sd">            ...     else:</span>
+<span class="sd">            ...         thoughts.update(ir)</span>
+<span class="sd">            &gt;&gt;&gt; print(out)</span>
+<span class="sd">            ... The first man chuckled and shook his head, &quot;You always have the weirdest explanations for everything.&quot;</span>
+<span class="sd">            &gt;&gt;&gt; print(thoughts)</span>
+<span class="sd">            ... {</span>
+<span class="sd">                    &#39;38c813a2-850c-448b-8cfb-bd5775cc4b61/answer&#39;: {</span>
+<span class="sd">                        &#39;timestamp&#39;: &#39;2023-06-27T16:50:04.178833&#39;,</span>
+<span class="sd">                        &#39;value&#39;: &#39;...&#39;</span>
+<span class="sd">                    }</span>
+<span class="sd">                    &#39;1378538b-a15e-475b-9a9d-a31a261165c0/out&#39;: {</span>
+<span class="sd">                        &#39;timestamp&#39;: &#39;2023-06-27T16:50:07.818709&#39;,</span>
+<span class="sd">                        &#39;value&#39;: &#39;...&#39;</span>
+<span class="sd">                    }</span>
+<span class="sd">                }</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data (Union[str, Dict[str, Any]]): The data to run the chain on.</span>
+<span class="sd">            thoughts_callback (Optional[Callable], optional): The callback function to call at each step. Defaults to None.</span>
+<span class="sd">            print_thoughts (bool, optional): Whether to print the thoughts buffer at each step. Defaults to False.</span>
+
+<span class="sd">        Yields:</span>
+<span class="sd">            Generator[Tuple[Union[Any, Dict[str, Any]], bool], None, None]: The intermediate responses and whether the</span>
+<span class="sd">            response is the final response or not.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Invalid data type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_in</span><span class="p">,</span> <span class="s2">&quot;Cannot run a chain without a sample and main_in for string input, please use a dict input&quot;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">main_in</span><span class="p">:</span> <span class="n">data</span><span class="p">}</span>
+        <span class="n">_data</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">)</span>  <span class="c1"># don&#39;t corrupt yourself over multiple calls</span>
+        <span class="n">_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">_data</span>
+
+        <span class="k">if</span> <span class="n">print_thoughts</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">terminal_top_with_text</span><span class="p">(</span><span class="s2">&quot;Chain Starts&quot;</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Inputs:</span><span class="se">\n</span><span class="s2">------&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">pformat</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+        <span class="n">full_ir</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topo_order</span><span class="p">:</span>
+            <span class="n">yield_dict</span><span class="p">,</span> <span class="n">full_ir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step</span><span class="p">(</span>
+                <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+                <span class="n">pre_data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">full_ir</span><span class="o">=</span><span class="n">full_ir</span><span class="p">,</span>
+                <span class="n">print_thoughts</span><span class="o">=</span><span class="n">print_thoughts</span><span class="p">,</span>
+                <span class="n">thoughts_callback</span><span class="o">=</span><span class="n">thoughts_callback</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">yield</span> <span class="n">yield_dict</span><span class="p">,</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="n">print_thoughts</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">terminal_top_with_text</span><span class="p">(</span><span class="s2">&quot;Chain Last&quot;</span><span class="p">))</span>
@@ -1137,7 +1286,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_out</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">full_ir</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">main_out</span><span class="p">)[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
-        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">full_ir</span>  <span class="c1"># type: ignore</span></div>
+        <span class="k">yield</span> <span class="n">out</span><span class="p">,</span> <span class="kc">True</span></div></div>
 
 
 <span class="c1">#</span>
@@ -1164,7 +1313,7 @@
     <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">src</span><span class="p">,</span> <span class="n">dsts</span> <span class="ow">in</span> <span class="n">adjacency_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">dst</span> <span class="ow">in</span> <span class="n">dsts</span><span class="p">:</span>
-            <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Edge</span><span class="p">(</span><span class="n">src_node_id</span><span class="o">=</span><span class="n">src</span><span class="p">,</span> <span class="n">trg_node_id</span><span class="o">=</span><span class="n">dst</span><span class="p">))</span>
+            <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Edge</span><span class="p">(</span><span class="n">src_node_id</span><span class="o">=</span><span class="n">src</span><span class="p">,</span> <span class="n">src_node_var</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">trg_node_id</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span> <span class="n">trg_node_var</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">edges</span></div>
 
 
