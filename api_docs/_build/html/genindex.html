@@ -53,7 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="source/chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source/chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="source/chainfury.components.html">chainfury Components</a></li>
 </ul>
@@ -155,6 +155,10 @@
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.cf_id">cf_id (chainfury.types.FENode attribute)</a>
 </li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.CF_TOKEN">CF_TOKEN() (chainfury.components.const.Env method)</a>
+</li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.CF_URL">CF_URL() (chainfury.components.const.Env method)</a>
+</li>
       <li><a href="source/chainfury.base.html#chainfury.base.Chain">Chain (class in chainfury.base)</a>
 </li>
       <li>
@@ -193,17 +197,17 @@
 </li>
       </ul></li>
       <li>
-    chainfury.components
-
-      <ul>
-        <li><a href="source/chainfury.components.html#module-chainfury.components">module</a>
-</li>
-      </ul></li>
-      <li>
     chainfury.components.ai_actions
 
       <ul>
         <li><a href="source/chainfury.components.ai_actions.html#module-chainfury.components.ai_actions">module</a>
+</li>
+      </ul></li>
+      <li>
+    chainfury.components.const
+
+      <ul>
+        <li><a href="source/chainfury.components.const.html#module-chainfury.components.const">module</a>
 </li>
       </ul></li>
   </ul></td>
@@ -307,6 +311,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.types.html#chainfury.types.Dag.edges">edges (chainfury.types.Dag attribute)</a>
 </li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env">Env (class in chainfury.components.const)</a>
+</li>
       <li><a href="source/chainfury.utils.html#chainfury.utils.exponential_backoff">exponential_backoff() (in module chainfury.utils)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.extract_jinja_indices">extract_jinja_indices() (in module chainfury.base)</a>
@@ -318,6 +324,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode">FENode (class in chainfury.types)</a>
+</li>
+      <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData">FENode.CFData (class in chainfury.types)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.Position">FENode.Position (class in chainfury.types)</a>
 </li>
@@ -428,6 +436,8 @@
       <ul>
         <li><a href="source/chainfury.types.html#chainfury.types.FENode.id">(chainfury.types.FENode attribute)</a>
 </li>
+        <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData.id">(chainfury.types.FENode.CFData attribute)</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -485,9 +495,9 @@
 </li>
         <li><a href="source/chainfury.client.html#module-chainfury.client">chainfury.client</a>
 </li>
-        <li><a href="source/chainfury.components.html#module-chainfury.components">chainfury.components</a>
-</li>
         <li><a href="source/chainfury.components.ai_actions.html#module-chainfury.components.ai_actions">chainfury.components.ai_actions</a>
+</li>
+        <li><a href="source/chainfury.components.const.html#module-chainfury.components.const">chainfury.components.const</a>
 </li>
         <li><a href="source/chainfury.components.functional.html#module-chainfury.components.functional">chainfury.components.functional</a>
 </li>
@@ -516,10 +526,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.components.nbx.html#chainfury.components.nbx.nbx_chat_api">nbx_chat_api() (in module chainfury.components.nbx)</a>
 </li>
-      <li><a href="source/chainfury.base.html#chainfury.base.Node">Node (class in chainfury.base)</a>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.NBX_DEPLOY_KEY">NBX_DEPLOY_KEY() (chainfury.components.const.Env method)</a>
+</li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.NBX_DEPLOY_URL">NBX_DEPLOY_URL() (chainfury.components.const.Env method)</a>
+</li>
+      <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData.node">node (chainfury.types.FENode.CFData attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.base.html#chainfury.base.Node">Node (class in chainfury.base)</a>
+</li>
       <li><a href="source/chainfury.types.html#chainfury.types.Dag.nodes">nodes (chainfury.types.Dag attribute)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.NodeType">NodeType (class in chainfury.base)</a>
@@ -537,6 +553,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.components.openai.html#chainfury.components.openai.openai_completion">openai_completion() (in module chainfury.components.openai)</a>
+</li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.OPENAI_TOKEN">OPENAI_TOKEN() (chainfury.components.const.Env method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -594,14 +612,16 @@
 </li>
       <li><a href="source/chainfury.components.serper.html#chainfury.components.serper.serper_api">serper_api() (in module chainfury.components.serper)</a>
 </li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.SERPER_API_KEY">SERPER_API_KEY() (chainfury.components.const.Env method)</a>
+</li>
       <li><a href="source/chainfury.base.html#chainfury.base.Var.set_value">set_value() (chainfury.base.Var method)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.Edge.source">source (chainfury.types.Edge attribute)</a>
 </li>
-      <li><a href="source/chainfury.types.html#chainfury.types.Edge.sourceHandle">sourceHandle (chainfury.types.Edge attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.types.html#chainfury.types.Edge.sourceHandle">sourceHandle (chainfury.types.Edge attribute)</a>
+</li>
       <li><a href="source/chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image">stability_image_to_image() (in module chainfury.components.stability)</a>
 </li>
       <li><a href="source/chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_masking">stability_image_to_image_masking() (in module chainfury.components.stability)</a>
@@ -655,7 +675,11 @@
       <li><a href="source/chainfury.base.html#chainfury.base.topological_sort">topological_sort() (in module chainfury.base)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.type">type (chainfury.types.FENode attribute)</a>
+
+      <ul>
+        <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData.type">(chainfury.types.FENode.CFData attribute)</a>
 </li>
+      </ul></li>
       <li><a href="source/chainfury.base.html#chainfury.base.Model.TYPE_NAME">TYPE_NAME (chainfury.base.Model attribute)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.Node.types">types (chainfury.base.Node attribute)</a>
@@ -679,6 +703,10 @@
 
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData.value">value (chainfury.types.FENode.CFData attribute)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.base.html#chainfury.base.Var">Var (class in chainfury.base)</a>
 </li>

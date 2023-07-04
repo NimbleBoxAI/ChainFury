@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="ai_actions components" href="chainfury.components.ai_actions.html" />
+    <link rel="next" title="component constants" href="chainfury.components.const.html" />
     <link rel="prev" title="Version" href="chainfury.version.html" /> 
 </head>
 
@@ -56,16 +56,17 @@
 <li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">chainfury Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.const.html">component constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html">serper components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chainfury.components.functional.html">functional components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
 <li class="toctree-l2"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html">serper components</a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a></li>
 </ul>
 </li>
 </ul>
@@ -96,9 +97,51 @@
              
   <section id="chainfury-components">
 <h1>chainfury Components<a class="headerlink" href="#chainfury-components" title="Permalink to this heading"></a></h1>
-<p><cite>chainfury</cite> is designed to work OOB with several popular vendor APIs. You generally should not talk to the components
-directly and rather via <cite>ai_actions_registry</cite> or <cite>programatic_actions_registry</cite>.</p>
-<span class="target" id="module-chainfury.components"></span><div class="toctree-wrapper compound">
+<p><cite>chainfury</cite> is designed to work OOB with several popular vendor APIs and integrates to several components in the larger
+ecosystem. You can talk to the components directly but we recommend wrapping them in a <cite>chainfury</cite> action or via
+<cite>ai_actions_registry</cite> or <cite>programatic_actions_registry</cite>.</p>
+<p>You can get all the environment variables in</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Constants:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.const.html">component constants</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.const.html#chainfury.components.const.Env"><code class="docutils literal notranslate"><span class="pre">Env</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Models:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.openai.html">openai components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html#chainfury.components.openai.openai_chat"><code class="docutils literal notranslate"><span class="pre">openai_chat()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html#chainfury.components.openai.openai_completion"><code class="docutils literal notranslate"><span class="pre">openai_completion()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_masking"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_masking()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_upscale"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_upscale()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_text_to_image"><code class="docutils literal notranslate"><span class="pre">stability_text_to_image()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html#chainfury.components.nbx.nbx_chat_api"><code class="docutils literal notranslate"><span class="pre">nbx_chat_api()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Popular APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.serper.html">serper components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html#chainfury.components.serper.serper_api"><code class="docutils literal notranslate"><span class="pre">serper_api()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Actions:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html#chainfury.components.ai_actions.hello_world"><code class="docutils literal notranslate"><span class="pre">hello_world()</span></code></a></li>
@@ -111,27 +154,12 @@ directly and rather via <cite>ai_actions_registry</cite> or <cite>programatic_ac
 <li class="toctree-l2"><a class="reference internal" href="chainfury.components.functional.html#chainfury.components.functional.regex_substitute"><code class="docutils literal notranslate"><span class="pre">regex_substitute()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html#chainfury.components.nbx.nbx_chat_api"><code class="docutils literal notranslate"><span class="pre">nbx_chat_api()</span></code></a></li>
 </ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.components.openai.html">openai components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html#chainfury.components.openai.openai_chat"><code class="docutils literal notranslate"><span class="pre">openai_chat()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html#chainfury.components.openai.openai_completion"><code class="docutils literal notranslate"><span class="pre">openai_completion()</span></code></a></li>
-</ul>
-</li>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Databases:</span></p>
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.components.serper.html">serper components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html#chainfury.components.serper.serper_api"><code class="docutils literal notranslate"><span class="pre">serper_api()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_masking"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_masking()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_upscale"><code class="docutils literal notranslate"><span class="pre">stability_image_to_image_upscale()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html#chainfury.components.stability.stability_text_to_image"><code class="docutils literal notranslate"><span class="pre">stability_text_to_image()</span></code></a></li>
-</ul>
-</li>
 </ul>
 </div>
 </section>
@@ -141,7 +169,7 @@ directly and rather via <cite>ai_actions_registry</cite> or <cite>programatic_ac
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="chainfury.version.html" class="btn btn-neutral float-left" title="Version" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="chainfury.components.ai_actions.html" class="btn btn-neutral float-right" title="ai_actions components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="chainfury.components.const.html" class="btn btn-neutral float-right" title="component constants" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

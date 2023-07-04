@@ -1,17 +1,23 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from pydantic import BaseModel
 
 
 class FENode(BaseModel):
+    class CFData(BaseModel):
+        id: str
+        type: str
+        node: Dict[str, Any]
+        value: Any = None
+
     class Position(BaseModel):
         x: float
         y: float
 
     id: str
     cf_id: str = ""  # this is the id of the node in the chainfury graph
-    cf_data: Dict = {}  # this is the data of the node in the chainfury graph
+    cf_data: Optional[CFData] = None  # this is the data of the node in the chainfury graph
     position: Position
     type: str
     width: int

@@ -3,12 +3,13 @@ import requests
 from typing import Any, List, Optional
 
 from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
+from chainfury.components.const import Env
 
 
 def nbx_chat_api(
-    nbx_deploy_url: Secret,
-    nbx_header_token: Secret,
     inputs: str,
+    nbx_deploy_url: str = "",
+    nbx_header_token: Secret = Secret(""),
     best_of: int = 1,
     decoder_input_details: bool = True,
     details: bool = True,
@@ -30,7 +31,41 @@ def nbx_chat_api(
 ) -> Any:
     """
     Returns a JSON object containing the OpenAI's API chat response.
+
+    Args:
+        inputs (str): The prompt to send to the API.
+        nbx_deploy_url (str): The NBX deploy URL. Defaults to the value of NBX_DEPLOY_URL environment variable.
+        nbx_header_token (Secret): The NBX header token. Defaults to the value of NBX_DEPLOY_KEY environment variable.
+        best_of (int): The number of outputs to generate and return. Defaults to 1.
+        decoder_input_details (bool): Whether to return the decoder input details. Defaults to True.
+        details (bool): Whether to return the details. Defaults to True.
+        do_sample (bool): Whether to use sampling. Defaults to True.
+        max_new_tokens (int): The maximum number of tokens to generate. Defaults to 20.
+        repetition_penalty (float): The repetition penalty. Defaults to 1.03.
+        return_full_text (bool): Whether to return the full text. Defaults to False.
+        seed (int): The seed to use for random number generation. Defaults to a random integer between 0 and 2^32 - 1.
+        stop (List[str]): The stop tokens. Defaults to an empty list.
+        temperature (float): The temperature. Defaults to 0.5.
+        top_k (int): The top k. Defaults to 10.
+        top_p (float): The top p. Defaults to 0.95.
+        truncate (int): The truncate. Defaults to None.
+        typical_p (float): The typical p. Defaults to 0.95.
+        watermark (bool): Whether to include the watermark. Defaults to True.
+        retry_count (int): The number of times to retry the API call. Defaults to 3.
+        retry_delay (int): The number of seconds to wait between retries. Defaults to 1.
+
+    Returns:
+        Any: The JSON object containing the OpenAI's API chat response.
     """
+    if not nbx_deploy_url:
+        nbx_deploy_url = Env.NBX_DEPLOY_URL("")
+    if not nbx_deploy_url:
+        raise Exception("NBX_DEPLOY_URL not set, please set it in your environment or pass it as an argument")
+
+    if not nbx_header_token:
+        nbx_header_token = Secret(Env.NBX_DEPLOY_KEY(""))
+    if not nbx_header_token:
+        raise Exception("NBX_DEPLOY_KEY not set, please set it in your environment or pass it as an argument")
 
     seed = seed or random.randint(0, 2**32 - 1)
 

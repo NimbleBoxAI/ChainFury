@@ -3,7 +3,7 @@ import requests
 from typing import Dict, Tuple, Optional, List
 
 from chainfury import programatic_actions_registry, exponential_backoff, Secret, UnAuthException
-from chainfury.base import get_value_by_keys
+from chainfury.components.const import Env
 
 
 VALID_SEARCH_TYPES = [
@@ -15,8 +15,8 @@ VALID_SEARCH_TYPES = [
 
 
 def serper_api(
-    serper_api_key: Secret,
     query: str,
+    serper_api_key: Secret = Secret(""),
     search_type: str = "search",
     location: str = "in",
     locale: str = "en",
@@ -128,8 +128,8 @@ def serper_api(
 
 
     Args:
-        serper_api_key (Secret): The Serper API key.
         query (str): The search query.
+        serper_api_key (Secret): The Serper API key. Defaults to the value of SERPER_API_KEY environment variable.
         search_type (str): The type of search to perform. Must be one of "search", "images", "places", or "news".
         resolver (Dict[str, Union[str, List[str], Tuple[str, ...]]]): The keys to return in the output JSON.
         location (str): The location to search from. Defaults to "in".
@@ -145,6 +145,10 @@ def serper_api(
     """
     if search_type not in VALID_SEARCH_TYPES:
         raise ValueError(f"search_type must be one of {VALID_SEARCH_TYPES}")
+    if not serper_api_key:
+        serper_api_key = Secret(Env.SERPER_API_KEY(""))
+    if not serper_api_key:
+        raise Exception("Serper API key not found. Please set SERPER_API_KEY environment variable or pass it as an argument.")
 
     def _fn():
         r = requests.post(

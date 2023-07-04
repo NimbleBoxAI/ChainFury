@@ -53,7 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.components.html">chainfury Components</a></li>
 </ul>
@@ -96,6 +96,7 @@
 <span class="kn">from</span> <span class="nn">jinja2schema</span> <span class="kn">import</span> <span class="n">model</span> <span class="k">as</span> <span class="n">j2sm</span>
 
 <span class="kn">from</span> <span class="nn">chainfury.utils</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">terminal_top_with_text</span>
+<span class="kn">from</span> <span class="nn">chainfury.types</span> <span class="kn">import</span> <span class="n">FENode</span>
 
 
 <div class="viewcode-block" id="Secret"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Secret">[docs]</a><span class="k">class</span> <span class="nc">Secret</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
@@ -968,7 +969,7 @@
         <span class="n">main_in</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">main_out</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">:</span> <span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>

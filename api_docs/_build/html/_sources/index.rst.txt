@@ -44,7 +44,7 @@ Read the latest blog posts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Third Party Components:
+   :caption: Integrations:
 
    source/chainfury.components
 

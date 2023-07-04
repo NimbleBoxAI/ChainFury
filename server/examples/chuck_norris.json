@@ -1,0 +1,433 @@
+{
+  "nodes": [
+    {
+      "id": "call_api_requests_99030.50890824613",
+      "cf_id": "call_api_requests",
+      "cf_data": {
+        "id": "call_api_requests",
+        "type": "programatic",
+        "node": {
+          "id": "call_api_requests",
+          "type": "programatic",
+          "fn": {
+            "model_params": {
+              "url": "https://api.chucknorris.io/jokes/random",
+              "method": ""
+            }
+          },
+          "name": "call_api_requests",
+          "description": "Call an API using the requests library",
+          "fields": [
+            {
+              "type": "string",
+              "required": true,
+              "show": true,
+              "name": "method",
+              "placeholder": ""
+            },
+            {
+              "type": "string",
+              "required": true,
+              "show": true,
+              "name": "url",
+              "placeholder": "https://api.chucknorris.io/jokes/random"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "params"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "data"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "json"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "headers"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "cookies"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "auth"
+            },
+            {
+              "type": "number",
+              "placeholder": "0",
+              "show": true,
+              "name": "timeout"
+            },
+            {
+              "type": "number",
+              "placeholder": "3",
+              "show": true,
+              "name": "max_retries"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "retry_delay"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "string",
+              "name": "text",
+              "loc": [
+                0
+              ]
+            },
+            {
+              "type": "number",
+              "name": "status_code",
+              "loc": [
+                1
+              ]
+            }
+          ]
+        },
+        "value": null
+      },
+      "position": {
+        "x": -482.3204541370826,
+        "y": -18.429832854771192
+      },
+      "type": "FuryEngineNode",
+      "width": 350,
+      "height": 401,
+      "selected": null,
+      "position_absolute": null,
+      "dragging": null,
+      "data": {}
+    },
+    {
+      "id": "8b81d91f-2d01-44c5-961e-081325ed0474_26993.155166872973",
+      "cf_id": "8b81d91f-2d01-44c5-961e-081325ed0474",
+      "cf_data": {
+        "id": "8b81d91f-2d01-44c5-961e-081325ed0474",
+        "type": "ai-powered",
+        "node": {
+          "created_by": "cihua4hh",
+          "type": "ai-powered",
+          "description": "",
+          "fn": {
+            "node_id": "8b81d91f-2d01-44c5-961e-081325ed0474",
+            "model": {
+              "collection_name": "openai",
+              "id": "openai-chat",
+              "description": "Given a list of messages describing a conversation, the model will return a response.",
+              "usage": [
+                "usage",
+                "total_tokens"
+              ],
+              "vars": [],
+              "tags": []
+            },
+            "model_params": {
+              "model": "gpt-3.5-turbo"
+            },
+            "fn": {
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "tell me why did {{ scene }} happen? Make a funny 4 line story around it."
+                }
+              ]
+            },
+            "action_source": "jinja-template"
+          },
+          "tags": null,
+          "name": "funny-scene",
+          "id": "8b81d91f-2d01-44c5-961e-081325ed0474",
+          "fields": [
+            {
+              "type": "string",
+              "required": true,
+              "name": "scene"
+            },
+            {
+              "type": "string",
+              "password": true,
+              "required": true,
+              "show": true,
+              "name": "openai_api_key"
+            },
+            {
+              "type": "string",
+              "required": true,
+              "show": true,
+              "name": "model"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "required": true,
+              "show": true,
+              "name": "messages"
+            },
+            {
+              "type": "number",
+              "placeholder": "1.0",
+              "show": true,
+              "name": "temperature"
+            },
+            {
+              "type": "number",
+              "placeholder": "1.0",
+              "show": true,
+              "name": "top_p"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "n"
+            },
+            {
+              "type": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "show": true,
+              "name": "stop"
+            },
+            {
+              "type": "number",
+              "placeholder": "1024",
+              "show": true,
+              "name": "max_tokens"
+            },
+            {
+              "type": "number",
+              "placeholder": "0.0",
+              "show": true,
+              "name": "presence_penalty"
+            },
+            {
+              "type": "number",
+              "placeholder": "0.0",
+              "show": true,
+              "name": "frequency_penalty"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "logit_bias"
+            },
+            {
+              "type": "string",
+              "show": true,
+              "name": "user"
+            },
+            {
+              "type": "number",
+              "placeholder": "3",
+              "show": true,
+              "name": "retry_count"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "retry_delay"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "string",
+              "name": "string",
+              "loc": [
+                "choices",
+                "0",
+                "message",
+                "content"
+              ]
+            }
+          ]
+        },
+        "value": null
+      },
+      "position": {
+        "x": 347.08321173955915,
+        "y": -32.906687588904035
+      },
+      "type": "FuryEngineNode",
+      "width": 350,
+      "height": 553,
+      "selected": null,
+      "position_absolute": null,
+      "dragging": null,
+      "data": {}
+    },
+    {
+      "id": "json_translator_88004.9985753782",
+      "cf_id": "json_translator",
+      "cf_data": {
+        "id": "json_translator",
+        "type": "programatic",
+        "node": {
+          "id": "json_translator",
+          "type": "programatic",
+          "fn": {
+            "model_params": {
+              "resolver": {
+                "value": [
+                  "value"
+                ]
+              },
+              "return_only_value": true
+            }
+          },
+          "name": "json_translator",
+          "description": "Extract a value from a JSON object using a list of keys",
+          "fields": [
+            {
+              "type": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "required": true,
+              "show": true,
+              "name": "data"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "required": true,
+              "show": true,
+              "name": "resolver",
+              "placeholder": {
+                "value": [
+                  "value"
+                ]
+              }
+            },
+            {
+              "type": "string",
+              "show": true,
+              "name": "default"
+            },
+            {
+              "type": "boolean",
+              "placeholder": "true",
+              "show": true,
+              "name": "return_only_value"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "string",
+              "name": "value"
+            }
+          ]
+        },
+        "value": null
+      },
+      "position": {
+        "x": -61.92944412728605,
+        "y": -208.002406488423
+      },
+      "type": "FuryEngineNode",
+      "width": 350,
+      "height": 433,
+      "selected": true,
+      "position_absolute": null,
+      "dragging": false,
+      "data": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "reactflow__edge-call_api_requests_99030.50890824613text-json_translator_88004.9985753782data",
+      "source": "call_api_requests_99030.50890824613",
+      "sourceHandle": "text",
+      "target": "json_translator_88004.9985753782",
+      "targetHandle": "data"
+    },
+    {
+      "id": "reactflow__edge-json_translator_88004.9985753782value-8b81d91f-2d01-44c5-961e-081325ed0474_26993.155166872973scene",
+      "source": "json_translator_88004.9985753782",
+      "sourceHandle": "value",
+      "target": "8b81d91f-2d01-44c5-961e-081325ed0474_26993.155166872973",
+      "targetHandle": "scene"
+    }
+  ],
+  "sample": {
+    "call_api_requests_99030.50890824613/url": "https://api.chucknorris.io/jokes/random",
+    "call_api_requests_99030.50890824613/method": "",
+    "8b81d91f-2d01-44c5-961e-081325ed0474_26993.155166872973/model": "gpt-3.5-turbo",
+    "json_translator_88004.9985753782/resolver": {
+      "value": [
+        "value"
+      ]
+    },
+    "json_translator_88004.9985753782/return_only_value": true
+  },
+  "main_in": "call_api_requests_99030.50890824613/method",
+  "main_out": "8b81d91f-2d01-44c5-961e-081325ed0474_26993.155166872973/string"
+}

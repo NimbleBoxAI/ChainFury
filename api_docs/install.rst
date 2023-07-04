@@ -3,7 +3,7 @@ Installing ChainFury
 
 There are many ways to install and run the `chainfury` system the simplest of them all is `pip install chainfury`.
 
-See environment config `environment variables <#environment-config>`__ you can set.
+:py:mod:`chainfury.components.const.Env` contains all the supported environment variables.
 
 Docker
 ------
@@ -50,28 +50,9 @@ fury engine. To build the entire system you can run the following commands:
     pip install -r requirements.txt
     cd server
 
-    # start the server
+    # start the server: recommended approach
     python3 server.py --port 8000
 
-    # to start using uvicorn
-    python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 1
+    # to start using uvicorn: be careful with workers
+    python3 -m uvicorn app:app --log-level=debug --host 0.0.0.0 --port 8000 --workers 2
 
-
-Environment Config
-------------------
-
-ChainFury supports a whole bunch of environment variables. We recommend creating a file called `private_env.sh` with
-following variables:
-
-.. code-block:: bash
-
-    # when you want to use chainfury as a client you need to set the following vars
-    export CF_TOKEN=''
-    export CF_URL=''
-
-    # different keys for different 3rd party APIs
-    export OPENAI_TOKEN=''
-
-    # when using NimbleBox Deploy
-    export NBX_DEPLOY_URL=''
-    export NBX_DEPLOY_KEY=''

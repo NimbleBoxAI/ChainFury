@@ -80,7 +80,7 @@ class ChatBot(Base):
     created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
     dag = Column(JSON)
     meta = Column(JSON)
-    engine = Column(String(80), nullable=False, default=ChatBotTypes.LANGFLOW)
+    engine = Column(String(80), nullable=False)
     created_at = Column(DateTime, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
 

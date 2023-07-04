@@ -53,7 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../source/chainfury.components.html">chainfury Components</a></li>
 </ul>
@@ -88,12 +88,13 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">Secret</span><span class="p">,</span> <span class="n">model_registry</span><span class="p">,</span> <span class="n">exponential_backoff</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">UnAuthException</span>
+<span class="kn">from</span> <span class="nn">chainfury.components.const</span> <span class="kn">import</span> <span class="n">Env</span>
 
 
 <div class="viewcode-block" id="nbx_chat_api"><a class="viewcode-back" href="../../../source/chainfury.components.nbx.html#chainfury.components.nbx.nbx_chat_api">[docs]</a><span class="k">def</span> <span class="nf">nbx_chat_api</span><span class="p">(</span>
-    <span class="n">nbx_deploy_url</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
-    <span class="n">nbx_header_token</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
     <span class="n">inputs</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">nbx_deploy_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">nbx_header_token</span><span class="p">:</span> <span class="n">Secret</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
     <span class="n">best_of</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">decoder_input_details</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">details</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -115,7 +116,41 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a JSON object containing the OpenAI&#39;s API chat response.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        inputs (str): The prompt to send to the API.</span>
+<span class="sd">        nbx_deploy_url (str): The NBX deploy URL. Defaults to the value of NBX_DEPLOY_URL environment variable.</span>
+<span class="sd">        nbx_header_token (Secret): The NBX header token. Defaults to the value of NBX_DEPLOY_KEY environment variable.</span>
+<span class="sd">        best_of (int): The number of outputs to generate and return. Defaults to 1.</span>
+<span class="sd">        decoder_input_details (bool): Whether to return the decoder input details. Defaults to True.</span>
+<span class="sd">        details (bool): Whether to return the details. Defaults to True.</span>
+<span class="sd">        do_sample (bool): Whether to use sampling. Defaults to True.</span>
+<span class="sd">        max_new_tokens (int): The maximum number of tokens to generate. Defaults to 20.</span>
+<span class="sd">        repetition_penalty (float): The repetition penalty. Defaults to 1.03.</span>
+<span class="sd">        return_full_text (bool): Whether to return the full text. Defaults to False.</span>
+<span class="sd">        seed (int): The seed to use for random number generation. Defaults to a random integer between 0 and 2^32 - 1.</span>
+<span class="sd">        stop (List[str]): The stop tokens. Defaults to an empty list.</span>
+<span class="sd">        temperature (float): The temperature. Defaults to 0.5.</span>
+<span class="sd">        top_k (int): The top k. Defaults to 10.</span>
+<span class="sd">        top_p (float): The top p. Defaults to 0.95.</span>
+<span class="sd">        truncate (int): The truncate. Defaults to None.</span>
+<span class="sd">        typical_p (float): The typical p. Defaults to 0.95.</span>
+<span class="sd">        watermark (bool): Whether to include the watermark. Defaults to True.</span>
+<span class="sd">        retry_count (int): The number of times to retry the API call. Defaults to 3.</span>
+<span class="sd">        retry_delay (int): The number of seconds to wait between retries. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Any: The JSON object containing the OpenAI&#39;s API chat response.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_deploy_url</span><span class="p">:</span>
+        <span class="n">nbx_deploy_url</span> <span class="o">=</span> <span class="n">Env</span><span class="o">.</span><span class="n">NBX_DEPLOY_URL</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_deploy_url</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;NBX_DEPLOY_URL not set, please set it in your environment or pass it as an argument&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_header_token</span><span class="p">:</span>
+        <span class="n">nbx_header_token</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="n">Env</span><span class="o">.</span><span class="n">NBX_DEPLOY_KEY</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_header_token</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;NBX_DEPLOY_KEY not set, please set it in your environment or pass it as an argument&quot;</span><span class="p">)</span>
 
     <span class="n">seed</span> <span class="o">=</span> <span class="n">seed</span> <span class="ow">or</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="o">**</span><span class="mi">32</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 

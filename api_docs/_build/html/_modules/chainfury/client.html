@@ -53,7 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.components.html">chainfury Components</a></li>
 </ul>
@@ -91,7 +91,7 @@
 <span class="kn">from</span> <span class="nn">chainfury.utils</span> <span class="kn">import</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">chainfury.base</span> <span class="kn">import</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">Node</span><span class="p">,</span> <span class="n">Edge</span>
 <span class="kn">from</span> <span class="nn">chainfury.agent</span> <span class="kn">import</span> <span class="n">ai_actions_registry</span><span class="p">,</span> <span class="n">programatic_actions_registry</span>
-<span class="kn">from</span> <span class="nn">chainfury.types</span> <span class="kn">import</span> <span class="n">Dag</span>
+<span class="kn">from</span> <span class="nn">chainfury.types</span> <span class="kn">import</span> <span class="n">Dag</span><span class="p">,</span> <span class="n">FENode</span><span class="p">,</span> <span class="n">Edge</span> <span class="k">as</span> <span class="n">EdgeType</span>
 
 
 <div class="viewcode-block" id="Subway"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.Subway">[docs]</a><span class="k">class</span> <span class="nc">Subway</span><span class="p">:</span>
@@ -108,34 +108,41 @@
 <span class="sd">        &gt;&gt;&gt; from requests import Session</span>
 <span class="sd">        &gt;&gt;&gt; session = Session()</span>
 <span class="sd">        &gt;&gt;&gt; session.headers.update({&quot;token&quot;: token})</span>
-<span class="sd">        &gt;&gt;&gt; stub = Subway.from_openapi(&quot;http://localhost:8000&quot;, session)</span>
-<span class="sd">        &gt;&gt;&gt; get_chain = stub.chatbot.u(&quot;6ln9ksln&quot;)       # u is a special method to access attributes that start with a number</span>
+<span class="sd">        &gt;&gt;&gt; stub = Subway(&quot;http://localhost:8000&quot;, session)</span>
+<span class="sd">        &gt;&gt;&gt; get_chain = stub.chatbot.u(&quot;6ln9ksln&quot;)       # http://localhost:8000/chatbot/6ln9ksln</span>
 <span class="sd">        &gt;&gt;&gt; chain = get_chain()                          # call like a function</span>
-<span class="sd">        ... {&#39;name&#39;: &#39;funny-bot-1&#39;,</span>
+<span class="sd">        {</span>
+<span class="sd">            &#39;name&#39;: &#39;funny-bot-1&#39;,</span>
 <span class="sd">            &#39;description&#39;: None,</span>
-<span class="sd">            &#39;dag&#39;: {&#39;nodes&#39;: [</span>
-<span class="sd">                {&#39;id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034&#39;,</span>
-<span class="sd">                 &#39;cf_id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5&#39;,</span>
-<span class="sd">                 &#39;position&#39;: {&#39;x&#39;: -271.25233176301117, &#39;y&#39;: 78.20693852768798},</span>
-<span class="sd">                 &#39;type&#39;: &#39;FuryEngineNode&#39;,</span>
-<span class="sd">                 &#39;width&#39;: 350,</span>
-<span class="sd">                 &#39;height&#39;: 553,</span>
-<span class="sd">                 &#39;selected&#39;: True,</span>
-<span class="sd">                 &#39;position_absolute&#39;: None,</span>
-<span class="sd">                 &#39;dragging&#39;: False,</span>
-<span class="sd">                 &#39;data&#39;: {}</span>
-<span class="sd">                }</span>
-<span class="sd">            ],</span>
-<span class="sd">            &#39;edges&#39;: [],</span>
-<span class="sd">            &#39;sample&#39;: {&#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model&#39;: &#39;gpt-3.5-turbo&#39;},</span>
-<span class="sd">            &#39;main_in&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal&#39;,</span>
-<span class="sd">            &#39;main_out&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text&#39;},</span>
+<span class="sd">            &#39;dag&#39;: {</span>
+<span class="sd">                &#39;nodes&#39;: [</span>
+<span class="sd">                    {</span>
+<span class="sd">                        &#39;id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034&#39;,</span>
+<span class="sd">                        &#39;cf_id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5&#39;,</span>
+<span class="sd">                        &#39;position&#39;: {&#39;x&#39;: -271.25233176301117, &#39;y&#39;: 78.20693852768798},</span>
+<span class="sd">                        &#39;type&#39;: &#39;FuryEngineNode&#39;,</span>
+<span class="sd">                        &#39;width&#39;: 350,</span>
+<span class="sd">                        &#39;height&#39;: 553,</span>
+<span class="sd">                        &#39;selected&#39;: True,</span>
+<span class="sd">                        &#39;position_absolute&#39;: None,</span>
+<span class="sd">                        &#39;dragging&#39;: False,</span>
+<span class="sd">                        &#39;data&#39;: {}</span>
+<span class="sd">                    }</span>
+<span class="sd">                ],</span>
+<span class="sd">                &#39;edges&#39;: [],</span>
+<span class="sd">                &#39;sample&#39;: {</span>
+<span class="sd">                    &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model&#39;: &#39;gpt-3.5-turbo&#39;</span>
+<span class="sd">                },</span>
+<span class="sd">                &#39;main_in&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal&#39;,</span>
+<span class="sd">                &#39;main_out&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text&#39;</span>
+<span class="sd">            },</span>
 <span class="sd">            &#39;engine&#39;: &#39;fury&#39;,</span>
 <span class="sd">            &#39;deleted_at&#39;: None,</span>
 <span class="sd">            &#39;created_by&#39;: &#39;cihua4hh&#39;,</span>
-<span class="sd">            &#39;id&#39;: &#39;l6lnksln&#39;,</span>
+<span class="sd">            &#39;id&#39;: &#39;6ln9ksln&#39;,</span>
 <span class="sd">            &#39;meta&#39;: None,</span>
-<span class="sd">            &#39;created_at&#39;: &#39;2023-06-27T18:05:17.395260&#39;}</span>
+<span class="sd">            &#39;created_at&#39;: &#39;2023-06-27T18:05:17.395260&#39;</span>
+<span class="sd">        }</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        _url (str): The url to use for the client</span>
@@ -276,7 +283,15 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">cf_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">node</span><span class="o">.</span><span class="n">cf_data</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Action </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> has no cf_id or cf_data&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">cf_data</span><span class="p">:</span>
-            <span class="n">cf_action</span> <span class="o">=</span> <span class="n">Node</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">cf_data</span><span class="p">)</span>
+            <span class="c1"># programmatic ones should always be picked from the registry also FE will always send this</span>
+            <span class="c1"># so server should always check for programatic ones via registry</span>
+            <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">cf_data</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">PROGRAMATIC</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cf_action</span> <span class="o">=</span> <span class="n">programatic_actions_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">cf_id</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Action </span><span class="si">{</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cf_action</span> <span class="o">=</span> <span class="n">Node</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">cf_data</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cf_action</span> <span class="o">=</span> <span class="n">actions_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">cf_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -352,7 +367,7 @@
     <span class="k">return</span> <span class="n">out</span></div>
 
 
-<div class="viewcode-block" id="create_new_chain"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.create_new_chain">[docs]</a><span class="k">def</span> <span class="nf">create_new_chain</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="n">Chain</span><span class="p">,</span> <span class="n">create_actions</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<div class="viewcode-block" id="create_new_chain"><a class="viewcode-back" href="../../source/chainfury.client.html#chainfury.client.create_new_chain">[docs]</a><span class="k">def</span> <span class="nf">create_new_chain</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="n">Chain</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions</span>
 <span class="sd">    on the API.</span>
@@ -376,52 +391,63 @@
     <span class="n">chain_dict</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
     <span class="n">nodes</span> <span class="o">=</span> <span class="n">chain_dict</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span>
     <span class="n">dag_nodes</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nodes</span><span class="p">):</span>
-        <span class="n">_node_data</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-            <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">},</span>
-            <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FuryEngineNode&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-            <span class="s2">&quot;height&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
-            <span class="s2">&quot;selected&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s2">&quot;positionAbsolute&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
-                <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s2">&quot;dragging&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">_node_data</span> <span class="o">=</span> <span class="n">FENode</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">FENode</span><span class="o">.</span><span class="n">Position</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;FuryEngineNode&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">height</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">selected</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">position_absolute</span><span class="o">=</span><span class="n">FENode</span><span class="o">.</span><span class="n">Position</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="n">dragging</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">create_actions</span><span class="p">:</span>
-            <span class="c1"># in this case call the API and store the actions in which case the DAG only knows about the `cf_id`</span>
-            <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">fury</span><span class="o">.</span><span class="n">actions</span><span class="p">(</span>
-                <span class="s2">&quot;post&quot;</span><span class="p">,</span>
-                <span class="n">trailing</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span>
-                <span class="n">json</span><span class="o">=</span><span class="p">{</span>
-                    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">],</span>
-                    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="s2">&quot;model_id&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">][</span><span class="s2">&quot;model&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;model_params&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">][</span><span class="s2">&quot;model_params&quot;</span><span class="p">],</span>
-                        <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">][</span><span class="s2">&quot;fn&quot;</span><span class="p">],</span>
-                    <span class="p">},</span>
-                    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="n">node</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">],</span>
-                <span class="p">},</span>
-            <span class="p">)</span>
-            <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not create node: </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Created new action with ID: </span><span class="si">{</span><span class="n">out</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">_node_data</span><span class="p">[</span><span class="s2">&quot;cf_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">out</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># in this case the entire action is stored with the DAG object</span>
-            <span class="n">_node_data</span><span class="p">[</span><span class="s2">&quot;cf_data&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="c1"># out, err = stub.fury.actions(</span>
+        <span class="c1">#     &quot;post&quot;,</span>
+        <span class="c1">#     trailing=&quot;/&quot;,</span>
+        <span class="c1">#     json={</span>
+        <span class="c1">#         &quot;name&quot;: node[&quot;name&quot;],</span>
+        <span class="c1">#         &quot;description&quot;: &quot;&quot;,</span>
+        <span class="c1">#         &quot;fn&quot;: {</span>
+        <span class="c1">#             &quot;model_id&quot;: node[&quot;fn&quot;][&quot;model&quot;][&quot;id&quot;],</span>
+        <span class="c1">#             &quot;model_params&quot;: node[&quot;fn&quot;][&quot;model_params&quot;],</span>
+        <span class="c1">#             &quot;fn&quot;: node[&quot;fn&quot;][&quot;fn&quot;],</span>
+        <span class="c1">#         },</span>
+        <span class="c1">#         &quot;outputs&quot;: node[&quot;outputs&quot;],</span>
+        <span class="c1">#     },</span>
+        <span class="c1"># )</span>
+        <span class="c1"># if err:</span>
+        <span class="c1">#     raise ValueError(f&quot;Could not create node: {out}&quot;)</span>
+        <span class="c1"># logger.info(f&quot;Created new action with ID: {out[&#39;id&#39;]}&quot;)</span>
+        <span class="c1"># _node_data.cf_id = out[&quot;id&quot;]</span>
+
+        <span class="c1"># in this case the entire action is stored with the DAG object</span>
+        <span class="n">_node_data</span><span class="o">.</span><span class="n">cf_id</span> <span class="o">=</span> <span class="n">node</span><span class="o">.</span><span class="n">id</span>
+        <span class="n">_node_data</span><span class="o">.</span><span class="n">cf_data</span> <span class="o">=</span> <span class="n">FENode</span><span class="o">.</span><span class="n">CFData</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">type</span><span class="p">,</span>
+            <span class="n">node</span><span class="o">=</span><span class="n">node</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(),</span>
+            <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="c1"># add the node to the list</span>
-        <span class="n">dag_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_node_data</span><span class="p">)</span>
+        <span class="n">dag_nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_node_data</span><span class="o">.</span><span class="n">dict</span><span class="p">())</span>
+    <span class="n">chain_dict</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dag_nodes</span>
 
     <span class="c1"># update the chain_dict</span>
-    <span class="n">chain_dict</span><span class="p">[</span><span class="s2">&quot;nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dag_nodes</span>
-    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">chain_dict</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]:</span>
-        <span class="n">e</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">&#39;sourceHandle&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">&#39;target&#39;</span><span class="p">]</span><span class="si">}{</span><span class="n">e</span><span class="p">[</span><span class="s1">&#39;targetHandle&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
+        <span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">EdgeType</span><span class="p">(</span>
+                <span class="nb">id</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">src_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">src_node_var</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">trg_node_id</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">trg_node_var</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">src_node_id</span><span class="p">,</span>
+                <span class="n">sourceHandle</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">src_node_var</span><span class="p">,</span>
+                <span class="n">target</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">trg_node_id</span><span class="p">,</span>
+                <span class="n">targetHandle</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">trg_node_var</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">dict</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="n">chain_dict</span><span class="p">[</span><span class="s2">&quot;edges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edges</span>
     <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;dag&quot;</span><span class="p">:</span> <span class="n">chain_dict</span><span class="p">,</span> <span class="s2">&quot;engine&quot;</span><span class="p">:</span> <span class="s2">&quot;fury&quot;</span><span class="p">}</span>
     <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">chatbot</span><span class="p">(</span><span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="n">trailing</span><span class="o">=</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">err</span><span class="p">:</span>

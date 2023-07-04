@@ -11,6 +11,7 @@ import jinja2schema
 from jinja2schema import model as j2sm
 
 from chainfury.utils import logger, terminal_top_with_text
+from chainfury.types import FENode
 
 
 class Secret(str):
@@ -883,7 +884,7 @@ class Chain:
         main_in: str = "",
         main_out: str = "",
     ):
-        self.nodes = {node.id: node for node in nodes}
+        self.nodes: Dict[str, Node] = {node.id: node for node in nodes}
         self.edges = edges
 
         if len(self.nodes) == 1:

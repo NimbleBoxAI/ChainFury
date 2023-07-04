@@ -6,7 +6,7 @@ from typing import Dict, Any, Tuple
 from chainfury.utils import logger
 from chainfury.base import Chain, Node, Edge
 from chainfury.agent import ai_actions_registry, programatic_actions_registry
-from chainfury.types import Dag
+from chainfury.types import Dag, FENode, Edge as EdgeType
 
 
 class Subway:
@@ -23,34 +23,41 @@ class Subway:
         >>> from requests import Session
         >>> session = Session()
         >>> session.headers.update({"token": token})
-        >>> stub = Subway.from_openapi("http://localhost:8000", session)
-        >>> get_chain = stub.chatbot.u("6ln9ksln")       # u is a special method to access attributes that start with a number
+        >>> stub = Subway("http://localhost:8000", session)
+        >>> get_chain = stub.chatbot.u("6ln9ksln")       # http://localhost:8000/chatbot/6ln9ksln
         >>> chain = get_chain()                          # call like a function
-        ... {'name': 'funny-bot-1',
+        {
+            'name': 'funny-bot-1',
             'description': None,
-            'dag': {'nodes': [
-                {'id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034',
-                 'cf_id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5',
-                 'position': {'x': -271.25233176301117, 'y': 78.20693852768798},
-                 'type': 'FuryEngineNode',
-                 'width': 350,
-                 'height': 553,
-                 'selected': True,
-                 'position_absolute': None,
-                 'dragging': False,
-                 'data': {}
-                }
-            ],
-            'edges': [],
-            'sample': {'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model': 'gpt-3.5-turbo'},
-            'main_in': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal',
-            'main_out': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text'},
+            'dag': {
+                'nodes': [
+                    {
+                        'id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034',
+                        'cf_id': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5',
+                        'position': {'x': -271.25233176301117, 'y': 78.20693852768798},
+                        'type': 'FuryEngineNode',
+                        'width': 350,
+                        'height': 553,
+                        'selected': True,
+                        'position_absolute': None,
+                        'dragging': False,
+                        'data': {}
+                    }
+                ],
+                'edges': [],
+                'sample': {
+                    'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model': 'gpt-3.5-turbo'
+                },
+                'main_in': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal',
+                'main_out': 'bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text'
+            },
             'engine': 'fury',
             'deleted_at': None,
             'created_by': 'cihua4hh',
-            'id': 'l6lnksln',
+            'id': '6ln9ksln',
             'meta': None,
-            'created_at': '2023-06-27T18:05:17.395260'}
+            'created_at': '2023-06-27T18:05:17.395260'
+        }
 
     Args:
         _url (str): The url to use for the client
@@ -191,7 +198,15 @@ def get_chain_from_dict(data: Dict[str, Any]) -> Chain:
         if not node.cf_id and not node.cf_data:
             raise ValueError(f"Action {node.id} has no cf_id or cf_data")
         if node.cf_data:
-            cf_action = Node.from_dict(node.cf_data)
+            # programmatic ones should always be picked from the registry also FE will always send this
+            # so server should always check for programatic ones via registry
+            if node.cf_data.type == Node.types.PROGRAMATIC:
+                try:
+                    cf_action = programatic_actions_registry.get(node.cf_id)
+                except ValueError:
+                    raise ValueError(f"Action {node.id} not found")
+            else:
+                cf_action = Node.from_dict(node.cf_data.node)
         else:
             cf_action = actions_map.get(node.cf_id, None)
 
@@ -267,7 +282,7 @@ def get_chain_from_id(id: str) -> Chain:
     return out
 
 
-def create_new_chain(name: str, chain: Chain, create_actions: bool = False) -> Dict[str, Any]:
+def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
     """
     Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
     on the API.
@@ -291,52 +306,63 @@ def create_new_chain(name: str, chain: Chain, create_actions: bool = False) -> D
     chain_dict = chain.to_dict()
     nodes = chain_dict["nodes"]
     dag_nodes = []
-    for i, node in enumerate(nodes):
-        _node_data = {
-            "id": node["id"],
-            "position": {"x": i * 100, "y": i * 100},
-            "type": "FuryEngineNode",
-            "width": 100,
-            "height": 100,
-            "selected": False,
-            "positionAbsolute": {
-                "x": i * 100,
-                "y": i * 100,
-            },
-            "dragging": False,
-        }
+    for i, node in enumerate(chain.nodes.values()):
+        _node_data = FENode(
+            id=node.id,
+            position=FENode.Position(x=i * 100, y=i * 100),
+            type="FuryEngineNode",
+            width=100,
+            height=100,
+            selected=False,
+            position_absolute=FENode.Position(x=i * 100, y=i * 100),
+            dragging=False,
+        )
 
-        if create_actions:
-            # in this case call the API and store the actions in which case the DAG only knows about the `cf_id`
-            out, err = stub.fury.actions(
-                "post",
-                trailing="/",
-                json={
-                    "name": node["name"],
-                    "description": "",
-                    "fn": {
-                        "model_id": node["fn"]["model"]["id"],
-                        "model_params": node["fn"]["model_params"],
-                        "fn": node["fn"]["fn"],
-                    },
-                    "outputs": node["outputs"],
-                },
-            )
-            if err:
-                raise ValueError(f"Could not create node: {out}")
-            logger.info(f"Created new action with ID: {out['id']}")
-            _node_data["cf_id"] = out["id"]
-        else:
-            # in this case the entire action is stored with the DAG object
-            _node_data["cf_data"] = node
+        # out, err = stub.fury.actions(
+        #     "post",
+        #     trailing="/",
+        #     json={
+        #         "name": node["name"],
+        #         "description": "",
+        #         "fn": {
+        #             "model_id": node["fn"]["model"]["id"],
+        #             "model_params": node["fn"]["model_params"],
+        #             "fn": node["fn"]["fn"],
+        #         },
+        #         "outputs": node["outputs"],
+        #     },
+        # )
+        # if err:
+        #     raise ValueError(f"Could not create node: {out}")
+        # logger.info(f"Created new action with ID: {out['id']}")
+        # _node_data.cf_id = out["id"]
+
+        # in this case the entire action is stored with the DAG object
+        _node_data.cf_id = node.id
+        _node_data.cf_data = FENode.CFData(
+            id=node.id,
+            type=node.type,
+            node=node.to_dict(),
+            value=None,
+        )
 
         # add the node to the list
-        dag_nodes.append(_node_data)
+        dag_nodes.append(_node_data.dict())
+    chain_dict["nodes"] = dag_nodes
 
     # update the chain_dict
-    chain_dict["nodes"] = dag_nodes
-    for e in chain_dict["edges"]:
-        e["id"] = f"{e['source']}/{e['sourceHandle']}-{e['target']}{e['targetHandle']}"
+    edges = []
+    for e in chain.edges:
+        edges.append(
+            EdgeType(
+                id=f"{e.src_node_id}/{e.src_node_var}-{e.trg_node_id}/{e.trg_node_var}",
+                source=e.src_node_id,
+                sourceHandle=e.src_node_var,
+                target=e.trg_node_id,
+                targetHandle=e.trg_node_var,
+            ).dict()
+        )
+    chain_dict["edges"] = edges
     data = {"name": name, "dag": chain_dict, "engine": "fury"}
     out, err = stub.chatbot("post", trailing="/", json=data)
     if err:

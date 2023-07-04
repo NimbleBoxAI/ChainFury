@@ -67,7 +67,7 @@
 <li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Third Party Components:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.components.html">chainfury Components</a></li>
 </ul>
@@ -114,34 +114,41 @@ calls and does not do any validation.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Session</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">})</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stub</span> <span class="o">=</span> <span class="n">Subway</span><span class="o">.</span><span class="n">from_openapi</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">get_chain</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">chatbot</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;6ln9ksln&quot;</span><span class="p">)</span>       <span class="c1"># u is a special method to access attributes that start with a number</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stub</span> <span class="o">=</span> <span class="n">Subway</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_chain</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">chatbot</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;6ln9ksln&quot;</span><span class="p">)</span>       <span class="c1"># http://localhost:8000/chatbot/6ln9ksln</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">get_chain</span><span class="p">()</span>                          <span class="c1"># call like a function</span>
-<span class="gp">... </span><span class="p">{</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="s1">&#39;funny-bot-1&#39;</span><span class="p">,</span>
+<span class="go">{</span>
+<span class="go">    &#39;name&#39;: &#39;funny-bot-1&#39;,</span>
 <span class="go">    &#39;description&#39;: None,</span>
-<span class="go">    &#39;dag&#39;: {&#39;nodes&#39;: [</span>
-<span class="go">        {&#39;id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034&#39;,</span>
-<span class="go">         &#39;cf_id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5&#39;,</span>
-<span class="go">         &#39;position&#39;: {&#39;x&#39;: -271.25233176301117, &#39;y&#39;: 78.20693852768798},</span>
-<span class="go">         &#39;type&#39;: &#39;FuryEngineNode&#39;,</span>
-<span class="go">         &#39;width&#39;: 350,</span>
-<span class="go">         &#39;height&#39;: 553,</span>
-<span class="go">         &#39;selected&#39;: True,</span>
-<span class="go">         &#39;position_absolute&#39;: None,</span>
-<span class="go">         &#39;dragging&#39;: False,</span>
-<span class="go">         &#39;data&#39;: {}</span>
-<span class="go">        }</span>
-<span class="go">    ],</span>
-<span class="go">    &#39;edges&#39;: [],</span>
-<span class="go">    &#39;sample&#39;: {&#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model&#39;: &#39;gpt-3.5-turbo&#39;},</span>
-<span class="go">    &#39;main_in&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal&#39;,</span>
-<span class="go">    &#39;main_out&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text&#39;},</span>
+<span class="go">    &#39;dag&#39;: {</span>
+<span class="go">        &#39;nodes&#39;: [</span>
+<span class="go">            {</span>
+<span class="go">                &#39;id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034&#39;,</span>
+<span class="go">                &#39;cf_id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5&#39;,</span>
+<span class="go">                &#39;position&#39;: {&#39;x&#39;: -271.25233176301117, &#39;y&#39;: 78.20693852768798},</span>
+<span class="go">                &#39;type&#39;: &#39;FuryEngineNode&#39;,</span>
+<span class="go">                &#39;width&#39;: 350,</span>
+<span class="go">                &#39;height&#39;: 553,</span>
+<span class="go">                &#39;selected&#39;: True,</span>
+<span class="go">                &#39;position_absolute&#39;: None,</span>
+<span class="go">                &#39;dragging&#39;: False,</span>
+<span class="go">                &#39;data&#39;: {}</span>
+<span class="go">            }</span>
+<span class="go">        ],</span>
+<span class="go">        &#39;edges&#39;: [],</span>
+<span class="go">        &#39;sample&#39;: {</span>
+<span class="go">            &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model&#39;: &#39;gpt-3.5-turbo&#39;</span>
+<span class="go">        },</span>
+<span class="go">        &#39;main_in&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal&#39;,</span>
+<span class="go">        &#39;main_out&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text&#39;</span>
+<span class="go">    },</span>
 <span class="go">    &#39;engine&#39;: &#39;fury&#39;,</span>
 <span class="go">    &#39;deleted_at&#39;: None,</span>
 <span class="go">    &#39;created_by&#39;: &#39;cihua4hh&#39;,</span>
-<span class="go">    &#39;id&#39;: &#39;l6lnksln&#39;,</span>
+<span class="go">    &#39;id&#39;: &#39;6ln9ksln&#39;,</span>
 <span class="go">    &#39;meta&#39;: None,</span>
-<span class="go">    &#39;created_at&#39;: &#39;2023-06-27T18:05:17.395260&#39;}</span>
+<span class="go">    &#39;created_at&#39;: &#39;2023-06-27T18:05:17.395260&#39;</span>
+<span class="go">}</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -203,7 +210,7 @@ access the attribute.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="chainfury.client.create_new_chain">
-<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">create_new_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/client.html#create_new_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.create_new_chain" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">create_new_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/client.html#create_new_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.create_new_chain" title="Permalink to this definition"></a></dt>
 <dd><p>Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
 on the API.</p>
 <p class="rubric">Example</p>
