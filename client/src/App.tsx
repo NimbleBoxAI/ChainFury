@@ -1,4 +1,5 @@
 import { Alert, Snackbar } from '@mui/material';
+import React from 'react';
 import { ComponentType, lazy, Suspense, useState } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
@@ -57,9 +58,15 @@ const AppRoutes = [
   }
 ];
 
+export const ChainFuryContext = React.createContext({
+  engine: 'fury',
+  setEngine: (engine: any) => {}
+});
+
 function App() {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
+  const [engine, setEngine] = useState('fury');
 
   window['alert'] = function (message: string) {
     setAlertMessage(message);
@@ -79,25 +86,27 @@ function App() {
         <Alert severity={'info'}>{alertMessage}</Alert>
       </Snackbar>{' '}
       <Suspense fallback={<div>Loading...</div>}>
-        <Routes>
-          {AppRoutes.map((route, key) => (
-            <Route
-              key={key}
-              path={route.path}
-              element={
-                route?.isPrivate ? (
-                  <div className="flex overflow-hidden">
-                    <Sidebar />
-                    {route.element}
-                  </div>
-                ) : (
-                  route.element
-                )
-              }
-            />
-          ))}
-          <Route path="*" element={<Navigate to="/ui/login" />} />
-        </Routes>
+        <ChainFuryContext.Provider value={{ engine: engine, setEngine: setEngine }}>
+          <Routes>
+            {AppRoutes.map((route, key) => (
+              <Route
+                key={key}
+                path={route.path}
+                element={
+                  route?.isPrivate ? (
+                    <div className="flex overflow-hidden">
+                      <Sidebar />
+                      {route.element}
+                    </div>
+                  ) : (
+                    route.element
+                  )
+                }
+              />
+            ))}
+            <Route path="*" element={<Navigate to="/ui/login" />} />
+          </Routes>
+        </ChainFuryContext.Provider>
       </Suspense>
     </>
   );

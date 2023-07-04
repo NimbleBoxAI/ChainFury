@@ -1,5 +1,5 @@
 import { Button } from '@mui/material';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import ReactFlow, {
   ReactFlowProvider,
@@ -27,6 +27,7 @@ import {
 import { setComponents, setFuryComponents } from '../../redux/slices/authSlice';
 import FuryFlowViewer, { initialFuryNodes } from '../../components/fury/FuryFlowViewer';
 import { TranslateNodes } from '../../utils';
+import { ChainFuryContext } from '../../App';
 
 export const nodeTypes = { ChainFuryNode: ChainFuryNode };
 export const furyNodeTypes = { FuryEngineNode: FuryEngineNode };
@@ -51,13 +52,13 @@ const FlowViewer = () => {
   const [editBot] = useEditBotMutation();
   const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
-  const [engine, setEngine] = useState('' as '' | 'fury' | 'langflow');
+  const { engine, setEngine } = useContext(ChainFuryContext);
   const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const engine = params.get('engine');
-    setEngine((engine as 'fury' | 'langflow') || 'langflow');
+    setEngine(engine || 'fury');
     if (location.search?.includes('?bot=') && flow_id === 'new') {
       setBotName(location.search.split('?bot=')[1]?.split('&engine=')[0]);
       setVariant('new');
@@ -193,8 +194,8 @@ const FlowViewer = () => {
 
   const createChatBot = () => {
     createBot(
-      engine === 'langflow'
-        ? { name: botName, nodes, edges, token: auth?.accessToken, engine: engine }
+      engine === 'langchain'
+        ? { name: botName, nodes, edges, token: auth?.accessToken, engine: 'langflow' }
         : {
             name: botName,
             engine: engine,
@@ -215,8 +216,8 @@ const FlowViewer = () => {
       });
   };
 
-  const createNodesForExistingBot = (engine = 'langflow') => {
-    if (engine === 'langflow') {
+  const createNodesForExistingBot = (engine = 'langchain') => {
+    if (engine === 'langchain') {
       (variant === 'edit'
         ? auth.chatBots?.[flow_id]
         : auth?.templates?.[templateId]
@@ -311,14 +312,14 @@ const FlowViewer = () => {
 
   const editChatBot = () => {
     editBot(
-      engine === 'langflow'
+      engine === 'langchain'
         ? {
             id: flow_id,
             name: auth?.chatBots?.[flow_id]?.name,
             nodes,
             edges,
             token: auth?.accessToken,
-            engine: engine
+            engine: 'langflow'
           }
         : {
             id: flow_id,
@@ -360,7 +361,7 @@ const FlowViewer = () => {
         </Button>
       </div>
       {!loading ? (
-        engine === 'langflow' ? (
+        engine === 'langchain' ? (
           <ReactFlowProvider>
             <div className=" w-[calc(100vw-250px)] h-full" ref={reactFlowWrapper}>
               <ReactFlow

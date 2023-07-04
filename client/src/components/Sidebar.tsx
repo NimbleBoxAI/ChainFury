@@ -1,5 +1,5 @@
 import { Button, Collapse } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../redux/hooks/store';
@@ -22,6 +22,7 @@ import NewBotModel from './NewBotModel';
 import { nodeColors } from '../utils';
 import SvgChevronDown from './SvgComps/ChevronDown';
 import NewActionModel from './NewActionModel';
+import { ChainFuryContext } from '../App';
 
 const Sidebar = () => {
   const [newBotModel, setNewBotModel] = useState(false);
@@ -33,7 +34,7 @@ const Sidebar = () => {
   const [getTemplates] = useGetTemplatesMutation();
   const [changePassword, setChangePassword] = useState(false);
   const [searchParams] = useSearchParams();
-  const [engine, setEngine] = useState('' as '' | 'fury' | 'langchain');
+  const { engine, setEngine } = useContext(ChainFuryContext);
   const location = useLocation();
   const [newAction, setNewAction] = useState(false);
   const [getFuryActions] = useGetActionsMutation();
@@ -41,7 +42,7 @@ const Sidebar = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const engine = params.get('engine');
-    setEngine(engine as 'fury' | 'langchain');
+    setEngine(engine ?? 'fury');
   }, [location.search]);
 
   useEffect(() => {

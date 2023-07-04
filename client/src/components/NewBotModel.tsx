@@ -1,9 +1,10 @@
 import { Button, Dialog } from '@mui/material';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
 
 import SvgClose from './SvgComps/Close';
+import { ChainFuryContext } from '../App';
 
 const NewBotModel = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
   const [selectedFlow, setSelectedFlow] = useState('scratch');
   const [selectedTemplate, setSelectedTemplate] = useState('');
   const { auth } = useAuthStates();
-  const [engine, setEngine] = useState('fury');
+  const { engine, setEngine } = useContext(ChainFuryContext);
 
   return (
     <Dialog open={true} onClose={onClose}>
@@ -93,7 +94,7 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
                   if (template?.dag?.main_out) {
                     setEngine('fury');
                   } else {
-                    setEngine('');
+                    setEngine('langchain');
                   }
                 }}
                 className={`${
