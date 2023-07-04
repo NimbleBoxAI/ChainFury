@@ -35,16 +35,6 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
           <div className="flex justify-between gap-[8px] w-full">
             <div
               onClick={() => {
-                setEngine('langchain');
-              }}
-              className={`${
-                engine !== 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
-              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
-            >
-              Langchain
-            </div>
-            <div
-              onClick={() => {
                 setEngine('fury');
               }}
               className={`${
@@ -52,6 +42,16 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
               } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
             >
               Fury
+            </div>
+            <div
+              onClick={() => {
+                setEngine('langchain');
+              }}
+              className={`${
+                engine !== 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
+              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
+            >
+              Langchain
             </div>
           </div>
         ) : (
