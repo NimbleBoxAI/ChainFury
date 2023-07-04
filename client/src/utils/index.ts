@@ -166,3 +166,11 @@ export const FilterEdges = ({
   });
   return filteredEdges;
 };
+
+export const safeJsonParse = (x: string) => {
+  try {
+    return JSON.parse(x);
+  } catch (e) {
+    return x;
+  }
+};

@@ -278,7 +278,9 @@ const FlowViewer = () => {
           data: {
             ...JSON.parse(JSON.stringify(node?.cf_data)),
             deleteMe: () => {
-              setNodes((nds) => nds.filter((delnode) => delnode.id !== node?.id));
+              setNodes((nds: any[]) =>
+                nds.filter((delnode: { id: any }) => delnode.id !== node?.id)
+              );
             }
           }
         };
