@@ -170,5 +170,5 @@ def list_chatbots(
     user = verify_user(db, username)
 
     # query the db
-    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).offset(skip).limit(limit).all()
+    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
     return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}
