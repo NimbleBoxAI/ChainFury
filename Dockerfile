@@ -14,6 +14,7 @@ COPY ./requirements.txt /app
 WORKDIR /app
 RUN python3 -m pip install -r requirements.txt
 RUN pip install --no-deps langflow==0.0.54
+RUN pip install --no-deps chainfury
 
 # Bundle app source
 RUN rm -rf /app/static
