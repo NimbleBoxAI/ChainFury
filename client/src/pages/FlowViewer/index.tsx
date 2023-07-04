@@ -79,15 +79,16 @@ const FlowViewer = () => {
   }, [engine]);
 
   useEffect(() => {
-    console.log({ auth, templateId });
-
     if ((auth?.chatBots?.[flow_id] || auth.templates?.[templateId]) && variant) {
       setLoading(false);
-      if (auth?.chatBots?.[flow_id]?.dag?.main_in || auth.templates?.[templateId]) {
+      if (auth?.chatBots?.[flow_id]?.dag?.main_in) {
         setEngine('fury');
         createNodesForExistingBot('fury');
         return;
-      } else createNodesForExistingBot();
+      } else {
+        setEngine('langchain');
+        createNodesForExistingBot();
+      }
     }
   }, [auth.chatBots, location, auth.templates, templateId, variant]);
 
