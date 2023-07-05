@@ -1,5 +1,5 @@
 fastapi==0.95.2
-langchain==0.0.141
+langchain==0.0.223
 openai
 sqlalchemy
 pyjwt[crypto]
