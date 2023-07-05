@@ -127,6 +127,23 @@ export const authApi = createApi({
         method: 'GET'
       })
     }),
+    furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
+      query: () => ({
+        url: '/fury/',
+        method: 'GET'
+      })
+    }),
+    furyComponentDetails: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        component_type: string;
+      }
+    >({
+      query: ({ component_type }) => ({
+        url: `/fury/components/${component_type}`,
+        method: 'GET'
+      })
+    }),
     getPrompts: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -205,16 +222,24 @@ export const authApi = createApi({
         nodes: any;
         edges: any;
         token: string;
+        engine: string;
+        sample?: Record<string, any>;
+        main_in?: string;
+        main_out?: string;
       }
     >({
       query: (credentials) => ({
         url: '/chatbot/',
         method: 'POST',
         body: {
+          engine: credentials.engine,
           name: credentials.name,
           dag: {
-            nodes: credentials.nodes,
-            edges: credentials.edges
+            nodes: credentials.nodes ?? [],
+            edges: credentials.edges ?? [],
+            sample: credentials.sample ?? undefined,
+            main_in: credentials.main_in ?? undefined,
+            main_out: credentials.main_out ?? undefined
           }
         }
       })
@@ -227,6 +252,10 @@ export const authApi = createApi({
         edges: any;
         token: string;
         id: string;
+        engine: string;
+        sample?: Record<string, any>;
+        main_in?: string;
+        main_out?: string;
       }
     >({
       query: (credentials) => ({
@@ -235,10 +264,47 @@ export const authApi = createApi({
         body: {
           name: credentials.name,
           dag: {
-            nodes: credentials.nodes,
-            edges: credentials.edges
-          }
+            nodes: credentials.nodes ?? [],
+            edges: credentials.edges ?? [],
+            sample: credentials.sample ?? undefined,
+            main_in: credentials.main_in ?? undefined,
+            main_out: credentials.main_out ?? undefined
+          },
+          engine: credentials.engine,
+          update_keys: ['dag']
         }
+      })
+    }),
+    newAction: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        description: string;
+        tags: [];
+        fn: {
+          model_id: string;
+          model_params: {};
+          fn: {};
+        };
+        outputs: [
+          {
+            type: string;
+            name: string;
+            loc: string;
+          }
+        ];
+      }
+    >({
+      query: (credentials) => ({
+        url: `/fury/actions/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+    getActions: builder.mutation<DEFAULT_RESPONSE, {}>({
+      query: () => ({
+        url: `/fury/actions/`,
+        method: 'GET'
       })
     })
   })
@@ -259,5 +325,9 @@ export const {
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation
+  useGetAllBotMetricsMutation,
+  useFuryComponentsMutation,
+  useFuryComponentDetailsMutation,
+  useNewActionMutation,
+  useGetActionsMutation
 } = authApi;

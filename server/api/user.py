@@ -1,7 +1,10 @@
 import database
 from typing import Annotated
 from database import User
-from fastapi import HTTPException
+
+# from fastapi import HTTPException
+from fastapi.requests import Request
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from passlib.hash import sha256_crypt
 from fastapi import APIRouter, Depends, Query, Header
@@ -18,12 +21,21 @@ class ChangePasswordModel(BaseModel):
 
 
 @user_router.post("/change_password", status_code=200)
-def change_password(inputs: ChangePasswordModel, token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
+def change_password(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    inputs: ChangePasswordModel,
+    db: Session = Depends(database.fastapi_db_session),
+):
+    # validate user
     username = get_user_from_jwt(token)
-    user: User = db.query(User).filter(User.username == username).first()  # type: ignore
+    user = verify_user(db, username)
+
     if user is None:
-        raise HTTPException(status_code=400, detail="User does not exist")
-    
+        resp.status_code = 404
+        return {"msg": "user not found"}
+
     if sha256_crypt.verify(inputs.old_password, user.password):  # type: ignore
         password = sha256_crypt.hash(inputs.new_password)
         user.password = password  # type: ignore
@@ -31,4 +43,5 @@ def change_password(inputs: ChangePasswordModel, token: Annotated[str, Header()]
         response = {"msg": "success"}
         return response
     else:
-        raise HTTPException(status_code=400, detail="You have entered the wrong password")
+        resp.status_code = 400
+        return {"msg": "old password is incorrect"}

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chainfury.agent &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">chainfury.agent</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for chainfury.agent</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Agent</span>
+<span class="sd">=====</span>
+
+<span class="sd">We follow registry pattern for models and actions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">jinja2</span>
+
+<span class="kn">from</span> <span class="nn">chainfury.utils</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">chainfury.base</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">func_to_vars</span><span class="p">,</span>
+    <span class="n">func_to_return_vars</span><span class="p">,</span>
+    <span class="n">extract_jinja_indices</span><span class="p">,</span>
+    <span class="n">get_value_by_keys</span><span class="p">,</span>
+    <span class="n">put_value_by_keys</span><span class="p">,</span>
+    <span class="n">Node</span><span class="p">,</span>
+    <span class="n">Model</span><span class="p">,</span>
+    <span class="n">Var</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Models</span>
+<span class="c1"># ------</span>
+<span class="c1"># All the things below are for the models that are registered in the model registry, so that they can be used as inputs</span>
+<span class="c1"># in the chain. There can be several models that can put as inputs in a single chatbot.</span>
+
+
+<div class="viewcode-block" id="ModelRegistry"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry">[docs]</a><span class="k">class</span> <span class="nc">ModelRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Model registry contains metadata for all the models that are provided in the components&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Model</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_models</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ModelRegistry.has"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.has">[docs]</a>    <span class="k">def</span> <span class="nf">has</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A helper function to check if a model is registered or not&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span></div>
+
+<div class="viewcode-block" id="ModelRegistry.register"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a model in the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model (Model): Model to register</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering model </span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2"> already registered&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_models</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="nb">id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ModelRegistry.get_tags"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.get_tags">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the tags that are registered in the registry</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags_to_models</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ModelRegistry.get_models"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.get_models">[docs]</a>    <span class="k">def</span> <span class="nf">get_models</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the models that are registered in the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str, optional): Filter models by tag. Defaults to &quot;&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Dict[str, Any]]: Dictionary of models</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">tag</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="p">[])}</span>
+        <span class="k">return</span> <span class="n">items</span></div>
+
+<div class="viewcode-block" id="ModelRegistry.get"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Model</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a model from the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id (str): Id of the model</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Model: Model</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="nb">id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="ModelRegistry.get_count_for_model"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ModelRegistry.get_count_for_model">[docs]</a>    <span class="k">def</span> <span class="nf">get_count_for_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of times a model is used</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            id (str): Id of the model</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of times the model is used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div></div>
+
+
+<span class="n">model_registry</span> <span class="o">=</span> <span class="n">ModelRegistry</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">`model_registry` is a global variable that is used to register models. It is an instance of ModelRegistry class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># Programtic Actions Registry</span>
+<span class="c1"># ---------------------------</span>
+<span class="c1"># Programtic actions are nodes that are software 1.0 nodes, i.e. they are not trainable. They are used for things like</span>
+<span class="c1"># calling an API, adding 2 numbers, etc. Since they are not trainable the only way to get those is the source code for</span>
+<span class="c1"># the server.</span>
+
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry">[docs]</a><span class="k">class</span> <span class="nc">ProgramaticActionsRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Programatic actions registry contains metadata for all the programatic actions that are provided in the</span>
+<span class="sd">    components&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry.register"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">returns</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">outputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Register a programatic action in the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fn (object): Function to register</span>
+<span class="sd">            node_id (str): Id of the node</span>
+<span class="sd">            description (str): Description of the node</span>
+<span class="sd">            returns (List[str], optional): List of returns. Defaults to [].</span>
+<span class="sd">            outputs ([type], optional): [description]. Defaults to None.</span>
+<span class="sd">            tags (List[str], optional): List of tags. Defaults to [].</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            Exception: If the node is already registered</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Node: Node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering p-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; already registered&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outputs</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">returns</span><span class="p">),</span> <span class="s2">&quot;If outputs is not provided then returns must be provided&quot;</span>
+            <span class="n">outputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">returns</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span> <span class="s2">&quot;If returns is not provided then outputs must be provided&quot;</span>
+        <span class="n">ops</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">PROGRAMATIC</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">func_to_vars</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">ops</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry.get_tags"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_tags">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the tags that are registered in the registry</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: List of tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry.get_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the nodes that are registered in the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str, optional): Filter nodes by tag. Defaults to &quot;&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Dict[str, Any]]: Dictionary of nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">tag</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="p">[])}</span>
+        <span class="k">return</span> <span class="n">items</span></div>
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry.get"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a node from the registry</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): Id of the node</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Node: Node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;p-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProgramaticActionsRegistry.get_count_for_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_count_for_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the number of times a node is used</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): Id of the node</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Number of times the node is used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div></div>
+
+
+<span class="n">programatic_actions_registry</span> <span class="o">=</span> <span class="n">ProgramaticActionsRegistry</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">`programatic_actions_registry` is a global variable that is used to register programatic nodes. It is an instance of</span>
+<span class="sd">ProgramaticActionsRegistry class.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c1"># AI Actions Registry</span>
+<span class="c1"># -------------------</span>
+<span class="c1"># For everything that cannot be done by we have the AI powered actions Registry. This registry</span>
+<span class="c1"># will not include all the things that are available to the outer service, but those that are</span>
+<span class="c1"># hardcoded in the entire thing somewhere.</span>
+
+
+<div class="viewcode-block" id="AIAction"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction">[docs]</a><span class="k">class</span> <span class="nc">AIAction</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is a callable for all the AI actions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        node_id (str): The id of the node</span>
+<span class="sd">        model (Model): The model that is used for this action</span>
+<span class="sd">        model_params (Dict[str, Any]): The parameters for the model</span>
+<span class="sd">        fn (object): The function that is used for this action</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># do not remove these from here it is used in base.py if you do then put in a third file</span>
+    <span class="n">JTYPE</span> <span class="o">=</span> <span class="s2">&quot;jinja-template&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for Jinja template type&quot;&quot;&quot;</span>
+
+    <span class="n">FUNC</span> <span class="o">=</span> <span class="s2">&quot;python-function&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for Python function type&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># do some basic checks that we can do before anything else like checking if model_params</span>
+        <span class="c1"># is a subset of the model.vars</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">vars</span><span class="p">)</span>
+        <span class="n">mp_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">model_params</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mp_set</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">fields</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model params </span><span class="si">{</span><span class="n">mp_set</span><span class="si">}</span><span class="s2"> not a subset of </span><span class="si">{</span><span class="n">fields</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># since this is the AI action this is responsible for validating the function</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+            <span class="n">action_source</span> <span class="o">=</span> <span class="n">AIAction</span><span class="o">.</span><span class="n">JTYPE</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># fields required for self.fields</span>
+            <span class="n">templates</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># list of all the templates to be render with its position in fn</span>
+            <span class="n">fields_with_locations</span> <span class="o">=</span> <span class="n">extract_jinja_indices</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields_with_locations</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">field</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field </span><span class="si">{</span><span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> not found in </span><span class="si">{</span><span class="n">fn</span><span class="si">}</span><span class="s2">, but was extraced. There is a bug in get_value_by_keys function&quot;</span><span class="p">)</span>
+                <span class="n">templates</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">obj</span><span class="p">,</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Template</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">field</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+            <span class="c1"># set values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">templates</span> <span class="o">=</span> <span class="n">templates</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="o">==</span> <span class="nb">type</span><span class="p">(</span><span class="n">func_to_return_vars</span><span class="p">),</span> <span class="s2">&quot;`fn` can either be a function or a string&quot;</span>
+            <span class="n">action_source</span> <span class="o">=</span> <span class="n">AIAction</span><span class="o">.</span><span class="n">FUNC</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">func_to_vars</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span> <span class="o">=</span> <span class="n">model_params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span> <span class="o">=</span> <span class="n">action_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span> <span class="o">=</span> <span class="n">action_source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">fields</span>
+
+<div class="viewcode-block" id="AIAction.to_dict"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">no_vars</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the AIAction object to a dict.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;node_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">no_vars</span><span class="o">=</span><span class="n">no_vars</span><span class="p">),</span>
+            <span class="s2">&quot;model_params&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_params</span><span class="p">,</span>
+            <span class="s2">&quot;fn&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span>
+            <span class="s2">&quot;action_name&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_name</span><span class="p">,</span>
+            <span class="s2">&quot;action_source&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+<div class="viewcode-block" id="AIAction.from_dict"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserialize the AIAction object from a dict.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
+            <span class="n">node_id</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;node_id&quot;</span><span class="p">],</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">model_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]),</span>
+            <span class="n">model_params</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;model_params&quot;</span><span class="p">],</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;fn&quot;</span><span class="p">],</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;action_name&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;node_id&quot;</span><span class="p">]),</span>
+        <span class="p">)</span></div>
+
+<div class="viewcode-block" id="AIAction.__call__"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIAction.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="ne">Exception</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This is a callable that takes in all the arguments that the underlying models take.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            **data (Dict[str, Any]): The data that is passed to the model</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[Any, Optional[Exception]]: The output of the model and the exception if any</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># check for keys even before calling any API or something</span>
+        <span class="c1"># we need to create a sub dict that only contains the fields that are needed by the preprocessor</span>
+        <span class="c1"># function and pass the rest of the data to the model call</span>
+        <span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is required in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> but not present&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">_data</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span> <span class="o">==</span> <span class="n">AIAction</span><span class="o">.</span><span class="n">FUNC</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fn_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">_data</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span> <span class="o">==</span> <span class="n">AIAction</span><span class="o">.</span><span class="n">FUNC</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">fn_out</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AI Action preprocessor for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> did not return a dict but </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">fn_out</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">e</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">action_source</span> <span class="o">==</span> <span class="n">AIAction</span><span class="o">.</span><span class="n">JTYPE</span><span class="p">:</span>
+            <span class="n">fn_out</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">raw</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">keys</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">templates</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">_data</span><span class="p">)</span>
+                <span class="n">put_value_by_keys</span><span class="p">(</span><span class="n">fn_out</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># print(&quot;&gt;&gt; model_params:&quot;, self.model_params)</span>
+        <span class="c1"># print(&quot;&gt;&gt; preprocessor:&quot;, fn_out)</span>
+        <span class="n">model_final_params</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">model_params</span><span class="p">}</span>
+        <span class="n">model_final_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">model_final_params</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fn_out</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">model_final_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">err</span>
+
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span></div></div>
+
+
+<div class="viewcode-block" id="AIActionsRegistry"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry">[docs]</a><span class="k">class</span> <span class="nc">AIActionsRegistry</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is a registry for all the AI actions.&quot;&quot;&quot;</span>
+
+    <span class="n">DB_REGISTER</span> <span class="o">=</span> <span class="s2">&quot;db&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Node</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="AIActionsRegistry.to_action"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.to_action">[docs]</a>    <span class="k">def</span> <span class="nf">to_action</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        function to create an &quot;Action&quot; aka. `chainfury.Node`.</span>
+
+<span class="sd">        **NOTE:** If you do not pass `node_id` then this will create a `uudi4`. This behaviour is important when dev</span>
+<span class="sd">        wants to play with the action without commiting it anywhere.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_id (str): The model id that is to be used for this action</span>
+<span class="sd">            model_params (Dict[str, Any]): The model params that are to be used for this action</span>
+<span class="sd">            fn (object): The function that is to be used as a preprocessor for this action</span>
+<span class="sd">            outputs: This is a dict like `{&#39;x&#39;: (-1, &#39;b&#39;, &#39;c&#39;)}`, if provided function returns a dictionary with key `x`</span>
+<span class="sd">              and value automatically extracted from the model output at location `(-1, &#39;b&#39;, &#39;c&#39;)`.</span>
+<span class="sd">            node_id (str, optional): The node id for this action. Defaults to &quot;&quot;.</span>
+<span class="sd">            description (str, optional): The description for this action. Defaults to &quot;&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Node: The node object that can be used to create a chain</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">model_id</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+        <span class="n">ai_action</span> <span class="o">=</span> <span class="n">AIAction</span><span class="p">(</span>
+            <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">model_params</span><span class="o">=</span><span class="n">model_params</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">action_name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">outputs</span><span class="p">:</span>
+            <span class="n">output_field</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">ai_action</span><span class="o">.</span><span class="fm">__call__</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;model_output&quot;</span><span class="p">:</span> <span class="p">()})</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output_field</span> <span class="o">=</span> <span class="p">[</span><span class="n">Var</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">loc</span> <span class="ow">in</span> <span class="n">outputs</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">ai_action</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">AI</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">ai_action</span><span class="o">.</span><span class="n">fields</span> <span class="o">+</span> <span class="n">model</span><span class="o">.</span><span class="n">vars</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">output_field</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.register"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.register">[docs]</a>    <span class="k">def</span> <span class="nf">register</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_params</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">action_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function will register this action in the local AI registry so it is accesible everywhere. Use this when</span>
+<span class="sd">        you are hosting your own chainfury server and want to serve private functions not available in the public DB.</span>
+<span class="sd">        If you are using this just for your local usecase and have no interest in the serving capabilities then</span>
+<span class="sd">        use `to_action` instead.</span>
+
+<span class="sd">        **NOTE:** If you do not pass `node_id` then this will create a `uudi4`. This behaviour is important when dev</span>
+<span class="sd">        wants to play with the action without commiting it anywhere.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): The node id for this action</span>
+<span class="sd">            model_id (str): The model id that is to be used for this action</span>
+<span class="sd">            model_params (Dict[str, Any]): The model params that are to be used for this action</span>
+<span class="sd">            fn (object): The function that is to be used as a preprocessor for this action</span>
+<span class="sd">            outputs: This is a dict like `{&#39;x&#39;: (-1, &#39;b&#39;, &#39;c&#39;)}`, if provided function returns a dictionary with key `x`</span>
+<span class="sd">                and value automatically extracted from the model output at location `(-1, &#39;b&#39;, &#39;c&#39;)`.</span>
+<span class="sd">            description (str, optional): The description for this action. Defaults to &quot;&quot;.</span>
+<span class="sd">            tags (List[str], optional): The tags for this action. Defaults to [].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Registering ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node_id</span> <span class="o">!=</span> <span class="n">AIActionsRegistry</span><span class="o">.</span><span class="n">DB_REGISTER</span> <span class="ow">and</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; already exists&quot;</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_action</span><span class="p">(</span>
+            <span class="n">action_name</span><span class="o">=</span><span class="n">action_name</span> <span class="ow">or</span> <span class="n">node_id</span><span class="p">,</span>
+            <span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">model_id</span><span class="o">=</span><span class="n">model_id</span><span class="p">,</span>
+            <span class="n">model_params</span><span class="o">=</span><span class="n">model_params</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># this node can be registered in DB</span>
+        <span class="k">if</span> <span class="n">node_id</span> <span class="o">==</span> <span class="n">AIActionsRegistry</span><span class="o">.</span><span class="n">DB_REGISTER</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># this is just the server instance register</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">tags</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="p">[</span><span class="n">tag</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="p">[])</span> <span class="o">+</span> <span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.unregister"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.unregister">[docs]</a>    <span class="k">def</span> <span class="nf">unregister</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Unregister an ai-node</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): The node id for this action</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the node is not found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unregistering ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">nodes</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">node_id</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                <span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span>
+                <span class="k">break</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.get_tags"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_tags">[docs]</a>    <span class="k">def</span> <span class="nf">get_tags</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the tags that are registered</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[str]: The list of tags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tags_to_nodes</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.get_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all the nodes that are registered</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            tag (str, optional): The tag to filter the nodes. Defaults to &quot;&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Dict[str, Dict[str, Any]]: The dict of nodes</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">if</span> <span class="n">tag</span><span class="p">:</span>
+            <span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">items</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tags&quot;</span><span class="p">,</span> <span class="p">[])}</span>
+        <span class="k">return</span> <span class="n">items</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.get"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the node for the given node id</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): The node id for this action</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[Node]: The node object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ai-node &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">out</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AIActionsRegistry.get_count_for_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_count_for_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_count_for_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get number of times a particular node is called</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            node_id (str): The node id for this action</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: The number of times the node is called</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div></div>
+
+
+<span class="n">ai_actions_registry</span> <span class="o">=</span> <span class="n">AIActionsRegistry</span><span class="p">()</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">`ai_actions_registry` is a global instance of `AIActionsRegistry` class. This is used to register and unregister</span>
+<span class="sd">`AIAction` instances. This is used by the server to serve the registered actions.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># Eventually build memory registry like the actions registry</span>
+<span class="c1">#</span>
+<span class="c1"># class Memory:</span>
+<span class="c1">#     def __init__(self, memory_id):</span>
+<span class="c1">#         self.node = Node(id=f&quot;cf-memory-{memory_id}&quot;, type=Node.types.MEMORY)</span>
+<span class="c1">#</span>
+<span class="c1">#     # user can subclass this and override the following functions</span>
+<span class="c1">#     def get(self, key: str):</span>
+<span class="c1">#         ...</span>
+<span class="c1">#</span>
+<span class="c1">#     def put(self, key: str, value: Any):</span>
+<span class="c1">#         ...</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

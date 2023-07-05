@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chainfury.base &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chainfury.client" href="chainfury.client.html" />
+    <link rel="prev" title="chainfury CLI" href="chainfury.cli.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">chainfury.base</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Chain"><code class="docutils literal notranslate"><span class="pre">Chain</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.__call__"><code class="docutils literal notranslate"><span class="pre">Chain.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.from_dict"><code class="docutils literal notranslate"><span class="pre">Chain.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.from_id"><code class="docutils literal notranslate"><span class="pre">Chain.from_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.from_json"><code class="docutils literal notranslate"><span class="pre">Chain.from_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.step"><code class="docutils literal notranslate"><span class="pre">Chain.step()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.stream"><code class="docutils literal notranslate"><span class="pre">Chain.stream()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.to_dict"><code class="docutils literal notranslate"><span class="pre">Chain.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Chain.to_json"><code class="docutils literal notranslate"><span class="pre">Chain.to_json()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Edge"><code class="docutils literal notranslate"><span class="pre">Edge</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Edge.from_dict"><code class="docutils literal notranslate"><span class="pre">Edge.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Edge.to_dict"><code class="docutils literal notranslate"><span class="pre">Edge.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Model.TYPE_NAME"><code class="docutils literal notranslate"><span class="pre">Model.TYPE_NAME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Model.__call__"><code class="docutils literal notranslate"><span class="pre">Model.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Model.to_dict"><code class="docutils literal notranslate"><span class="pre">Model.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Node"><code class="docutils literal notranslate"><span class="pre">Node</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.__call__"><code class="docutils literal notranslate"><span class="pre">Node.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.from_dict"><code class="docutils literal notranslate"><span class="pre">Node.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.from_json"><code class="docutils literal notranslate"><span class="pre">Node.from_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.has_field"><code class="docutils literal notranslate"><span class="pre">Node.has_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.to_dict"><code class="docutils literal notranslate"><span class="pre">Node.to_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.to_json"><code class="docutils literal notranslate"><span class="pre">Node.to_json()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Node.types"><code class="docutils literal notranslate"><span class="pre">Node.types</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.NodeType"><code class="docutils literal notranslate"><span class="pre">NodeType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.NodeType.AI"><code class="docutils literal notranslate"><span class="pre">NodeType.AI</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.NodeType.PROGRAMATIC"><code class="docutils literal notranslate"><span class="pre">NodeType.PROGRAMATIC</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.NotDAGError"><code class="docutils literal notranslate"><span class="pre">NotDAGError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Secret"><code class="docutils literal notranslate"><span class="pre">Secret</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.Var"><code class="docutils literal notranslate"><span class="pre">Var</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Var.from_dict"><code class="docutils literal notranslate"><span class="pre">Var.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Var.set_value"><code class="docutils literal notranslate"><span class="pre">Var.set_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.Var.to_dict"><code class="docutils literal notranslate"><span class="pre">Var.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.adjacency_list_to_edge_map"><code class="docutils literal notranslate"><span class="pre">adjacency_list_to_edge_map()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.edge_array_to_adjacency_list"><code class="docutils literal notranslate"><span class="pre">edge_array_to_adjacency_list()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.extract_jinja_indices"><code class="docutils literal notranslate"><span class="pre">extract_jinja_indices()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.func_to_return_vars"><code class="docutils literal notranslate"><span class="pre">func_to_return_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.func_to_vars"><code class="docutils literal notranslate"><span class="pre">func_to_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.get_value_by_keys"><code class="docutils literal notranslate"><span class="pre">get_value_by_keys()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.jinja_schema_to_vars"><code class="docutils literal notranslate"><span class="pre">jinja_schema_to_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.jtype_to_vars"><code class="docutils literal notranslate"><span class="pre">jtype_to_vars()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.put_value_by_keys"><code class="docutils literal notranslate"><span class="pre">put_value_by_keys()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.pyannotation_to_json_schema"><code class="docutils literal notranslate"><span class="pre">pyannotation_to_json_schema()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.base.topological_sort"><code class="docutils literal notranslate"><span class="pre">topological_sort()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">chainfury.base</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chainfury.base.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="chainfury-base">
+<h1>chainfury.base<a class="headerlink" href="#chainfury-base" title="Permalink to this heading"></a></h1>
+<p>This file contains the base classes for dataflow engine using <cite>Chain</cite>.</p>
+<span class="target" id="module-chainfury.base"></span><dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Chain">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><span class="pre">Edge</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A chain is a full flow of nodes and edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nodes</strong> (<em>List</em><em>[</em><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node"><em>Node</em></a><em>]</em><em>, </em><em>optional</em>) – The list of nodes in the chain. Defaults to [].</p></li>
+<li><p><strong>edges</strong> (<em>List</em><em>[</em><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><em>Edge</em></a><em>]</em><em>, </em><em>optional</em>) – The list of edges in the chain. Defaults to [].</p></li>
+<li><p><strong>sample</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>, </em><em>optional</em>) – The sample data to use for the chain. Defaults to {}.</p></li>
+<li><p><strong>main_in</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the input var for the chat input. Defaults to “”.</p></li>
+<li><p><strong>main_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output var for the chat output. Defaults to “”.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thoughts_callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_thoughts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Runs the chain on the given data. In this function it will run a full dataflow engine along with thoughts buffer
+and a simple callback system at each step.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="p">,</span> <span class="n">thoughts</span> <span class="o">=</span> <span class="n">chain</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="gp">... </span><span class="n">The</span> <span class="n">first</span> <span class="n">man</span> <span class="n">chuckled</span> <span class="ow">and</span> <span class="n">shook</span> <span class="n">his</span> <span class="n">head</span><span class="p">,</span> <span class="s2">&quot;You always have the weirdest explanations for everything.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">thoughts</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">{</span>
+<span class="go">        &#39;38c813a2-850c-448b-8cfb-bd5775cc4b61/answer&#39;: {</span>
+<span class="go">            &#39;timestamp&#39;: &#39;2023-06-27T16:50:04.178833&#39;,</span>
+<span class="go">            &#39;value&#39;: &#39;...&#39;</span>
+<span class="go">        }</span>
+<span class="go">        &#39;1378538b-a15e-475b-9a9d-a31a261165c0/out&#39;: {</span>
+<span class="go">            &#39;timestamp&#39;: &#39;2023-06-27T16:50:07.818709&#39;,</span>
+<span class="go">            &#39;value&#39;: &#39;...&#39;</span>
+<span class="go">        }</span>
+<span class="go">    }</span>
+</pre></div>
+</div>
+<p>You can also stream the intermediate responses by setting using <cite>stream_call</cite> method. You can get the exact same
+result as above by iterating over the response and getting the last response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The data to run the chain on.</p></li>
+<li><p><strong>thoughts_callback</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The callback function to call at each step. Defaults to None.</p></li>
+<li><p><strong>print_thoughts</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print the thoughts buffer at each step. Defaults to False.</p></li>
+<li><p><strong>stream</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to stream the output or not. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The output of the chain and the thoughts buffer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a>, Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a chain from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The dictionary representation of the chain.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The chain created from the dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Chain" title="chainfury.base.Chain">Chain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.from_id">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.from_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.from_id" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.from_json">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.from_json" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a chain from a JSON string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>str</em>) – The JSON string representation of the chain.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The chain created from the JSON string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Chain" title="chainfury.base.Chain">Chain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.step">
+<span class="sig-name descname"><span class="pre">step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pre_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">full_ir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_thoughts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thoughts_callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.step" title="Permalink to this definition"></a></dt>
+<dd><p>Performs a single step in the chain, useful for manual debugging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>node_id</strong> (<em>str</em>) – The id of the node to step.</p></li>
+<li><p><strong>pre_data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The data to use for the step.</p></li>
+<li><p><strong>full_ir</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The full IR to use for the step.</p></li>
+<li><p><strong>print_thoughts</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print the thoughts. Defaults to False.</p></li>
+<li><p><strong>thoughts_callback</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – A callback to call with the thoughts. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The currrent output and updated thoughts ir buffer.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Dict[str, Any], Dict[str, Any]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.stream">
+<span class="sig-name descname"><span class="pre">stream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thoughts_callback</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_thoughts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.stream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.stream" title="Permalink to this definition"></a></dt>
+<dd><p>This is a streaming version of __call__ method. It will yield the intermediate responses as they come in.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cf_response_gen</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">stream</span><span class="p">(</span><span class="s2">&quot;Hello world&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">thoughts</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">ir</span><span class="p">,</span> <span class="n">done</span> <span class="ow">in</span> <span class="n">cf_response_gen</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">out</span> <span class="o">=</span> <span class="n">ir</span>
+<span class="gp">... </span>    <span class="k">else</span><span class="p">:</span>
+<span class="gp">... </span>        <span class="n">thoughts</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ir</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+<span class="gp">... </span><span class="n">The</span> <span class="n">first</span> <span class="n">man</span> <span class="n">chuckled</span> <span class="ow">and</span> <span class="n">shook</span> <span class="n">his</span> <span class="n">head</span><span class="p">,</span> <span class="s2">&quot;You always have the weirdest explanations for everything.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">thoughts</span><span class="p">)</span>
+<span class="gp">... </span><span class="p">{</span>
+<span class="go">        &#39;38c813a2-850c-448b-8cfb-bd5775cc4b61/answer&#39;: {</span>
+<span class="go">            &#39;timestamp&#39;: &#39;2023-06-27T16:50:04.178833&#39;,</span>
+<span class="go">            &#39;value&#39;: &#39;...&#39;</span>
+<span class="go">        }</span>
+<span class="go">        &#39;1378538b-a15e-475b-9a9d-a31a261165c0/out&#39;: {</span>
+<span class="go">            &#39;timestamp&#39;: &#39;2023-06-27T16:50:07.818709&#39;,</span>
+<span class="go">            &#39;value&#39;: &#39;...&#39;</span>
+<span class="go">        }</span>
+<span class="go">    }</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The data to run the chain on.</p></li>
+<li><p><strong>thoughts_callback</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em><em>, </em><em>optional</em>) – The callback function to call at each step. Defaults to None.</p></li>
+<li><p><strong>print_thoughts</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print the thoughts buffer at each step. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>Generator[Tuple[Union[Any, Dict[str, Any]], bool], None, None]</em> – The intermediate responses and whether the
+response is the final response or not.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">main_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Serializes the chain to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>main_in</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the input var for the chat input. Defaults to “”.</p></li>
+<li><p><strong>main_out</strong> (<em>str</em><em>, </em><em>optional</em>) – The name of the output var for the chat output. Defaults to “”.</p></li>
+<li><p><strong>sample</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>, </em><em>optional</em>) – The sample data to use for the chain. Defaults to {}.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The dictionary representation of the chain.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Chain.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Chain.to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Chain.to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Serializes the chain to a JSON string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The JSON string representation of the chain.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Edge">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src_node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_node_var</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trg_node_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trg_node_var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Edge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Edge" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Creates an edge between two nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>src_node_id</strong> (<em>str</em>) – The id of the source node.</p></li>
+<li><p><strong>src_node_var</strong> (<em>str</em>) – The name of the source node variable.</p></li>
+<li><p><strong>trg_node_id</strong> (<em>str</em>) – The id of the target node.</p></li>
+<li><p><strong>trg_node_var</strong> (<em>str</em>) – The name of the target node variable.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Edge.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><span class="pre">Edge</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Edge.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Edge.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates an edge from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The dictionary representation of the edge.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The edge created from the dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge">Edge</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Edge.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Edge.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Edge.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Serializes the edge to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The dictionary representation of the edge.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Model">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">usage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Model" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.base.Model.TYPE_NAME">
+<span class="sig-name descname"><span class="pre">TYPE_NAME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'model'</span></em><a class="headerlink" href="#chainfury.base.Model.TYPE_NAME" title="Permalink to this definition"></a></dt>
+<dd><p>constant for the type name</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Model.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Model.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Model.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Calls the model with the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model_data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The data to pass to the model.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the model and the exception if any.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Any, Optional[Exception]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Model.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_vars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Model.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Model.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the model to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>no_vars</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to include the vars. Defaults to False.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The dictionary representation of the model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Node">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_thoughts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Calls the node with the given data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The data to pass to the node.</p></li>
+<li><p><strong>print_thoughts</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print the thoughts of the node, useful for debugging. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The result of the node and the exception if any.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Any, Optional[Exception]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a node from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The dictionary representation of the node.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The node created from the dictionary.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node">Node</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.from_json">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node"><span class="pre">Node</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.from_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.from_json" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a node from a json string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>str</em>) – The json string representation of the node.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The node created from the json string.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Node" title="chainfury.base.Node">Node</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.has_field">
+<span class="sig-name descname"><span class="pre">has_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">field</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.has_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.has_field" title="Permalink to this definition"></a></dt>
+<dd><p>helper function to check if the node has a field with the given name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>field</strong> (<em>str</em>) – The name of the field to check.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the node has the field, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the node to a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The dictionary representation of the node.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Node.to_json">
+<span class="sig-name descname"><span class="pre">to_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Node.to_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Node.to_json" title="Permalink to this definition"></a></dt>
+<dd><p>Converts the node to a json string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>indent</strong> (<em>int</em><em>, </em><em>optional</em>) – The indent to use. Defaults to None.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The json string representation of the node.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.base.Node.types">
+<span class="sig-name descname"><span class="pre">types</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;chainfury.base.NodeType</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#chainfury.base.Node.types" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.NodeType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">NodeType</span></span><a class="reference internal" href="../_modules/chainfury/base.html#NodeType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.NodeType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.base.NodeType.AI">
+<span class="sig-name descname"><span class="pre">AI</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ai-powered'</span></em><a class="headerlink" href="#chainfury.base.NodeType.AI" title="Permalink to this definition"></a></dt>
+<dd><p>constant for the AI node type</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.base.NodeType.PROGRAMATIC">
+<span class="sig-name descname"><span class="pre">PROGRAMATIC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'programatic'</span></em><a class="headerlink" href="#chainfury.base.NodeType.PROGRAMATIC" title="Permalink to this definition"></a></dt>
+<dd><p>constant for the programatic node type</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="chainfury.base.NotDAGError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">NotDAGError</span></span><a class="reference internal" href="../_modules/chainfury/base.html#NotDAGError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.NotDAGError" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Secret">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Secret</span></span><a class="reference internal" href="../_modules/chainfury/base.html#Secret"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Secret" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+<p>This class just means that in Var it will be taken as a password field</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.base.Var">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">Var</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">items</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">additionalProperties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">placeholder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Var"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Var" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Var.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Var.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Var.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Deserialise a Var from a dictionary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em>) – The dictionary to deserialise from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The deserialised Var.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Var.set_value">
+<span class="sig-name descname"><span class="pre">set_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#Var.set_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Var.set_value" title="Permalink to this definition"></a></dt>
+<dd><p>Set the value of this Var.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<em>Any</em>) – The value to set.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.base.Var.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#Var.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.Var.to_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Serialise this Var to a dictionary that can be JSON serialised and sent to the client.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The serialised Var.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.adjacency_list_to_edge_map">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">adjacency_list_to_edge_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">adjacency_list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><span class="pre">Edge</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#adjacency_list_to_edge_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.adjacency_list_to_edge_map" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.edge_array_to_adjacency_list">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">edge_array_to_adjacency_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><span class="pre">Edge</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#edge_array_to_adjacency_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.edge_array_to_adjacency_list" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.extract_jinja_indices">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">extract_jinja_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">List</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#extract_jinja_indices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.extract_jinja_indices" title="Permalink to this definition"></a></dt>
+<dd><p>This takes in a nested object and returns all the locations where jinja template was detected.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The nested object.</p></li>
+<li><p><strong>current_index</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The current index. Defaults to ().</p></li>
+<li><p><strong>indices</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The indices. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The list of indices.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury.base</span> <span class="kn">import</span> <span class="n">extract_jinja_indices</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">extract_jinja_indices</span><span class="p">({</span>
+<span class="gp">... </span>    <span class="s2">&quot;foo&quot;</span><span class="p">:</span> <span class="p">{</span>
+<span class="gp">... </span>        <span class="s2">&quot;bar&quot;</span><span class="p">:</span> <span class="s2">&quot;{{ baz }}&quot;</span><span class="p">,</span>
+<span class="gp">... </span>        <span class="s2">&quot;gaa&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;{{ joo }}&quot;</span><span class="p">]</span>
+<span class="gp">... </span>   <span class="p">}</span>
+<span class="gp">... </span><span class="p">})</span>
+<span class="go">[((&#39;foo&#39;, &#39;bar&#39;), Var(...)), ((&#39;foo&#39;, &#39;gaa&#39;, &#39;0&#39;), Var(...))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># more examples</span>
+<span class="go">[((&#39;3&#39;, &#39;content&#39;), [Var(&#39;num1&#39;, type=string, items=[], additionalProperties=[]), Var(&#39;num2&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[((), [Var(&#39;message&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[((&#39;meta_prompt&#39;, &#39;data&#39;), [Var(&#39;place&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[(&#39;0&#39;, [Var(&#39;name&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[((&#39;meta&#39;, &#39;ptype&#39;), [Var(&#39;genome&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[((&#39;level-0&#39;, &#39;level-1&#39;, &#39;level-2&#39;), [Var(&#39;thing&#39;, type=string, items=[], additionalProperties=[])]), ((&#39;level-0&#39;, &#39;nice&#39;), [Var(&#39;feeling&#39;, type=string, items=[], additionalProperties=[])])]</span>
+<span class="go">[]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.func_to_return_vars">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">func_to_return_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">returns</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tuple</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#func_to_return_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.func_to_return_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Analyses the return annotation type of the signature of a function and converts it to an array of named Var objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>func</strong> (<em>Callable</em>) – The function to extract the signature from.</p></li>
+<li><p><strong>returns</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Tuple</em><em>]</em>) – The dictionary of return types.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The array of Var objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.func_to_vars">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">func_to_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">object</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#func_to_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.func_to_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Extracts the signature of a function and converts it to an array of Var objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>func</strong> (<em>Callable</em>) – The function to extract the signature from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The array of Var objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.get_value_by_keys">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">get_value_by_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#get_value_by_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.get_value_by_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Takes in an arbitrary nested object and returns the value at the location specified by the keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The nested object.</p></li>
+<li><p><strong>keys</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>]</em><em>]</em>) – The keys. See <cite>extract_jinja_indices</cite> for examples.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The value at the location specified by the keys.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.jinja_schema_to_vars">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">jinja_schema_to_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#jinja_schema_to_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.jinja_schema_to_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a Jinja schema to a Var object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<em>[</em><em>type</em><em>]</em>) – The Jinja schema.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The Var object.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.jtype_to_vars">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">jtype_to_vars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#jtype_to_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.jtype_to_vars" title="Permalink to this definition"></a></dt>
+<dd><p>Converts a Jinja prompt to an array of Var objects.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>prompt</strong> (<em>str</em>) – The Jinja prompt.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The array of Var objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.put_value_by_keys">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">put_value_by_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/base.html#put_value_by_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.put_value_by_keys" title="Permalink to this definition"></a></dt>
+<dd><p>Takes in an arbitrary nested object and sets the value at the location specified by the keys.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The nested object.</p></li>
+<li><p><strong>keys</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>]</em><em>]</em>) – The keys. See <cite>extract_jinja_indices</cite> for examples.</p></li>
+<li><p><strong>value</strong> (<em>Any</em>) – The value to set.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.pyannotation_to_json_schema">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">pyannotation_to_json_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_any</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_exc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_none</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var"><span class="pre">Var</span></a></span></span><a class="reference internal" href="../_modules/chainfury/base.html#pyannotation_to_json_schema"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.pyannotation_to_json_schema" title="Permalink to this definition"></a></dt>
+<dd><p>Function to convert the given annotation from python to a Var which can then be JSON serialised and sent to the
+clients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>Any</em>) – The annotation to convert.</p></li>
+<li><p><strong>allow_any</strong> (<em>bool</em>) – Whether to allow the <cite>Any</cite> type.</p></li>
+<li><p><strong>allow_exc</strong> (<em>bool</em>) – Whether to allow the <cite>Exception</cite> type.</p></li>
+<li><p><strong>allow_none</strong> (<em>bool</em>) – Whether to allow the <cite>None</cite> type.</p></li>
+<li><p><strong>trace</strong> (<em>bool</em><em>, </em><em>optional</em>) – Adds verbosity the schema generation. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The converted annotation.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.base.Var" title="chainfury.base.Var">Var</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.base.topological_sort">
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">topological_sort</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edges</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><span class="pre">Edge</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#topological_sort"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.topological_sort" title="Permalink to this definition"></a></dt>
+<dd><p>Topological sort of a DAG, raises NotDAGError if the graph is not a DAG. This is full proof version
+which will work even if the DAG contains several unconnected chains.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>edges</strong> (<em>List</em><em>[</em><a class="reference internal" href="#chainfury.base.Edge" title="chainfury.base.Edge"><em>Edge</em></a><em>]</em>) – The edges of the DAG</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The topologically sorted list of node ids</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chainfury.cli.html" class="btn btn-neutral float-left" title="chainfury CLI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.client.html" class="btn btn-neutral float-right" title="chainfury.client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

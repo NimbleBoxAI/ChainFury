@@ -1,5 +1,7 @@
 from commons.utils import get_user_id_from_jwt
 from fastapi import APIRouter, Depends, Header
+from fastapi.requests import Request
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from typing import Annotated
 
@@ -11,20 +13,29 @@ from database_utils.dashboard import (
     get_prompts_with_user_rating_from_chatbot_id,
     get_prompts_with_openai_rating_from_chatbot_id,
 )
+from commons.utils import get_user_from_jwt, verify_user
 
 dashboard_router = APIRouter(prefix="", tags=["dashboard"])
 
 
 @dashboard_router.get("/dashboard", status_code=200)
-def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depends(database.fastapi_db_session)):
+def get_user_metrics_summary(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    db: Session = Depends(database.fastapi_db_session),
+):
+    # validate user
+    username = get_user_from_jwt(token)
+    user = verify_user(db, username)
+
+    # get user metrics
     user_metrics = []
     total_conversations = 0
     total_internal_feedback = 0
     total_chatbot_user_feedback = 0
     total_openAI_feedback = 0
-    user_id = get_user_id_from_jwt(token)
-    chatbots = get_chatbots_from_user_id(db, user_id)
-
+    chatbots = get_chatbots_from_user_id(db, user.id)
     for chatbot in chatbots:
         chatbot_id = chatbot.id
         prompts = get_prompts_from_chatbot_id(db, chatbot_id)
@@ -45,4 +56,4 @@ def get_user_metrics_summary(token: Annotated[str, Header()], db: Session = Depe
             "total_openAI_feedback": total_openAI_feedback,
         }
     )
-    return {"msg": "success", "data": user_metrics}
+    return {"data": user_metrics}

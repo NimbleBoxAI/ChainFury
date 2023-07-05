@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installing ChainFury &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Using ChainFury" href="usage.html" />
+    <link rel="prev" title="ChainFury" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installing ChainFury</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#docker">Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#build-from-source">Build from Source</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installing ChainFury</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/install.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installing-chainfury">
+<h1>Installing ChainFury<a class="headerlink" href="#installing-chainfury" title="Permalink to this heading"></a></h1>
+<p>There are many ways to install and run the <cite>chainfury</cite> system the simplest of them all is <cite>pip install chainfury</cite>.</p>
+<p><a class="reference internal" href="source/chainfury.components.const.html#chainfury.components.const.Env" title="chainfury.components.const.Env"><code class="xref py py-mod docutils literal notranslate"><span class="pre">chainfury.components.const.Env</span></code></a> contains all the supported environment variables.</p>
+<section id="docker">
+<h2>Docker<a class="headerlink" href="#docker" title="Permalink to this heading"></a></h2>
+<p>Docker is the simplest way to start serving chainfury internally. This can be done using the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>.<span class="w"> </span>-f<span class="w"> </span>Dockerfile<span class="w"> </span>-t<span class="w"> </span>chainfury
+docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
+
+<span class="c1"># to pass any env config</span>
+docker<span class="w"> </span>run<span class="w"> </span>--env<span class="w"> </span><span class="nv">KEY</span><span class="o">=</span>VALUE<span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
+
+<span class="c1"># to connect to your DB</span>
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-E<span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;mysql+pymysql://&lt;user&gt;:&lt;password&gt;@127.0.0.1:3306/&lt;database&gt;&quot;</span><span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
+</pre></div>
+</div>
+</section>
+<section id="build-from-source">
+<h2>Build from Source<a class="headerlink" href="#build-from-source" title="Permalink to this heading"></a></h2>
+<p>ChainFury repo ships with the Next.js client code, python <cite>fastapi</cite> server and the <cite>chainfury</cite> package that powers the
+fury engine. To build the entire system you can run the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># clone the repo</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/NimbleBoxAI/ChainFury
+ch<span class="w"> </span>ChainFury
+
+<span class="c1"># build the client</span>
+<span class="nb">cd</span><span class="w"> </span>client
+yarn<span class="w"> </span>install
+yarn<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>..
+
+<span class="c1"># move the files to the server code</span>
+cp<span class="w"> </span>-r<span class="w"> </span>client/dist/<span class="w"> </span>server/static/
+mkdir<span class="w"> </span>-p<span class="w"> </span>./server/templates
+cp<span class="w"> </span>./client/dist/index.html<span class="w"> </span>./server/templates/index.html
+
+<span class="c1"># setup the server env</span>
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+<span class="nb">cd</span><span class="w"> </span>server
+
+<span class="c1"># start the server: recommended approach</span>
+python3<span class="w"> </span>server.py<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span>
+
+<span class="c1"># to start using uvicorn: be careful with workers</span>
+python3<span class="w"> </span>-m<span class="w"> </span>uvicorn<span class="w"> </span>app:app<span class="w"> </span>--log-level<span class="o">=</span>debug<span class="w"> </span>--host<span class="w"> </span><span class="m">0</span>.0.0.0<span class="w"> </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span>--workers<span class="w"> </span><span class="m">2</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="ChainFury" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="usage.html" class="btn btn-neutral float-right" title="Using ChainFury" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

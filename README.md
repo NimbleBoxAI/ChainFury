@@ -67,12 +67,12 @@ docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306
 cd client
 yarn install
 yarn build
+cd ..
 ```
 
 To copy the frontend to the backend, run the following command:
 
 ```bash
-cd ..
 cp -r client/dist/ server/static/
 mkdir -p ./server/templates
 cp ./client/dist/index.html ./server/templates/index.html

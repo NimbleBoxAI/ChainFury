@@ -9,11 +9,15 @@ ENV NODE_ENV production
 FROM python:3.9
 RUN mkdir /app
 COPY ./requirements.txt /app
+COPY ./chainfury /app/chainfury
+COPY pyproject.toml /app
+COPY README.md /app
 
 # Setting up the working directory
 WORKDIR /app
+RUN python3 -m pip install -e .
 RUN python3 -m pip install -r requirements.txt
-RUN pip install --no-deps langflow==0.0.54
+RUN python3 -m pip install --no-deps langflow==0.0.54
 
 # Bundle app source
 RUN rm -rf /app/static

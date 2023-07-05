@@ -14,7 +14,7 @@ def get_prompts(db: Session, chatbot_id: str) -> List[Prompt]:
 
 
 def create_prompt(db: Session, chatbot_id: str, input_prompt: str, session_id: str) -> Prompt:
-    logger.debug(f"Creating prompt for chatbot {chatbot_id} with input prompt {input_prompt}")
+    logger.info(f"Creating prompt for chatbot {chatbot_id} with input prompt {input_prompt}")
     db_prompt = Prompt(
         chatbot_id=chatbot_id,
         input_prompt=input_prompt,

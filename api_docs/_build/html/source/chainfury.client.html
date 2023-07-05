@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>chainfury.client &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chainfury utilities" href="chainfury.utils.html" />
+    <link rel="prev" title="chainfury.base" href="chainfury.base.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">chainfury.client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.client.Subway"><code class="docutils literal notranslate"><span class="pre">Subway</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.client.Subway.__call__"><code class="docutils literal notranslate"><span class="pre">Subway.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.client.Subway.u"><code class="docutils literal notranslate"><span class="pre">Subway.u()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.client.create_new_chain"><code class="docutils literal notranslate"><span class="pre">create_new_chain()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.client.get_chain_from_dict"><code class="docutils literal notranslate"><span class="pre">get_chain_from_dict()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.client.get_chain_from_id"><code class="docutils literal notranslate"><span class="pre">get_chain_from_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.client.get_client"><code class="docutils literal notranslate"><span class="pre">get_client()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.components.html">chainfury Components</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">chainfury.client</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chainfury.client.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-chainfury.client">
+<span id="chainfury-client"></span><h1>chainfury.client<a class="headerlink" href="#module-chainfury.client" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.client.Subway">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">Subway</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_session</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/client.html#Subway"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.Subway" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Simple code that allows writing APIs by <cite>.attr.ing</cite> them. This is inspired from gRPC style functional calls which
+hides the complexity of underlying networking. This is useful when you are trying to debug live server directly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>User is solely responsible for checking if the certain API endpoint exists or not. This simply wraps the API
+calls and does not do any validation.</p>
+</div>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury.client</span> <span class="kn">import</span> <span class="n">Subway</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">requests</span> <span class="kn">import</span> <span class="n">Session</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">Session</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;token&quot;</span><span class="p">:</span> <span class="n">token</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stub</span> <span class="o">=</span> <span class="n">Subway</span><span class="p">(</span><span class="s2">&quot;http://localhost:8000&quot;</span><span class="p">,</span> <span class="n">session</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_chain</span> <span class="o">=</span> <span class="n">stub</span><span class="o">.</span><span class="n">chatbot</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s2">&quot;6ln9ksln&quot;</span><span class="p">)</span>       <span class="c1"># http://localhost:8000/chatbot/6ln9ksln</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">get_chain</span><span class="p">()</span>                          <span class="c1"># call like a function</span>
+<span class="go">{</span>
+<span class="go">    &#39;name&#39;: &#39;funny-bot-1&#39;,</span>
+<span class="go">    &#39;description&#39;: None,</span>
+<span class="go">    &#39;dag&#39;: {</span>
+<span class="go">        &#39;nodes&#39;: [</span>
+<span class="go">            {</span>
+<span class="go">                &#39;id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034&#39;,</span>
+<span class="go">                &#39;cf_id&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5&#39;,</span>
+<span class="go">                &#39;position&#39;: {&#39;x&#39;: -271.25233176301117, &#39;y&#39;: 78.20693852768798},</span>
+<span class="go">                &#39;type&#39;: &#39;FuryEngineNode&#39;,</span>
+<span class="go">                &#39;width&#39;: 350,</span>
+<span class="go">                &#39;height&#39;: 553,</span>
+<span class="go">                &#39;selected&#39;: True,</span>
+<span class="go">                &#39;position_absolute&#39;: None,</span>
+<span class="go">                &#39;dragging&#39;: False,</span>
+<span class="go">                &#39;data&#39;: {}</span>
+<span class="go">            }</span>
+<span class="go">        ],</span>
+<span class="go">        &#39;edges&#39;: [],</span>
+<span class="go">        &#39;sample&#39;: {</span>
+<span class="go">            &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/model&#39;: &#39;gpt-3.5-turbo&#39;</span>
+<span class="go">        },</span>
+<span class="go">        &#39;main_in&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/animal&#39;,</span>
+<span class="go">        &#39;main_out&#39;: &#39;bc1bdc37-07d9-49b4-9e09-b0e58a535da5_934.2328674347034/text&#39;</span>
+<span class="go">    },</span>
+<span class="go">    &#39;engine&#39;: &#39;fury&#39;,</span>
+<span class="go">    &#39;deleted_at&#39;: None,</span>
+<span class="go">    &#39;created_by&#39;: &#39;cihua4hh&#39;,</span>
+<span class="go">    &#39;id&#39;: &#39;6ln9ksln&#39;,</span>
+<span class="go">    &#39;meta&#39;: None,</span>
+<span class="go">    &#39;created_at&#39;: &#39;2023-06-27T18:05:17.395260&#39;</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_url</strong> (<em>str</em>) – The url to use for the client</p></li>
+<li><p><strong>_session</strong> (<em>requests.Session</em>) – The session to use for the client</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.client.Subway.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'get'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bool</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/client.html#Subway.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.Subway.__call__" title="Permalink to this definition"></a></dt>
+<dd><p>Call the API endpoint as if it is a function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>method</strong> (<em>str</em><em>, </em><em>optional</em>) – The method to use. Defaults to “get”.</p></li>
+<li><p><strong>trailing</strong> (<em>str</em><em>, </em><em>optional</em>) – The trailing url to use. Defaults to “”.</p></li>
+<li><p><strong>json</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>, </em><em>optional</em>) – The json to use. Defaults to {}.</p></li>
+<li><p><strong>data</strong> (<em>[</em><em>type</em><em>]</em><em>, </em><em>optional</em>) – The data to use. Defaults to None.</p></li>
+<li><p><strong>params</strong> (<em>Dict</em><em>, </em><em>optional</em>) – The params to use. Defaults to {}.</p></li>
+<li><p><strong>_verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print the response or not. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The response and whether there was an error or not</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[Dict[str, Any], bool]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.client.Subway.u">
+<span class="sig-name descname"><span class="pre">u</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.client.Subway" title="chainfury.client.Subway"><span class="pre">Subway</span></a></span></span><a class="reference internal" href="../_modules/chainfury/client.html#Subway.u"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.Subway.u" title="Permalink to this definition"></a></dt>
+<dd><p>In cases where the api might start with a number you cannot write in python, this method can be used to
+access the attribute.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stub</span><span class="mf">.9</span><span class="n">jisjfi</span>      <span class="c1"># python will cry, invalid syntax: cannot start with a number</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stub</span><span class="o">.</span><span class="n">u</span><span class="p">(</span><span class="s1">&#39;9jisjfi&#39;</span><span class="p">)</span> <span class="c1"># do this instead</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>attr</strong> (<em>str</em>) – The attribute to access</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The new subway object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#chainfury.client.Subway" title="chainfury.client.Subway">Subway</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.client.create_new_chain">
+<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">create_new_chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chain</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/client.html#create_new_chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.create_new_chain" title="Permalink to this definition"></a></dt>
+<dd><p>Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
+on the API.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">Chain</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury.client</span> <span class="kn">import</span> <span class="n">create_new_chain</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">api_resp</span> <span class="o">=</span> <span class="n">create_new_chain</span><span class="p">(</span><span class="s2">&quot;my chain&quot;</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain_new</span> <span class="o">=</span> <span class="n">Chain</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">api_resp</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain_new</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the chain</p></li>
+<li><p><strong>chain</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><em>Chain</em></a>) – The chain object</p></li>
+<li><p><strong>create_actions</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to create the actions or not. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The API response</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.client.get_chain_from_dict">
+<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">get_chain_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></span><a class="reference internal" href="../_modules/chainfury/client.html#get_chain_from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.get_chain_from_dict" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.client.get_chain_from_id">
+<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">get_chain_from_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain"><span class="pre">Chain</span></a></span></span><a class="reference internal" href="../_modules/chainfury/client.html#get_chain_from_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.get_chain_from_id" title="Permalink to this definition"></a></dt>
+<dd><p>Helper function to load a chain from the given chatbot ID. This assumed that everything was created correctly</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury.client</span> <span class="kn">import</span> <span class="n">get_chain_from_id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span> <span class="o">=</span> <span class="n">get_chain_from_id</span><span class="p">(</span><span class="s2">&quot;l6lnksln&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">chain</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – The id of the chain to load</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The chain object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="chainfury.base.html#chainfury.base.Chain" title="chainfury.base.Chain">Chain</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.client.get_client">
+<span class="sig-prename descclassname"><span class="pre">chainfury.client.</span></span><span class="sig-name descname"><span class="pre">get_client</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'api/v1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#chainfury.client.Subway" title="chainfury.client.Subway"><span class="pre">Subway</span></a></span></span><a class="reference internal" href="../_modules/chainfury/client.html#get_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.client.get_client" title="Permalink to this definition"></a></dt>
+<dd><p>This function returns a Subway object that can be used to interact with the API.</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">get_client</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span> <span class="o">=</span> <span class="n">get_client</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cf_actions</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">v1</span><span class="o">.</span><span class="n">fury</span><span class="o">.</span><span class="n">actions</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cf_actions</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <cite>get_client</cite> function is a convenience function that can be used to get a client object. It is not required
+to use the library. Under the hood, it still will call the chainfury REST endpoints.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em><em>, </em><em>optional</em>) – The prefix to use for the client. Defaults to “api/v1”.</p></li>
+<li><p><strong>url</strong> (<em>str</em><em>, </em><em>optional</em>) – The url to use for the client or picks from <cite>CF_URL</cite> env var. Defaults to “”.</p></li>
+<li><p><strong>token</strong> (<em>str</em><em>, </em><em>optional</em>) – The token to use for the client or picks from <cite>CF_TOKEN</cite> env var. Defaults to “”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If no url or token is provided.</p>
+</dd>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A Subway object that can be used to interact with the API.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#chainfury.client.Subway" title="chainfury.client.Subway">Subway</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chainfury.base.html" class="btn btn-neutral float-left" title="chainfury.base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.utils.html" class="btn btn-neutral float-right" title="chainfury utilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -63,19 +63,32 @@ class User(Base):
         return f"User(id={self.id}, username={self.username}, meta={self.meta})"
 
 
+class ChatBotTypes:
+    LANGFLOW = "langflow"
+    FURY = "fury"
+
+    def all():
+        return [getattr(ChatBotTypes, attr) for attr in dir(ChatBotTypes) if not attr.startswith("__")]
+
+
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
     id = Column(String(8), default=lambda: unique_string(ChatBot, ChatBot.id), primary_key=True)
-    name = Column(String(80), unique=True)
+    name = Column(String(80), unique=False)
+    description = Column(Text, nullable=True)
     created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
     dag = Column(JSON)
     meta = Column(JSON)
+    engine = Column(String(80), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
+            "description": self.description,
             "created_by": self.created_by,
             "dag": self.dag,
             "meta": self.meta,
@@ -101,17 +114,50 @@ class Prompt(Base):
     session_id = Column(String(80), nullable=False)
     meta = Column(JSON)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "chatbot_id": self.chatbot_id,
+            "input_prompt": self.input_prompt,
+            "response": self.response,
+            "gpt_rating": self.gpt_rating,
+            "user_rating": self.user_rating,
+            "chatbot_user_rating": self.chatbot_user_rating,
+            "time_taken": self.time_taken,
+            "num_tokens": self.num_tokens,
+            "created_at": self.created_at,
+            "session_id": self.session_id,
+            "meta": self.meta,
+        }
+
 
 class IntermediateStep(Base):
     __tablename__ = "intermediate_step"
-    id = Column(String(8), default=lambda: unique_string(IntermediateStep, IntermediateStep.id), primary_key=True)
+    id = Column(
+        String(8),
+        default=lambda: unique_string(IntermediateStep, IntermediateStep.id),
+        primary_key=True,
+    )
     prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
     intermediate_prompt = Column(Text, nullable=False)
     intermediate_response = Column(Text, nullable=False)
+    response_json = Column(JSON, nullable=True)
     meta = Column(JSON)
+    created_at = Column(DateTime, nullable=False)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "prompt_id": self.prompt_id,
+            "intermediate_prompt": self.intermediate_prompt,
+            "intermediate_response": self.intermediate_response,
+            "response_json": self.response_json,
+            "meta": self.meta,
+            "created_at": self.created_at,
+        }
 
     def __repr__(self):
-        return f"Prompt(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
+        return f"IntermediateStep(id={self.id}, prompt_id={self.prompt_id}, intermediate_prompt={self.intermediate_prompt}, intermediate_response={self.intermediate_response}, response_json={self.response_json}, meta={self.meta}, created_at={self.created_at})"
 
 
 class Template(Base):
@@ -144,6 +190,43 @@ class Template(Base):
 #     __tablename__ = "plugin_kv"
 #     key = Column(String, primary_key=True)
 #     value = Column(String, nullable=False)
+
+
+# A fury action is an AI powered node that can be used in a fury chain it is the DB equivalent of fury.Node
+
+
+class FuryActions(Base):
+    __tablename__ = "fury_actions"
+    id: Column = Column(String(36), primary_key=True)
+    created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
+    type: str = Column(String(80), nullable=False)  # the AI Action type
+    name: str = Column(String(80), unique=False)
+    description: str = Column(String(80))
+    fields: list[dict] = Column(JSON)
+    fn: dict = Column(JSON)
+    outputs: list[dict] = Column(JSON)
+    tags: list[str] = Column(JSON)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_by": self.created_by,
+            "type": self.type,
+            "name": self.name,
+            "description": self.description,
+            "fields": self.fields,
+            "fn": self.fn,
+            "outputs": self.outputs,
+            "tags": self.tags,
+        }
+
+    def update_from_dict(self, data: dict):
+        self.name = data.get("name", self.name)
+        self.description = data.get("description", self.description)
+        self.fields = data.get("fields", self.fields)
+        self.fn = data.get("fn", self.fn)
+        self.outputs = data.get("outputs", self.outputs)
+        self.tags = data.get("tags", self.tags)
 
 
 Base.metadata.create_all(bind=engine)
