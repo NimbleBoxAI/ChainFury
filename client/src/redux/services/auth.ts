@@ -187,7 +187,7 @@ export const authApi = createApi({
       }
     >({
       query: () => ({
-        url: `/templates`,
+        url: `/template/`,
         method: 'GET'
       })
     }),
@@ -211,7 +211,7 @@ export const authApi = createApi({
       }
     >({
       query: () => ({
-        url: `/chatbots/metrics`,
+        url: `/chatbot/metrics`,
         method: 'GET'
       })
     }),

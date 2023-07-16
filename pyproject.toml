@@ -15,6 +15,7 @@ jinja2schema="0.1.4"
 
 [tool.poetry.scripts]
 chainfury = "chainfury.cli:main"
+cf = "chainfury.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
