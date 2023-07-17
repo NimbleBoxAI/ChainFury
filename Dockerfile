@@ -23,11 +23,10 @@ WORKDIR /
 # it would use the cached version and not try to install it again from pypi
 COPY ./server/chainfury_server /app/chainfury_server
 COPY ./server/pyproject.toml /app
-# COPY ./server/poetry.lock /app
 COPY ./server/README.md /app
 WORKDIR /app
-RUN python3 -m pip install .[langflow]
-RUN python3 -m pip install --no-deps langflow==0.0.89
+RUN python3 -m pip install -e .
+# RUN python3 -m pip install --no-deps langflow==0.0.89
 WORKDIR /
 
 # Copy over the files from the client build
