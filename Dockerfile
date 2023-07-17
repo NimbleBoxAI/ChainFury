@@ -33,7 +33,7 @@ WORKDIR /
 RUN rm -rf /app/static
 RUN rm -rf /app/templates
 COPY --from=builder /app/dist/. /app/chainfury_server/static/.
-COPY --from=builder /app/dist/index.html /app/chainfury_server/templates/.
+COPY --from=builder /app/dist/index.html /app/chainfury_server/templates/index.html
 
 WORKDIR /app/chainfury_server
 EXPOSE 8000
