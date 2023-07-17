@@ -33,8 +33,8 @@ WORKDIR /
 # Copy over the files from the client build
 RUN rm -rf /app/static
 RUN rm -rf /app/templates
-COPY --from=builder /app/dist/. ./static/.
-COPY --from=builder /app/dist/index.html ./templates/.
+COPY --from=builder /app/dist/. /app/chainfury_server/static/.
+COPY --from=builder /app/dist/index.html /app/chainfury_server/templates/.
 
 WORKDIR /app/chainfury_server
 EXPOSE 8000
