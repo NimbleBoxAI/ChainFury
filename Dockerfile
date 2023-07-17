@@ -26,8 +26,8 @@ COPY ./server/pyproject.toml /app
 # COPY ./server/poetry.lock /app
 COPY ./server/README.md /app
 WORKDIR /app
-RUN python3 -m pip install .
-# RUN python3 -m pip install --no-deps langflow==0.0.54
+RUN python3 -m pip install .[langflow]
+RUN python3 -m pip install --no-deps langflow==0.0.89
 WORKDIR /
 
 # Copy over the files from the client build
