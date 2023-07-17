@@ -11,7 +11,9 @@ repository = "https://github.com/NimbleBoxAI/ChainFury"
 python = "^3.9"
 fire = "0.5.0"
 Jinja2 = "3.1.2"
-jinja2schema="0.1.4"
+jinja2schema = "0.1.4"
+pydantic = "^1.10.7"
+requests = "^2.28.2"
 
 [tool.poetry.scripts]
 chainfury = "chainfury.cli:main"

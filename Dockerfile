@@ -17,23 +17,18 @@ COPY pyproject.toml /app
 COPY README.md /app
 WORKDIR /app
 RUN python3 -m pip install .
-RUN python3 -m pip install --no-deps langflow==0.0.54
 WORKDIR /
 
 # copy over the server files including the server installer, since chainfury is already installed
 # it would use the cached version and not try to install it again from pypi
 COPY ./server/chainfury_server /app/chainfury_server
 COPY ./server/pyproject.toml /app
-COPY ./server/poetry.lock /app
+# COPY ./server/poetry.lock /app
 COPY ./server/README.md /app
 WORKDIR /app
 RUN python3 -m pip install .
-# RUN python3 -m pip install poetry
-# RUN python3 -m poetry install --no-dev
+# RUN python3 -m pip install --no-deps langflow==0.0.54
 WORKDIR /
-
-# Setting up the working directory
-WORKDIR /app/chainfury_server
 
 # Copy over the files from the client build
 RUN rm -rf /app/static
@@ -41,5 +36,6 @@ RUN rm -rf /app/templates
 COPY --from=builder /app/dist/. ./static/.
 COPY --from=builder /app/dist/index.html ./templates/.
 
+WORKDIR /app/chainfury_server
 EXPOSE 8000
 CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8000"]

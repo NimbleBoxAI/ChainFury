@@ -1,11 +1,9 @@
-import openai
+# TODO: @yashbonde: Some day in the future complete this file
+
 import re
 
 from chainfury_server.commons import config as c
 from chainfury.components.const import Env
-
-api_key = Env.OPENAI_TOKEN("")
-openai.api_key = api_key
 
 logger = c.get_logger(__name__)
 
@@ -70,12 +68,13 @@ def rate_the_conversation(rating_log):
 
 def ask_for_rating(message):
     logger.debug(f"Rating -> {message}")
-    message_log = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        ({"role": "user", "content": RATING_PROMPT.format(message=message)}),
-    ]
-    response = rate_the_conversation(message_log)
-    score = process_rating_response(response)
+    # message_log = [
+    #     {"role": "system", "content": SYSTEM_PROMPT},
+    #     ({"role": "user", "content": RATING_PROMPT.format(message=message)}),
+    # ]
+    # response = rate_the_conversation(message_log)
+    # score = process_rating_response(response)
+    score = -1
     logger.debug(f"Score -> {score}")
     return score
 

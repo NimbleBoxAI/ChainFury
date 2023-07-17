@@ -3,7 +3,6 @@ from fire import Fire
 from chainfury.utils import logger
 from chainfury.client import get_client
 from chainfury.version import __version__
-from chainfury.server.server import main as server_main
 
 
 def help():
@@ -36,6 +35,5 @@ def main():
 chainfury=={__version__}
 """
             ),
-            "serve": server_main,
         }
     )
