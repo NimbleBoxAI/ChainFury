@@ -48,12 +48,12 @@ Now you can access the app on [localhost:8000](http://localhost:8000/ui/).
 
 <details>
 <summary>Optional environment variable for Database</summary>
-You can also pass a Database URL to the docker container using the `DATABASE_URL` environment variable. If you do not pass a database URL, ChainFury will use a SQLite database.
+You can also pass a Database URL to the docker container using the `CFS_DATABASE` environment variable. If you do not pass a database URL, ChainFury will use a SQLite database.
 
 Example:
 
 ```bash
-docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
+docker run -it -E CFS_DATABASE="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
 ```
 </details>
 

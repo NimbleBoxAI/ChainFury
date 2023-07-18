@@ -17,6 +17,7 @@ COPY pyproject.toml /app
 COPY README.md /app
 WORKDIR /app
 RUN python3 -m pip install .
+RUN python3 -m pip install PyMySQL
 WORKDIR /
 
 # copy over the server files including the server installer, since chainfury is already installed

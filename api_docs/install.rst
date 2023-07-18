@@ -19,7 +19,7 @@ Docker is the simplest way to start serving chainfury internally. This can be do
     docker run --env KEY=VALUE -p 8000:8000 chainfury
 
     # to connect to your DB
-    docker run -it -E DATABASE_URL="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
+    docker run -it -E CFS_DATABASE="mysql+pymysql://<user>:<password>@127.0.0.1:3306/<database>" -p 8000:8000 chainfury
 
 Build from Source
 -----------------
