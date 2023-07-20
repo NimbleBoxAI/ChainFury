@@ -1,5 +1,9 @@
+import os
+import sys
+import json
 from fire import Fire
 
+from chainfury import Chain
 from chainfury.utils import logger
 from chainfury.client import get_client
 from chainfury.version import __version__
@@ -25,10 +29,74 @@ Build with ♥️  by NimbleBox.ai
     )
 
 
+def run(
+    chain: str,
+    inp: str,
+    stream: bool = False,
+    print_thoughts: bool = False,
+    f=sys.stdout,
+):
+    """
+    Run a chain with input and write the outputs.
+
+    Args:
+        chain (str): This can be one of json filepath (e.g. "/chain.json"), json string (e.g. '{"id": "99jcjs9j2", ...}'),
+            chain id (e.g. "99jcjs9j2")
+        inp (str): This can be one of json filepath (e.g. "/input.json"), json string (e.g. '{"foo": "bar", ...}')
+        stream (bool, optional): Whether to stream the output. Defaults to False.
+        print_thoughts (bool, optional): Whether to print thoughts. Defaults to False.
+        f (file, optional): File to write the output to. Defaults to `sys.stdout`.
+
+    Examples:
+        >>> $ cf run ./sample.json {"foo": "bar"}
+    """
+    # validate inputs
+    if isinstance(inp, str):
+        if os.path.exists(inp):
+            with open(inp, "r") as f:
+                inp = json.load(f)
+        else:
+            inp = json.loads(inp)
+    assert isinstance(inp, dict), "Input must be a dict"
+
+    # create chain
+    chain_obj = None
+    if isinstance(chain, str):
+        if os.path.exists(chain):
+            with open(chain, "w") as f:
+                chain = json.load(f)
+        if len(chain) == 8:
+            chain_obj = Chain.from_id(chain)
+        else:
+            chain = json.loads(chain)
+    elif isinstance(chain, dict):
+        chain_obj = Chain.from_dict(chain)
+    assert chain_obj is not None, "Chain not found"
+
+    # output
+    if isinstance(f, str):
+        f = open(f, "w")
+
+    # run the chain
+    if stream:
+        cf_response_gen = chain_obj.stream(inp, print_thoughts=print_thoughts)
+        for ir, done in cf_response_gen:
+            if not done:
+                f.write(json.dumps(ir) + "\n")
+    else:
+        out, buffer = chain_obj(inp, print_thoughts=print_thoughts)
+        for k, v in buffer.items():
+            f.write(json.dumps({k: v}) + "\n")
+
+    # close file
+    f.close()
+
+
 def main():
     Fire(
         {
             "help": help,
+            "run": run,
             "version": lambda: print(
                 f"""ChainFury 🦋 Engine
 

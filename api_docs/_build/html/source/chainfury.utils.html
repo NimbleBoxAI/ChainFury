@@ -54,10 +54,17 @@
 <li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">chainfury utilities</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.CFEnv"><code class="docutils literal notranslate"><span class="pre">CFEnv</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.utils.CFEnv.CF_BLOB_STORAGE"><code class="docutils literal notranslate"><span class="pre">CFEnv.CF_BLOB_STORAGE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.utils.CFEnv.CF_FOLDER"><code class="docutils literal notranslate"><span class="pre">CFEnv.CF_FOLDER()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.DoNotRetryException"><code class="docutils literal notranslate"><span class="pre">DoNotRetryException</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.UnAuthException"><code class="docutils literal notranslate"><span class="pre">UnAuthException</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.exponential_backoff"><code class="docutils literal notranslate"><span class="pre">exponential_backoff()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.logger"><code class="docutils literal notranslate"><span class="pre">logger</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.store_blob"><code class="docutils literal notranslate"><span class="pre">store_blob()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.terminal_top_with_text"><code class="docutils literal notranslate"><span class="pre">terminal_top_with_text()</span></code></a></li>
 </ul>
 </li>
@@ -94,6 +101,33 @@
              
   <section id="module-chainfury.utils">
 <span id="chainfury-utilities"></span><h1>chainfury utilities<a class="headerlink" href="#module-chainfury.utils" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="chainfury.utils.CFEnv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">CFEnv</span></span><a class="reference internal" href="../_modules/chainfury/utils.html#CFEnv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.CFEnv" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Single namespace for all environment variables.</p>
+<ul class="simple">
+<li><p>CF_FOLDER: database connection string</p></li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.utils.CFEnv.CF_BLOB_STORAGE">
+<span class="sig-name descname"><span class="pre">CF_BLOB_STORAGE</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chainfury.utils.CFEnv.CF_BLOB_STORAGE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chainfury.utils.CFEnv.CF_FOLDER">
+<span class="sig-name descname"><span class="pre">CF_FOLDER</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#chainfury.utils.CFEnv.CF_FOLDER" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="chainfury.utils.DoNotRetryException">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">DoNotRetryException</span></span><a class="reference internal" href="../_modules/chainfury/utils.html#DoNotRetryException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.DoNotRetryException" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Raised when code tells not to retry</p>
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="chainfury.utils.UnAuthException">
 <em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">UnAuthException</span></span><a class="reference internal" href="../_modules/chainfury/utils.html#UnAuthException"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.UnAuthException" title="Permalink to this definition"></a></dt>
@@ -139,6 +173,12 @@
 <span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Logger</span> <span class="pre">fury</span> <span class="pre">(INFO)&gt;</span></em><a class="headerlink" href="#chainfury.utils.logger" title="Permalink to this definition"></a></dt>
 <dd><p>This is the logger object that should be used across the entire package as well as by the user what wants to leverage
 existing logging infrastructure.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.utils.store_blob">
+<span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">store_blob</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bytes</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/chainfury/utils.html#store_blob"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.store_blob" title="Permalink to this definition"></a></dt>
+<dd><p>A function that stores the information in a file.</p>
 </dd></dl>
 
 <dl class="py function">

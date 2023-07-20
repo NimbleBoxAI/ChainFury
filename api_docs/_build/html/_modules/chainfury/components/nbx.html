@@ -148,7 +148,7 @@
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;NBX_DEPLOY_URL not set, please set it in your environment or pass it as an argument&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_header_token</span><span class="p">:</span>
-        <span class="n">nbx_header_token</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="n">Env</span><span class="o">.</span><span class="n">NBX_DEPLOY_KEY</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span>
+        <span class="n">nbx_header_token</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="n">Env</span><span class="o">.</span><span class="n">NBX_DEPLOY_KEY</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">value</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">nbx_header_token</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;NBX_DEPLOY_KEY not set, please set it in your environment or pass it as an argument&quot;</span><span class="p">)</span>
 

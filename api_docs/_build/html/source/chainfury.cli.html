@@ -53,6 +53,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">chainfury CLI</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.cli.help"><code class="docutils literal notranslate"><span class="pre">help()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.cli.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
@@ -101,6 +102,28 @@
 <dt class="sig sig-object py" id="chainfury.cli.main">
 <span class="sig-prename descclassname"><span class="pre">chainfury.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.cli.main" title="Permalink to this definition"></a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.cli.run">
+<span class="sig-prename descclassname"><span class="pre">chainfury.cli.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inp:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stream:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_thoughts:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stdout&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chainfury/cli.html#run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.cli.run" title="Permalink to this definition"></a></dt>
+<dd><p>Run a chain with input and write the outputs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>chain</strong> (<em>str</em>) – This can be one of json filepath (e.g. “/chain.json”), json string (e.g. ‘{“id”: “99jcjs9j2”, …}’),
+chain id (e.g. “99jcjs9j2”)</p></li>
+<li><p><strong>inp</strong> (<em>str</em>) – This can be one of json filepath (e.g. “/input.json”), json string (e.g. ‘{“foo”: “bar”, …}’)</p></li>
+<li><p><strong>stream</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to stream the output. Defaults to False.</p></li>
+<li><p><strong>print_thoughts</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to print thoughts. Defaults to False.</p></li>
+<li><p><strong>f</strong> (<em>file</em><em>, </em><em>optional</em>) – File to write the output to. Defaults to <cite>sys.stdout</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span>&gt;&gt;&gt; $ cf run ./sample.json {&quot;foo&quot;: &quot;bar&quot;}
+</pre></div>
+</div>
+</dd></dl>
 
 </section>
 

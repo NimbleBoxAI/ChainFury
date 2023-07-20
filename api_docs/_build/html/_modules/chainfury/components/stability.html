@@ -83,24 +83,56 @@
            <div itemprop="articleBody">
              
   <h1>Source code for chainfury.components.stability</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Engineering Notes</span>
+<span class="sd">-----------------</span>
 
-<span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">Secret</span><span class="p">,</span> <span class="n">model_registry</span><span class="p">,</span> <span class="n">exponential_backoff</span><span class="p">,</span> <span class="n">Model</span>
+<span class="sd">You need to have `stability_sdk` installed to use this component. You can install it with:</span>
+
+<span class="sd">.. code-block:: bash</span>
+<span class="sd">    </span>
+<span class="sd">    pip install chainfury[stability]</span>
+<span class="sd">    # or to install all the components, note this will keep on growing</span>
+<span class="sd">    pip install chainfury[all]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">Secret</span><span class="p">,</span> <span class="n">model_registry</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">exponential_backoff</span><span class="p">,</span> <span class="n">DoNotRetryException</span>
+<span class="kn">from</span> <span class="nn">chainfury.utils</span> <span class="kn">import</span> <span class="n">CFEnv</span><span class="p">,</span> <span class="n">store_blob</span>
+<span class="kn">from</span> <span class="nn">chainfury.components.const</span> <span class="kn">import</span> <span class="n">Env</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">grpc</span> <span class="kn">import</span> <span class="n">RpcError</span><span class="p">,</span> <span class="n">StatusCode</span>
+    <span class="kn">from</span> <span class="nn">stability_sdk.client</span> <span class="kn">import</span> <span class="n">StabilityInference</span><span class="p">,</span> <span class="n">process_artifacts_from_answers</span>
+    <span class="kn">from</span> <span class="nn">stability_sdk.utils</span> <span class="kn">import</span> <span class="n">sampler_from_string</span>
+    <span class="kn">from</span> <span class="nn">stability_sdk.interfaces.gooseai.generation.generation_pb2</span> <span class="kn">import</span> <span class="n">Artifact</span>
+    <span class="kn">from</span> <span class="nn">stability_sdk.interfaces.gooseai.generation.generation_pb2</span> <span class="kn">import</span> <span class="n">ARTIFACT_IMAGE</span>
+
+    <span class="n">STABILITY_SDK_INSTALLED</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">STABILITY_SDK_INSTALLED</span> <span class="o">=</span> <span class="kc">False</span>
 
 
 <div class="viewcode-block" id="stability_text_to_image"><a class="viewcode-back" href="../../../source/chainfury.components.stability.html#chainfury.components.stability.stability_text_to_image">[docs]</a><span class="k">def</span> <span class="nf">stability_text_to_image</span><span class="p">(</span>
-    <span class="n">stability_api_key</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
-    <span class="n">text_prompts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]],</span>
+    <span class="n">text_prompts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]],</span>
+    <span class="n">stability_api_key</span><span class="p">:</span> <span class="n">Secret</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">),</span>
+    <span class="n">stability_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;grpc.stability.ai:443&quot;</span><span class="p">,</span>
     <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
     <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">512</span><span class="p">,</span>
     <span class="n">cfg_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-    <span class="n">clip_guidance_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
-    <span class="n">sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;stable-diffusion-v1-5&quot;</span><span class="p">,</span>  <span class="c1"># stable-diffusion-xl-1024-v0-9</span>
+    <span class="n">start_schedule</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">end_schedule</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="n">samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
     <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
-    <span class="n">style_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-    <span class="n">extras</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
+    <span class="n">style_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;nbx-cf-component-stability-text-to-image&quot;</span><span class="p">,</span>
+    <span class="n">max_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="n">retry_delay</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generate an image from text prompts using the Stability API.</span>
@@ -108,6 +140,8 @@
 <span class="sd">    Args:</span>
 <span class="sd">        text_prompts (List[Dict[str, Union[str, float]]]): An array of text prompts to use for generation. Given a text prompt with the text &quot;A lighthouse on a cliff&quot; and a weight of 0.5, it would be represented as:</span>
 <span class="sd">            [{&quot;text&quot;: &quot;A lighthouse on a cliff&quot;, &quot;weight&quot;: 0.5}]</span>
+<span class="sd">        stability_api_key (Secret): Your Stability API key. If not provided, we&#39;ll try to use the STABILITY_KEY environment variable.</span>
+<span class="sd">        stability_host (str): The Stability API host to use. Default: &quot;grpc.stability.ai:443&quot;.</span>
 <span class="sd">        height (int): Height of the image in pixels. Must be in increments of 64 and pass the following validation:</span>
 <span class="sd">            For 768 engines: 589,824 ≤ height * width ≤ 1,048,576</span>
 <span class="sd">            All other engines: 262,144 ≤ height * width ≤ 1,048,576</span>
@@ -115,18 +149,92 @@
 <span class="sd">            For 768 engines: 589,824 ≤ height * width ≤ 1,048,576</span>
 <span class="sd">            All other engines: 262,144 ≤ height * width ≤ 1,048,576</span>
 <span class="sd">        cfg_scale (float): How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default: 7.</span>
-<span class="sd">        clip_guidance_preset (str): Which CLIP guidance preset to use for the diffusion process. Default: &quot;NONE&quot;.</span>
 <span class="sd">        sampler (str): Which sampler to use for the diffusion process. If this value is omitted we&#39;ll automatically select an appropriate sampler for you.</span>
 <span class="sd">        samples (int): Number of images to generate. Default: 1.</span>
 <span class="sd">        seed (int): Random noise seed (omit this option or use 0 for a random seed). Default: 0.</span>
 <span class="sd">        steps (int): Number of diffusion steps to run. Default: 50.</span>
 <span class="sd">        style_preset (str): Pass in a style preset to guide the image model towards a particular style. This list of style presets is subject to change.</span>
-<span class="sd">        extras (Dict[str, Union[str, int, float]]): Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution.</span>
+<span class="sd">        prefix (str): Prefix to use for the generated images. Default: &quot;nbx-cf-component-stability-text-to-image/&quot;.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        List[str]: A list of base64-encoded PNG images.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
+    <span class="c1"># perform checks</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">STABILITY_SDK_INSTALLED</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
+            <span class="s2">&quot;stability_sdk is not installed, cannot use with chainfury. Please install it with `pip install chainfury[stability]`&quot;</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stability_api_key</span><span class="p">:</span>
+        <span class="n">stability_api_key</span> <span class="o">=</span> <span class="n">Secret</span><span class="p">(</span><span class="n">Env</span><span class="o">.</span><span class="n">STABILITY_KEY</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">stability_api_key</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Stability API key not found. Please set STABILITY_KEY environment variable or pass through function&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text_prompts</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_prompts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Only one text prompt is supported at this time&quot;</span><span class="p">)</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">text_prompts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">prompt</span> <span class="o">=</span> <span class="n">prompt</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text_prompts</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;text_prompts must be a string or a list of strings&quot;</span><span class="p">)</span>
+        <span class="n">prompt</span> <span class="o">=</span> <span class="n">text_prompts</span>
+
+    <span class="c1"># make request</span>
+    <span class="n">request</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">sampler</span><span class="p">:</span>
+        <span class="n">request</span><span class="p">[</span><span class="s2">&quot;sampler&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sampler_from_string</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">steps</span><span class="p">:</span>
+        <span class="n">request</span><span class="p">[</span><span class="s2">&quot;steps&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">steps</span>
+    <span class="n">stability_api</span> <span class="o">=</span> <span class="n">StabilityInference</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="n">stability_host</span><span class="p">,</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">stability_api_key</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fn</span><span class="p">():</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">answers</span> <span class="o">=</span> <span class="n">stability_api</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span>
+                <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+                <span class="n">height</span><span class="o">=</span><span class="n">height</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">start_schedule</span><span class="o">=</span><span class="n">start_schedule</span><span class="p">,</span>
+                <span class="n">end_schedule</span><span class="o">=</span><span class="n">end_schedule</span><span class="p">,</span>
+                <span class="n">cfg_scale</span><span class="o">=</span><span class="n">cfg_scale</span><span class="p">,</span>
+                <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span>
+                <span class="n">style_preset</span><span class="o">=</span><span class="n">style_preset</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">request</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">RpcError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span>  <span class="c1"># type: ignore</span>
+                <span class="n">StatusCode</span><span class="o">.</span><span class="n">INVALID_ARGUMENT</span><span class="p">,</span>
+                <span class="n">StatusCode</span><span class="o">.</span><span class="n">UNAUTHENTICATED</span><span class="p">,</span>
+                <span class="n">StatusCode</span><span class="o">.</span><span class="n">UNIMPLEMENTED</span><span class="p">,</span>
+                <span class="n">StatusCode</span><span class="o">.</span><span class="n">PERMISSION_DENIED</span><span class="p">,</span>
+            <span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">DoNotRetryException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Code: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">code</span><span class="p">()</span><span class="si">}</span><span class="s2"> | </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">details</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">e</span>
+        <span class="n">artifacts</span> <span class="o">=</span> <span class="n">process_artifacts_from_answers</span><span class="p">(</span>
+            <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+            <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>  <span class="c1"># type: ignore</span>
+            <span class="n">answers</span><span class="o">=</span><span class="n">answers</span><span class="p">,</span>
+            <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># store images</span>
+        <span class="k">for</span> <span class="n">out_p</span><span class="p">,</span> <span class="n">artifact</span> <span class="ow">in</span> <span class="n">artifacts</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">artifact</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">ARTIFACT_IMAGE</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+                <span class="n">data_bin</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">artifact</span><span class="o">.</span><span class="n">binary</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="n">out_p</span> <span class="o">=</span> <span class="n">out_p</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;--&quot;</span><span class="p">)</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="n">store_blob</span><span class="p">(</span><span class="n">out_p</span><span class="p">,</span> <span class="n">data_bin</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="k">return</span> <span class="n">exponential_backoff</span><span class="p">(</span><span class="n">_fn</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="n">max_retries</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="n">retry_delay</span><span class="p">)</span>  <span class="c1"># type: ignore</span></div>
 
 
 <span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
@@ -135,137 +243,6 @@
         <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;stability-text-to-image&quot;</span><span class="p">,</span>
         <span class="n">fn</span><span class="o">=</span><span class="n">stability_text_to_image</span><span class="p">,</span>
         <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Generate a new image from a text prompt&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-
-
-<div class="viewcode-block" id="stability_image_to_image"><a class="viewcode-back" href="../../../source/chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image">[docs]</a><span class="k">def</span> <span class="nf">stability_image_to_image</span><span class="p">(</span>
-    <span class="n">stability_api_key</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
-    <span class="n">text_prompts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
-    <span class="n">init_image</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
-    <span class="n">init_image_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;IMAGE_STRENGTH&quot;</span><span class="p">,</span>
-    <span class="n">image_strength</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.35</span><span class="p">,</span>
-    <span class="n">cfg_scale</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-    <span class="n">clip_guidance_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
-    <span class="n">sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="n">samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
-    <span class="n">style_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generate an image using the Stability AI API.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        text_prompts (List[Tuple[str, float]]): A list of tuples, each containing a text prompt and a weight. The text prompts will be used for generation.</span>
-<span class="sd">        init_image (bytes): An image used to initialize the diffusion process, in lieu of random noise.</span>
-<span class="sd">        init_image_mode (str): Whether to use image_strength or step_schedule_* to control how much influence the init_image has on the result. Default is &quot;IMAGE_STRENGTH&quot;.</span>
-<span class="sd">        image_strength (float): How much influence the init_image has on the diffusion process. Values close to 1 will yield images very similar to the init_image while values close to 0 will yield images wildly different than the init_image. Default is 0.35.</span>
-<span class="sd">        cfg_scale (int): How strictly the diffusion process adheres to the prompt text (higher values keep your image closer to your prompt). Default is 7.</span>
-<span class="sd">        clip_guidance_preset (str): A preset to guide the diffusion process towards a particular style. Default is &quot;NONE&quot;.</span>
-<span class="sd">        sampler (str): Which sampler to use for the diffusion process. If this value is omitted, an appropriate sampler will be selected automatically.</span>
-<span class="sd">        samples (int): Number of images to generate. Default is 1.</span>
-<span class="sd">        seed (int): Random noise seed (omit this option or use 0 for a random seed). Default is 0.</span>
-<span class="sd">        steps (int): Number of diffusion steps to run. Default is 50.</span>
-<span class="sd">        style_preset (str): Pass in a style preset to guide the diffusion process towards a particular style. Default is &quot;&quot;.</span>
-<span class="sd">        extras (dict): Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. Default is an empty dictionary.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        List[bytes]: A list of base64-encoded PNG images.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-
-
-<span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="p">(</span>
-        <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;stabilityai&quot;</span><span class="p">,</span>
-        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;stability-image-to-image&quot;</span><span class="p">,</span>
-        <span class="n">fn</span><span class="o">=</span><span class="n">stability_image_to_image</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Modify an image based on a text prompt&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-
-
-<div class="viewcode-block" id="stability_image_to_image_upscale"><a class="viewcode-back" href="../../../source/chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_upscale">[docs]</a><span class="k">def</span> <span class="nf">stability_image_to_image_upscale</span><span class="p">(</span>
-    <span class="n">stability_api_key</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
-    <span class="n">image</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
-    <span class="n">width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-    <span class="n">height</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Upscales an image to a specified width or height.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        image (bytes): The image to upscale.</span>
-<span class="sd">        width (int, optional): Desired width of the output image. Only one of width or height may be specified.</span>
-<span class="sd">        height (int, optional): Desired height of the output image. Only one of width or height may be specified.</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        bytes: The upscaled image.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-
-
-<span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="p">(</span>
-        <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;stabilityai&quot;</span><span class="p">,</span>
-        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;stability-image-to-image-upscale&quot;</span><span class="p">,</span>
-        <span class="n">fn</span><span class="o">=</span><span class="n">stability_image_to_image</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Create a higher resolution version of an input image. This operation outputs an image with a maximum pixel &quot;</span>
-        <span class="s2">&quot;count of 4,194,304. This is equivalent to dimensions such as 2048x2048 and 4096x1024. By default, the input &quot;</span>
-        <span class="s2">&quot;image will be upscaled by a factor of 2. For additional control over the output dimensions, a width or height &quot;</span>
-        <span class="s2">&quot;parameter may be specified.&quot;</span><span class="p">,</span>
-    <span class="p">)</span>
-<span class="p">)</span>
-
-
-<div class="viewcode-block" id="stability_image_to_image_masking"><a class="viewcode-back" href="../../../source/chainfury.components.stability.html#chainfury.components.stability.stability_image_to_image_masking">[docs]</a><span class="k">def</span> <span class="nf">stability_image_to_image_masking</span><span class="p">(</span>
-    <span class="n">stability_api_key</span><span class="p">:</span> <span class="n">Secret</span><span class="p">,</span>
-    <span class="n">text_prompts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span>
-    <span class="n">init_image</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
-    <span class="n">mask_source</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">mask_image</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span>
-    <span class="n">cfg_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-    <span class="n">clip_guidance_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
-    <span class="n">sampler</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-    <span class="n">samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="n">steps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
-    <span class="n">style_preset</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-    <span class="n">extras</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># type: ignore # see components README.md</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Generates an image based on text prompts and an initial image. Returns the generated image as bytes.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        text_prompts (List[Dict[str, Union[str, float]]]): An array of text prompts to use for generation. Each prompt is a dictionary with the following keys:</span>
-<span class="sd">            &#39;text&#39;: str -- The prompt text to use.</span>
-<span class="sd">            &#39;weight&#39;: float -- The weight to assign to the prompt. (Default 1.0)</span>
-<span class="sd">        init_image (PIL.Image.Image): Image used to initialize the diffusion process, in lieu of random noise.</span>
-<span class="sd">        mask_source (str): Determines where to source the mask from. Should be one of &#39;MASK_IMAGE_WHITE&#39;, &#39;MASK_IMAGE_BLACK&#39;, or &#39;INIT_IMAGE_ALPHA&#39;.</span>
-<span class="sd">        mask_image (PIL.Image.Image): Grayscale mask that allows for influence over which pixels are eligible for diffusion and at what strength. Must be the same dimensions as the init_image.</span>
-<span class="sd">        cfg_scale (float, optional): How strictly the diffusion process adheres to the prompt text. Higher values keep the image closer to the prompt. (Default 7)</span>
-<span class="sd">        clip_guidance_preset (str, optional): Pass in a clip guidance preset to guide the image model towards a particular style. Should be one of &#39;FAST_BLUE&#39;, &#39;FAST_GREEN&#39;, &#39;NONE&#39;, &#39;SIMPLE&#39;, &#39;SLOW&#39;, &#39;SLOWER&#39;, &#39;SLOWEST&#39;. (Default &#39;NONE&#39;)</span>
-<span class="sd">        sampler (str, optional): Which sampler to use for the diffusion process. Should be one of &#39;DDIM&#39;, &#39;DDPM&#39;, &#39;K_DPMPP_2M&#39;, &#39;K_DPMPP_2S_ANCESTRAL&#39;, &#39;K_DPM_2&#39;, &#39;K_DPM_2_ANCESTRAL&#39;, &#39;K_EULER&#39;, &#39;K_EULER_ANCESTRAL&#39;, &#39;K_HEUN&#39;, &#39;K_LMS&#39;. If not provided, an appropriate sampler will be selected automatically.</span>
-<span class="sd">        samples (int, optional): Number of images to generate. (Default 1)</span>
-<span class="sd">        seed (int, optional): Random noise seed. Use 0 for a random seed. (Default 0)</span>
-<span class="sd">        steps (int, optional): Number of diffusion steps to run. (Default 50)</span>
-<span class="sd">        style_preset (str, optional): Pass in a style preset to guide the image model towards a particular style. Should be one of &#39;enhance&#39;, &#39;anime&#39;, &#39;photographic&#39;, &#39;digital-art&#39;, &#39;comic-book&#39;, &#39;fantasy-art&#39;, &#39;line-art&#39;, &#39;analog-film&#39;, &#39;neon-punk&#39;, &#39;isometric&#39;, &#39;low-poly&#39;, &#39;origami&#39;, &#39;modeling-compound&#39;, &#39;cinematic&#39;, &#39;3d-model&#39;, &#39;pixel-art&#39;, or &#39;tile-texture&#39;. (Default None)</span>
-<span class="sd">        extras (Any, optional): Extra parameters passed to the engine. These parameters are used for in-development or experimental features and may change without warning, so please use with caution. (Default None)</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        bytes: The generated image.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">pass</span></div>
-
-
-<span class="n">model_registry</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="n">Model</span><span class="p">(</span>
-        <span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;stabilityai&quot;</span><span class="p">,</span>
-        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;stability-image-to-image-masking&quot;</span><span class="p">,</span>
-        <span class="n">fn</span><span class="o">=</span><span class="n">stability_image_to_image</span><span class="p">,</span>
-        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Selectively modify portions of an image using a mask&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">)</span>
 </pre></div>

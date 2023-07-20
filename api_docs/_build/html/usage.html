@@ -53,7 +53,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#superpowers-with-chainfury-server">Superpowers with chainfury server</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#put-the-chain-in-the-db">Put the chain in the DB</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#loading-chain-from-db">Loading Chain from DB</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#inference-via-api">Inference via API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inference-via-sdk-api">Inference via SDK-API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inference-via-curl">Inference via cURL</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a></li>
@@ -319,7 +320,7 @@ to handle an iterator. You can read more in <a class="reference internal" href="
 </section>
 <section id="superpowers-with-chainfury-server">
 <h2>Superpowers with chainfury server<a class="headerlink" href="#superpowers-with-chainfury-server" title="Permalink to this heading"></a></h2>
-<p>This is only applicable when you are also using the <cite>chainfury</cite> server. If you are not then you can skip this section.</p>
+<p>This is only applicable when you are also using the <cite>chainfury-server</cite>. If you are not then you can skip this section.</p>
 <section id="put-the-chain-in-the-db">
 <h3>Put the chain in the DB<a class="headerlink" href="#put-the-chain-in-the-db" title="Permalink to this heading"></a></h3>
 <p>Once you are confident that chain you have built works and you want others to use this chain you can put it in the DB.</p>
@@ -403,8 +404,8 @@ from DB it is as simple as:</p>
 <p>The optimal way to use this setup is in the backend where you don’t want to hardcode the chains in your codebase but
 still be able to execute it by pulling from the DB.</p>
 </section>
-<section id="inference-via-api">
-<h3>Inference via API<a class="headerlink" href="#inference-via-api" title="Permalink to this heading"></a></h3>
+<section id="inference-via-sdk-api">
+<h3>Inference via SDK-API<a class="headerlink" href="#inference-via-sdk-api" title="Permalink to this heading"></a></h3>
 <p>If you know the chatbot ID which you have from the previous step then you can also all the API in which case the chain
 will be executed on the server itself.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stub</span> <span class="o">=</span> <span class="n">get_client</span><span class="p">()</span>
@@ -436,6 +437,17 @@ will be executed on the server itself.</p>
    <span class="s1">&#39;9d4e1328-a18a-4e10-8396-8c349d2d818c/story&#39;</span><span class="p">]}],</span>
 <span class="s1">&#39;num_tokens&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
 <span class="s1">&#39;prompt_id&#39;</span><span class="p">:</span> <span class="mi">17823285</span><span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="inference-via-curl">
+<h3>Inference via cURL<a class="headerlink" href="#inference-via-curl" title="Permalink to this heading"></a></h3>
+<p>There is a way to call the API via cURL as well. This is useful when you want to test the API without writing any code or want to
+use the chain as an API endpoint.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;content-type: application/json&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-H<span class="w"> </span><span class="s1">&#39;token: &lt;token&gt;&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;session_id&quot;: &quot;random-uuid&quot;, &quot;new_message&quot;: &quot;get&quot;}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>http://0.0.0.0:8000/api/v1/chatbot/wokj5lp0/prompt<span class="se">\?</span><span class="nv">stream</span><span class="o">=</span>True
 </pre></div>
 </div>
 </section>

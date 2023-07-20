@@ -93,7 +93,7 @@ class _Nodes:
                 "openai_api_key": _get_openai_token(),
                 "character": character,
             },
-        )
+        )  # type: ignore
         if err:
             print("ERROR:", err)
             print("TRACE:", out)
@@ -105,14 +105,14 @@ class _Chain:
     def callpp(self):
         p1 = programatic_actions_registry.get("call_api_requests")
         p2 = programatic_actions_registry.get("regex_substitute")
-        e = Edge(p1.id, "text", p2.id, "text")
-        c = Chain([p1, p2], [e], sample={"url": ""}, main_in="url", main_out=f"{p2.id}/text")
+        e = Edge(p1.id, "text", p2.id, "text")  # type: ignore
+        c = Chain([p1, p2], [e], sample={"url": ""}, main_in="url", main_out=f"{p2.id}/text")  # type: ignore
         print("CHAIN:", c)
 
         # run the chain
         out, full_ir = c(
             {
-                "method": "get",
+                "method": "GET",
                 "url": "http://127.0.0.1:8000/api/v1/fury/",
                 "headers": {"token": "booboo"},
                 "pattern": "JWT",
@@ -162,7 +162,7 @@ class _Chain:
             [p, j],
             [e],
             sample={
-                "method": "get",
+                "method": "GET",
             },
             main_in="url",
             main_out=f"{j.id}/chat_reply",
