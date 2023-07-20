@@ -23,7 +23,7 @@ pandas==1.5.3
 passlib==1.7.4
 psycopg2-binary==2.9.6
 pyarrow==11.0.0
-pypdf==3.8.1
+pypdf==3.9.0
 pysrt==1.1.2
 rich==13.3.4
 typer==0.7.0
