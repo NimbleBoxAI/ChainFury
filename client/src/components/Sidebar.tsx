@@ -187,29 +187,36 @@ const Sidebar = () => {
             {/* Langchain */}
             {engine === 'langchain'
               ? Object.keys(auth?.components).map((bot, key) => {
-                  return (
-                    <CollapsibleComponents
-                      key={key}
-                      label={bot}
-                      onDragStart={onDragStart}
-                      values={auth?.components[bot]}
-                    />
-                  );
-                })
+                return (
+                  <CollapsibleComponents
+                    key={key}
+                    label={bot}
+                    onDragStart={onDragStart}
+                    values={auth?.components[bot]}
+                  />
+                );
+              })
               : Object.keys(auth?.furyComponents).map((bot, key) => {
-                  return (
-                    <FuryCollapsibleComponents
-                      key={key}
-                      label={bot}
-                      values={auth?.furyComponents[bot]?.components ?? []}
-                      onDragStart={onDragStart}
-                    />
-                  );
-                })}
+                return (
+                  <FuryCollapsibleComponents
+                    key={key}
+                    label={bot}
+                    values={auth?.furyComponents[bot]?.components ?? []}
+                    onDragStart={onDragStart}
+                  />
+                );
+              })}
           </div>
         )}
       </div>
-      <div className="h-[60px] absolute bottom-0 flex flex-col gap-[4px]">
+      <div className="h-[78x] absolute bottom-0 flex flex-col gap-[4px]">
+        <a
+          href="https://nimbleboxai.github.io/ChainFury/"
+          target='_blank'
+          className="medium400 cursor-pointer"
+        >
+          Documentation
+        </a>
         <span
           className="medium400 cursor-pointer"
           onClick={() => {

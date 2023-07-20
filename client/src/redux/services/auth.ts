@@ -152,7 +152,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}/prompts?page_size=50&page=1`,
+        url: `/chatbot/${credentials?.id}/prompt?limit=100&offset=0`,
         method: 'GET'
       })
     }),

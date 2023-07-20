@@ -22,51 +22,51 @@ from chainfury_server.database_utils.dashboard import get_chatbots_from_user_id,
 metrics_router = APIRouter(tags=["metrics"])
 
 
-@metrics_router.get("/{id}/prompts", status_code=200)
-def get_chatbot_prompts(
-    req: Request,
-    resp: Response,
-    token: Annotated[str, Header()],
-    id: str,
-    db: Session = Depends(database.fastapi_db_session),
-    from_date: str = None,  # type: ignore
-    to_date: str = None,  # type: ignore
-    page: int = 1,
-    page_size: int = 10,
-    sort_by: str = constants.SORT_BY_CREATED_AT,
-    sort_order: str = constants.SORT_ORDER_DESC,
-):
-    # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+# @metrics_router.get("/{id}/prompts", status_code=200)
+# def get_chatbot_prompts(
+#     req: Request,
+#     resp: Response,
+#     token: Annotated[str, Header()],
+#     id: str,
+#     db: Session = Depends(database.fastapi_db_session),
+#     from_date: str = None,  # type: ignore
+#     to_date: str = None,  # type: ignore
+#     page: int = 1,
+#     page_size: int = 10,
+#     sort_by: str = constants.SORT_BY_CREATED_AT,
+#     sort_order: str = constants.SORT_ORDER_DESC,
+# ):
+#     # validate user
+#     username = get_user_from_jwt(token)
+#     user = verify_user(db, username)
 
-    if from_date is None:
-        parsed_from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    else:
-        parsed_from_date = datetime.strptime(from_date, "%Y-%m-%d")
-    if to_date is None:
-        parsed_to_date = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
-    else:
-        parsed_to_date = datetime.strptime(to_date, "%Y-%m-%d") + timedelta(days=1)
+#     if from_date is None:
+#         parsed_from_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#     else:
+#         parsed_from_date = datetime.strptime(from_date, "%Y-%m-%d")
+#     if to_date is None:
+#         parsed_to_date = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
+#     else:
+#         parsed_to_date = datetime.strptime(to_date, "%Y-%m-%d") + timedelta(days=1)
 
-    if parsed_to_date < parsed_from_date:
-        raise HTTPException(status_code=400, detail="Invalid date range")
+#     if parsed_to_date < parsed_from_date:
+#         raise HTTPException(status_code=400, detail="Invalid date range")
 
-    metrics = filter_prompts_by_date_range(
-        db,
-        id,
-        parsed_from_date,
-        parsed_to_date,
-        page,
-        page_size,
-        sort_by,
-        sort_order,
-    )  # type: ignore
+#     metrics = filter_prompts_by_date_range(
+#         db,
+#         id,
+#         parsed_from_date,
+#         parsed_to_date,
+#         page,
+#         page_size,
+#         sort_by,
+#         sort_order,
+#     )  # type: ignore
 
-    if metrics is None:
-        resp.status_code = 404
-        return {"msg": "Metrics for the chatbot with id {id} not found"}
-    return {"data": metrics}
+#     if metrics is None:
+#         resp.status_code = 404
+#         return {"msg": "Metrics for the chatbot with id {id} not found"}
+#     return {"data": metrics}
 
 
 @metrics_router.get("/{id}/metrics", status_code=200)

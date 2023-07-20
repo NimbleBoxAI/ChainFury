@@ -30,7 +30,7 @@ class Env:
 
     # when you want to use chainfury as a client you need to set the following vars
     CFS_DATABASE = lambda x: os.getenv("CFS_DATABASE", x)
-    JWT_SECRET = lambda: os.getenv("JWT_SECRET", "hajime-shinamoto")
+    JWT_SECRET = lambda: os.getenv("JWT_SECRET", "hajime-shimamoto")
 
 
 db = Env.CFS_DATABASE("")

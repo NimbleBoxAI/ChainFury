@@ -51,7 +51,14 @@ def get_prompt_list(
     if limit < 1 or limit > 100:
         limit = 100
     offset = offset if offset > 0 else 0
-    prompts = db.query(PromptModel).filter(PromptModel.chatbot_id == chatbot_id).limit(limit).offset(offset).all()
+    prompts = (
+        db.query(PromptModel)
+        .filter(PromptModel.chatbot_id == chatbot_id)
+        .order_by(PromptModel.created_at.desc())
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
     return {"prompts": [p.to_dict() for p in prompts]}
 
 
