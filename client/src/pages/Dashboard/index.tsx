@@ -85,7 +85,7 @@ const Dashboard = () => {
         .then((res) => {
           dispatch(
             setPrompts({
-              prompts: res.data,
+              prompts: res?.prompts,
               chatbot_id: auth?.selectedChatBot?.id
             })
           );
@@ -167,7 +167,7 @@ const Dashboard = () => {
               </div>
               {latencies.length > 0 ? (
                 <div className="w-full h-[250px] overflow-hidden mt-[32px]">
-                  <span className="semiBold350">Latency</span>
+                  <span className="semiBold350">Latency over last 24 hours</span>
                   <LineChart
                     xAxis={{
                       formatter: ' ',
@@ -186,12 +186,14 @@ const Dashboard = () => {
                   />
                 </div>
               ) : (
-                ''
+                <div className="w-full h-[64px] overflow-hidden mt-[32px]">
+                  <span className="semiBold350">No usage in last 24 hours 🙁, use to track metrics</span>
+                </div>
               )}
               <div className="flex flex-wrap gap-x-[8px] gap-y-[16px] justify-between mt-[32px]">
                 {metricsInfo?.['user_score']?.good_count ||
-                metricsInfo?.['user_score']?.neutral_count ||
-                metricsInfo?.['user_score']?.bad_count ? (
+                  metricsInfo?.['user_score']?.neutral_count ||
+                  metricsInfo?.['user_score']?.bad_count ? (
                   <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                     <span className="semiBold350">USER SCORE</span>
                     <PieChart
@@ -215,8 +217,8 @@ const Dashboard = () => {
                   ''
                 )}
                 {metricsInfo?.['internal_review_score']?.bad_count ||
-                metricsInfo?.['internal_review_score']?.good_count ||
-                metricsInfo?.['internal_review_score']?.neutral_count ? (
+                  metricsInfo?.['internal_review_score']?.good_count ||
+                  metricsInfo?.['internal_review_score']?.neutral_count ? (
                   <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                     <span className="semiBold350">INTERNAL REVIEW SCORE</span>
                     <PieChart
@@ -241,8 +243,8 @@ const Dashboard = () => {
                 )}
 
                 {metricsInfo?.['gpt_review_score']?.bad_count ||
-                metricsInfo?.['gpt_review_score']?.good_count ||
-                metricsInfo?.['gpt_review_score']?.neutral_count ? (
+                  metricsInfo?.['gpt_review_score']?.good_count ||
+                  metricsInfo?.['gpt_review_score']?.neutral_count ? (
                   <div className="w-[370px] h-[320px] pb-[20px] overflow-hidden text-center">
                     <span className="semiBold350">GPT REVIEW SCORE</span>
                     <PieChart
@@ -271,21 +273,29 @@ const Dashboard = () => {
                   label="Prompts"
                   values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map((prompt) => [
                     prompt?.id,
+                    new Date(prompt?.created_at).toLocaleString('en-US', {
+                      timeZone: 'utc',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                      second: 'numeric',
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    }),
                     prompt?.input_prompt,
                     prompt?.response,
-                    prompt?.user_rating > 1 ? prompt?.user_rating : '',
-                    prompt?.gpt_rating ?? '',
+                    prompt?.user_rating ?? '',
                     prompt?.num_tokens ?? '',
-                    Math.round(prompt?.time_taken) + 's'
+                    Math.round(prompt?.time_taken) + 's',
                   ])}
                   headings={[
-                    'Prompt ID',
+                    'ID',
+                    'Timestamp',
                     'Input Prompt',
                     'Final Prompt',
-                    'User Ratings',
-                    'GPT Rating',
+                    'User Rating',
                     '# of Tokens',
-                    'Response Time'
+                    'Response Time',
                   ]}
                 />
               ) : (

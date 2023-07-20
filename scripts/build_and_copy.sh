@@ -18,13 +18,19 @@ cd ..
 
 # copy the dist folder to the server
 # Go into the server folder, remove the old static folder and copy the new dist folder, copy index.html to templates
-cd server
-rm -rf static
-cp -r ../client/dist static
-cp ../client/dist/index.html templates
+echo "Copying the generated files to the server"
+cd server/chainfury_server/
+if [ -d "static" ]; then
+    echo "Removing old static folder"
+    rm -rf static
+fi
+
+mkdir static
+cp -r ../../client/dist/. static/.
+cp ../../client/dist/index.html templates/.
 
 # Go back to the root directory
-cd ..
+cd ../..
 
 # Done
 echo "Done"

@@ -17,6 +17,9 @@ from chainfury.types import FENode
 class Secret(str):
     """This class just means that in Var it will be taken as a password field"""
 
+    def __init__(self, value):
+        self.value = value
+
 
 #
 # Vars: this is the base class for all the fields that the user can provide from the front end

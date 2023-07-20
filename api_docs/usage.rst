@@ -251,7 +251,7 @@ Notice the dict by dict prints instead of a single large dictionary with all key
 Superpowers with chainfury server
 ---------------------------------
 
-This is only applicable when you are also using the `chainfury` server. If you are not then you can skip this section.
+This is only applicable when you are also using the `chainfury-server`. If you are not then you can skip this section.
 
 Put the chain in the DB
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -343,8 +343,8 @@ Then you can stream the response just like above:
 The optimal way to use this setup is in the backend where you don't want to hardcode the chains in your codebase but
 still be able to execute it by pulling from the DB.
 
-Inference via API
-^^^^^^^^^^^^^^^^^
+Inference via SDK-API
+^^^^^^^^^^^^^^^^^^^^^
 
 If you know the chatbot ID which you have from the previous step then you can also all the API in which case the chain
 will be executed on the server itself.
@@ -382,6 +382,20 @@ You will get a response that looks something like:
       '9d4e1328-a18a-4e10-8396-8c349d2d818c/story']}],
    'num_tokens': 1,
    'prompt_id': 17823285}
+
+
+Inference via cURL
+^^^^^^^^^^^^^^^^^^
+
+There is a way to call the API via cURL as well. This is useful when you want to test the API without writing any code or want to
+use the chain as an API endpoint.
+
+.. code-block:: bash
+
+   curl -X POST -H 'content-type: application/json' \
+      -H 'token: <token>' \
+      -d '{"session_id": "random-uuid", "new_message": "get"}' \
+      http://0.0.0.0:8000/api/v1/chatbot/wokj5lp0/prompt\?stream=True
 
 
 Conclusion

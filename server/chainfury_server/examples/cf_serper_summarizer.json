@@ -1,0 +1,320 @@
+{
+  "nodes": [
+    {
+      "id": "serper-api_81517.24411951282",
+      "cf_id": "serper-api",
+      "cf_data": {
+        "type": "programatic",
+        "node": {
+          "id": "serper-api",
+          "type": "programatic",
+          "fn": {
+            "model_params": {
+              "serper_api_key": "<your serper api key>"
+            }
+          },
+          "name": "serper-api",
+          "description": "Search the web with Serper",
+          "fields": [
+            {
+              "type": "string",
+              "password": true,
+              "required": true,
+              "show": true,
+              "name": "serper_api_key",
+              "placeholder": "<your serper api key>"
+            },
+            {
+              "type": "string",
+              "required": true,
+              "show": true,
+              "name": "query"
+            },
+            {
+              "type": "boolean",
+              "placeholder": "False",
+              "show": true,
+              "name": "return_value_only"
+            },
+            {
+              "type": "string",
+              "placeholder": "search",
+              "show": true,
+              "name": "search_type"
+            },
+            {
+              "type": "string",
+              "placeholder": "in",
+              "show": true,
+              "name": "location"
+            },
+            {
+              "type": "string",
+              "placeholder": "en",
+              "show": true,
+              "name": "locale"
+            },
+            {
+              "type": "boolean",
+              "placeholder": "True",
+              "show": true,
+              "name": "autocorrect"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "page"
+            },
+            {
+              "type": "number",
+              "placeholder": "10",
+              "show": true,
+              "name": "num_per_page"
+            },
+            {
+              "type": "number",
+              "placeholder": "3",
+              "show": true,
+              "name": "retry_count"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "retry_delay"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "string",
+              "name": "text",
+              "loc": [
+                0
+              ]
+            },
+            {
+              "type": "number",
+              "name": "status_code",
+              "loc": [
+                1
+              ]
+            }
+          ]
+        },
+        "id": "serper-api",
+        "value": null
+      },
+      "position": {
+        "x": -189.4414266467181,
+        "y": -496.8969758607108
+      },
+      "type": "FuryEngineNode",
+      "width": 350,
+      "height": 401,
+      "selected": null,
+      "position_absolute": null,
+      "dragging": null,
+      "data": {}
+    },
+    {
+      "id": "47820c83-1466-467a-8b05-b8d33987181b_60769.605993666075",
+      "cf_id": "47820c83-1466-467a-8b05-b8d33987181b",
+      "cf_data": {
+        "type": "ai-powered",
+        "node": {
+          "created_by": "cihua4hh",
+          "type": "ai-powered",
+          "description": "",
+          "fn": {
+            "node_id": "47820c83-1466-467a-8b05-b8d33987181b",
+            "model": {
+              "collection_name": "openai",
+              "id": "openai-chat",
+              "description": "Given a list of messages describing a conversation, the model will return a response.",
+              "usage": [
+                "usage",
+                "total_tokens"
+              ],
+              "vars": [],
+              "tags": []
+            },
+            "model_params": {
+              "model": "gpt-3.5-turbo",
+              "openai_api_key": "<your openai key>"
+            },
+            "fn": {
+              "messages": [
+                {
+                  "role": "system",
+                  "content": "you are a simple chatbot that can summarize any piece of information given to you"
+                },
+                {
+                  "role": "user",
+                  "content": "Summarize the following information from JSON in less than 10 lines\n\n'''json\n{{ json_object }}\n''' "
+                }
+              ]
+            },
+            "action_source": "jinja-template"
+          },
+          "tags": null,
+          "name": "summarizer",
+          "id": "47820c83-1466-467a-8b05-b8d33987181b",
+          "fields": [
+            {
+              "type": "string",
+              "required": true,
+              "name": "json_object"
+            },
+            {
+              "type": "string",
+              "password": true,
+              "required": true,
+              "show": true,
+              "name": "openai_api_key",
+              "placeholder": "<your openai key>"
+            },
+            {
+              "type": "string",
+              "required": true,
+              "show": true,
+              "name": "model"
+            },
+            {
+              "type": "array",
+              "items": [
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "required": true,
+              "show": true,
+              "name": "messages"
+            },
+            {
+              "type": "number",
+              "placeholder": "1.0",
+              "show": true,
+              "name": "temperature"
+            },
+            {
+              "type": "number",
+              "placeholder": "1.0",
+              "show": true,
+              "name": "top_p"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "n"
+            },
+            {
+              "type": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": [
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              ],
+              "show": true,
+              "name": "stop"
+            },
+            {
+              "type": "number",
+              "placeholder": "1024",
+              "show": true,
+              "name": "max_tokens"
+            },
+            {
+              "type": "number",
+              "placeholder": "0.0",
+              "show": true,
+              "name": "presence_penalty"
+            },
+            {
+              "type": "number",
+              "placeholder": "0.0",
+              "show": true,
+              "name": "frequency_penalty"
+            },
+            {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "placeholder": "{}",
+              "show": true,
+              "name": "logit_bias"
+            },
+            {
+              "type": "string",
+              "show": true,
+              "name": "user"
+            },
+            {
+              "type": "number",
+              "placeholder": "3",
+              "show": true,
+              "name": "retry_count"
+            },
+            {
+              "type": "number",
+              "placeholder": "1",
+              "show": true,
+              "name": "retry_delay"
+            }
+          ],
+          "outputs": [
+            {
+              "type": "string",
+              "name": "string",
+              "loc": [
+                "choices",
+                "0",
+                "message",
+                "content"
+              ]
+            }
+          ]
+        },
+        "id": "47820c83-1466-467a-8b05-b8d33987181b",
+        "value": null
+      },
+      "position": {
+        "x": 593.4067396814955,
+        "y": -549.9063120952114
+      },
+      "type": "FuryEngineNode",
+      "width": 350,
+      "height": 553,
+      "selected": null,
+      "position_absolute": null,
+      "dragging": null,
+      "data": {}
+    }
+  ],
+  "edges": [
+    {
+      "id": "reactflow__edge-serper-api_81517.24411951282text-47820c83-1466-467a-8b05-b8d33987181b_60769.605993666075json_object",
+      "source": "serper-api_81517.24411951282",
+      "sourceHandle": "text",
+      "target": "47820c83-1466-467a-8b05-b8d33987181b_60769.605993666075",
+      "targetHandle": "json_object"
+    }
+  ],
+  "sample": {
+    "47820c83-1466-467a-8b05-b8d33987181b_60769.605993666075/model": "gpt-3.5-turbo"
+  },
+  "main_in": "serper-api_81517.24411951282/query",
+  "main_out": "47820c83-1466-467a-8b05-b8d33987181b_60769.605993666075/string"
+}

@@ -103,7 +103,7 @@ docker<span class="w"> </span>run<span class="w"> </span>-p<span class="w"> </sp
 docker<span class="w"> </span>run<span class="w"> </span>--env<span class="w"> </span><span class="nv">KEY</span><span class="o">=</span>VALUE<span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
 
 <span class="c1"># to connect to your DB</span>
-docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-E<span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;mysql+pymysql://&lt;user&gt;:&lt;password&gt;@127.0.0.1:3306/&lt;database&gt;&quot;</span><span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
+docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>-E<span class="w"> </span><span class="nv">CFS_DATABASE</span><span class="o">=</span><span class="s2">&quot;mysql+pymysql://&lt;user&gt;:&lt;password&gt;@127.0.0.1:3306/&lt;database&gt;&quot;</span><span class="w"> </span>-p<span class="w"> </span><span class="m">8000</span>:8000<span class="w"> </span>chainfury
 </pre></div>
 </div>
 </section>

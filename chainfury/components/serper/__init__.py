@@ -81,6 +81,23 @@ def serper_api(
                 "title": "Chennai, Tamil Nadu, India / Weather",
                 "answer": "87°F"
             },
+            "knowledgeGraph": {
+                "title": "Jeff Bezos",
+                "type": "Executive Chairman of Amazon",
+                "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxFsGLOkNFB1vs2kvXM1_WNJZOwWHtdGaaLAnsHA&s=0",
+                "description": "Jeffrey Preston Bezos is an American entrepreneur, media proprietor, and investor. He is the founder, executive chairman, and former president and CEO of Amazon, the world's largest e-commerce and cloud computing company.",
+                "descriptionSource": "Wikipedia",
+                "descriptionLink": "https://en.wikipedia.org/wiki/Jeff_Bezos",
+                "attributes": {
+                    "Born": "12 January 1964 (age 59 years), Albuquerque, New Mexico, United States",
+                    "Net worth": "15,730 crores USD (2023)",
+                    "Spouse": "MacKenzie Scott (m. 1993–2019)",
+                    "Children": "Preston Bezos",
+                    "Parents": "Ted Jorgensen, Miguel Bezos and Jacklyn Bezos",
+                    "Height": "1.71 m",
+                    "Nationality": "American"
+                }
+            }
             "peopleAlsoAsk": [
                 {
                     "question": "What is the climate now in Chennai?",
@@ -146,7 +163,7 @@ def serper_api(
     if search_type not in VALID_SEARCH_TYPES:
         raise ValueError(f"search_type must be one of {VALID_SEARCH_TYPES}")
     if not serper_api_key:
-        serper_api_key = Secret(Env.SERPER_API_KEY(""))
+        serper_api_key = Secret(Env.SERPER_API_KEY("")).value
     if not serper_api_key:
         raise Exception("Serper API key not found. Please set SERPER_API_KEY environment variable or pass it as an argument.")
 
@@ -169,7 +186,9 @@ def serper_api(
         )
         if r.status_code == 401:
             raise UnAuthException(r.text)
-        if r.status_code != 200:
+        elif r.status_code == 403:
+            raise Exception("Serper API key is invalid.")
+        elif r.status_code != 200:
             raise Exception(f"Serper API returned status code {r.status_code}: {r.text}")
 
         return r.text, r.status_code

@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "name": "Base Template (langflow)",
+        "description": "This is a basic prompt to start from. It contains just a simple conversational chain.",
+        "dag": "lf_basic_template.json",
+        "engine": "langflow"
+    },
+    {
+        "id": 2,
+        "name": "Chuck Norris Joke (fury)",
+        "description": "Replies with a funny chuck norris joke. Simply type 'GET'",
+        "dag": "cf_chuck_norris.json",
+        "engine": "fury"
+    },
+    {
+        "id": 3,
+        "name": "Serper Summarizer (fury)",
+        "description": "Calls the serper API with users query and tries to summarize the result.",
+        "dag": "cf_serper_summarizer.json",
+        "engine": "fury"
+    }
+]

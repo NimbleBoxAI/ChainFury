@@ -15,7 +15,8 @@ def hr(msg: str = ""):
         print("=" * (width - len(msg) - 1) + " " + msg)
 
 
-TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLTIiLCJ1c2VyaWQiOiJuZzU0d3l4YSJ9.fs7Ejjx9sRYG9LIVU7VHZm5CSzK8HIK0hUyL0k5iirk"
+# TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLTIiLCJ1c2VyaWQiOiI1dWJzdnR5ayJ9.-Jy66fLzes_RExP2HJpEsPDg49xyYH-gAnw1glHpNZ0"
+TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluLTIiLCJ1c2VyaWQiOiJsMzFjNzAwZyJ9.EqEk_T7F9C8qbUrFImNOYWh9gp83bAq4wT0EnPh7Wxg"
 URL = "http://127.0.0.1:8000/api/v1"
 
 sess = Session()

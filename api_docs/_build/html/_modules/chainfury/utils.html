@@ -89,6 +89,29 @@
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span>
 
 
+<div class="viewcode-block" id="CFEnv"><a class="viewcode-back" href="../../source/chainfury.utils.html#chainfury.utils.CFEnv">[docs]</a><span class="k">class</span> <span class="nc">CFEnv</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Single namespace for all environment variables.</span>
+
+<span class="sd">    * CF_FOLDER: database connection string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">CF_FOLDER</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;CF_FOLDER&quot;</span><span class="p">,</span> <span class="s2">&quot;~/cf&quot;</span><span class="p">))</span>
+    <span class="n">CF_BLOB_STORAGE</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CFEnv</span><span class="o">.</span><span class="n">CF_FOLDER</span><span class="p">(),</span> <span class="s2">&quot;blob&quot;</span><span class="p">)</span></div>
+
+
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">CFEnv</span><span class="o">.</span><span class="n">CF_FOLDER</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">CFEnv</span><span class="o">.</span><span class="n">CF_BLOB_STORAGE</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="store_blob"><a class="viewcode-back" href="../../source/chainfury.utils.html#chainfury.utils.store_blob">[docs]</a><span class="k">def</span> <span class="nf">store_blob</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A function that stores the information in a file.&quot;&quot;&quot;</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CFEnv</span><span class="o">.</span><span class="n">CF_BLOB_STORAGE</span><span class="p">(),</span> <span class="n">key</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fp</span></div>
+
+
 <div class="viewcode-block" id="terminal_top_with_text"><a class="viewcode-back" href="../../source/chainfury.utils.html#chainfury.utils.terminal_top_with_text">[docs]</a><span class="k">def</span> <span class="nf">terminal_top_with_text</span><span class="p">(</span><span class="n">msg</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Prints full wodth text message on the terminal</span>
 
@@ -132,6 +155,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when the API returns a 401&quot;&quot;&quot;</span></div>
 
 
+<div class="viewcode-block" id="DoNotRetryException"><a class="viewcode-back" href="../../source/chainfury.utils.html#chainfury.utils.DoNotRetryException">[docs]</a><span class="k">class</span> <span class="nc">DoNotRetryException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Raised when code tells not to retry&quot;&quot;&quot;</span></div>
+
+
 <div class="viewcode-block" id="exponential_backoff"><a class="viewcode-back" href="../../source/chainfury.utils.html#chainfury.utils.exponential_backoff">[docs]</a><span class="k">def</span> <span class="nf">exponential_backoff</span><span class="p">(</span><span class="n">foo</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">max_retries</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">retry_delay</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Exponential backoff function</span>
 
@@ -152,8 +179,9 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">foo</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># Call the function that may crash</span>
             <span class="k">return</span> <span class="n">out</span>  <span class="c1"># If successful, break out of the loop and return</span>
+        <span class="k">except</span> <span class="n">DoNotRetryException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">e</span>
         <span class="k">except</span> <span class="n">UnAuthException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unauth Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">raise</span> <span class="n">e</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function crashed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

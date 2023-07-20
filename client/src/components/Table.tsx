@@ -39,11 +39,11 @@ export function Table({
           setResponses(
             res.data?.length
               ? res.data.map((val: { intermediate_response: any; intermediate_prompt: any }) => {
-                  return {
-                    ques: val.intermediate_response,
-                    ans: val.intermediate_prompt
-                  };
-                })
+                return {
+                  ques: val.intermediate_response,
+                  ans: val.intermediate_prompt
+                };
+              })
               : []
           );
         })
@@ -159,7 +159,7 @@ export function Table({
                     flex: spacing?.[index] || 1
                   }}
                   scope="col"
-                  className="p-[12px] max-w-[170px]"
+                  className="p-[12px] max-w-[250px]"
                 >
                   {val}
                 </th>
@@ -170,9 +170,8 @@ export function Table({
                 onClick={() => {
                   setSelectedRow(index);
                 }}
-                className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${
-                  index % 2 ? 'bg-light-neutral-grey-100' : ''
-                }`}
+                className={`flex regular250 cursor-pointer hover:bg-light-primary-blue-50 ${index % 2 ? 'bg-light-neutral-grey-100' : ''
+                  }`}
                 key={index}
               >
                 {headings?.map((val, key) => {
@@ -183,7 +182,7 @@ export function Table({
                       }}
                       scope="row"
                       key={key}
-                      className="p-[12px] max-w-[170px] text-ellipsis h-[48px] truncate"
+                      className="p-[12px] max-w-[250px] text-ellipsis h-[48px] truncate"
                     >
                       {row[key]}
                     </td>

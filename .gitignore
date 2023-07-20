@@ -132,8 +132,8 @@ dmypy.json
 server/chain.db
 
 # Static files
-server/static/*
-server/templates/*
+server/chainfury_server/static/*
+server/chainfury_server/templates/*
 
 # MacOS
 .DS_Store
@@ -141,9 +141,10 @@ private_env.sh
 langflow
 dunmp.rdb
 *.ipynb
-server/stories/fury.json
+server/chainfury_server/stories/fury.json
 notebooks/*
 stories/fury.json
 workers/
 private.sh
 api_docs/_build/
+cf

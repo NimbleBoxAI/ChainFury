@@ -49,6 +49,7 @@ def call_api_requests(
     Returns:
         Tuple[Tuple[str, int], Optional[Exception]]: The response text and status code, and the exception if there was one.
     """
+    method = method.upper()
     if method not in _VALID_HTTP_METHODS:
         raise ValueError(f"method must be one of {_VALID_HTTP_METHODS}")
 
@@ -196,7 +197,13 @@ def json_translator(
         data = json.loads(data)
     out = {}
     for k, v in resolver.items():
-        out[k] = get_value_by_keys(data, v)
+        if isinstance(v, dict):
+            _temp = {}
+            for k1, v1 in v.items():
+                _temp[k1] = get_value_by_keys(data, v1)
+            out[k] = _temp
+        else:
+            out[k] = get_value_by_keys(data, v)
     if return_only_value:
         out = next(iter(out.items()))[1]
     out = default or out

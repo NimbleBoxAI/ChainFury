@@ -25,3 +25,4 @@ class Env:
     # different keys for different 3rd party APIs
     OPENAI_TOKEN = lambda x: os.getenv("OPENAI_TOKEN", x)
     SERPER_API_KEY = lambda x: os.getenv("SERPER_API_KEY", x)
+    STABILITY_KEY = lambda x: os.getenv("STABILITY_KEY", x)
