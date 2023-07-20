@@ -4,7 +4,7 @@ pyjwt[crypto]
 jinja2
 pymysql
 types-pyyaml
-fastapi==0.95.2
+fastapi==0.100.0
 black==23.3.0
 chromadb==0.3.21
 dill==0.3.6
