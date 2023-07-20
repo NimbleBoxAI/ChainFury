@@ -49,6 +49,7 @@ def call_api_requests(
     Returns:
         Tuple[Tuple[str, int], Optional[Exception]]: The response text and status code, and the exception if there was one.
     """
+    method = method.upper()
     if method not in _VALID_HTTP_METHODS:
         raise ValueError(f"method must be one of {_VALID_HTTP_METHODS}")
 

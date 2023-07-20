@@ -4,6 +4,29 @@ import logging
 from typing import Any, Dict
 
 
+class CFEnv:
+    """
+    Single namespace for all environment variables.
+
+    * CF_FOLDER: database connection string
+    """
+
+    CF_FOLDER = lambda: os.path.expanduser(os.getenv("CF_FOLDER", "~/cf"))
+    CF_BLOB_STORAGE = lambda: os.path.join(CFEnv.CF_FOLDER(), "blob")
+
+
+os.makedirs(CFEnv.CF_FOLDER(), exist_ok=True)
+os.makedirs(CFEnv.CF_BLOB_STORAGE(), exist_ok=True)
+
+
+def store_blob(key: str, value: bytes) -> str:
+    """A function that stores the information in a file."""
+    fp = os.path.join(CFEnv.CF_BLOB_STORAGE(), key)
+    with open(fp, "wb") as f:
+        f.write(value)
+    return fp
+
+
 def terminal_top_with_text(msg: str = "") -> str:
     """Prints full wodth text message on the terminal
 
@@ -47,6 +70,10 @@ class UnAuthException(Exception):
     """Raised when the API returns a 401"""
 
 
+class DoNotRetryException(Exception):
+    """Raised when code tells not to retry"""
+
+
 def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> Dict[str, Any]:
     """Exponential backoff function
 
@@ -67,8 +94,9 @@ def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> D
         try:
             out = foo(*args, **kwargs)  # Call the function that may crash
             return out  # If successful, break out of the loop and return
+        except DoNotRetryException as e:
+            raise e
         except UnAuthException as e:
-            logger.error(f"Unauth Error: {e}")
             raise e
         except Exception as e:
             logger.warning(f"Function crashed: {e}")
