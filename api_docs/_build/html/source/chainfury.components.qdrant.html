@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>qdrant component &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="redis components" href="chainfury.components.redis.html" />
+    <link rel="prev" title="functional components" href="chainfury.components.functional.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="chainfury.components.html">chainfury Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.const.html">component constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.serper.html">serper components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.functional.html">functional components</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">qdrant component</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.qdrant.qdrant_read"><code class="docutils literal notranslate"><span class="pre">qdrant_read()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.qdrant.qdrant_write"><code class="docutils literal notranslate"><span class="pre">qdrant_write()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="chainfury.components.html">chainfury Components</a></li>
+      <li class="breadcrumb-item active">qdrant component</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chainfury.components.qdrant.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-chainfury.components.qdrant">
+<span id="qdrant-component"></span><h1>qdrant component<a class="headerlink" href="#module-chainfury.components.qdrant" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.components.qdrant.qdrant_read">
+<span class="sig-prename descclassname"><span class="pre">chainfury.components.qdrant.</span></span><span class="sig-name descname"><span class="pre">qdrant_read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_search_hnsw_ef</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_search_exact</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_search</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/qdrant.html#qdrant_read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.qdrant.qdrant_read" title="Permalink to this definition"></a></dt>
+<dd><p>Read from the Qdrant DB using the Qdrant client. In order to use this access via the <cite>memory_registry</cite>:</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">memory_registry</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span> <span class="o">=</span> <span class="n">memory_registry</span><span class="o">.</span><span class="n">get_read</span><span class="p">(</span><span class="s2">&quot;qdrant&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sentence</span> <span class="o">=</span> <span class="s2">&quot;Who was the Cafavy?&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">mem</span><span class="p">(</span>
+<span class="go">        {</span>
+<span class="go">            &quot;items&quot;: [sentence],</span>
+<span class="go">            &quot;collection_name&quot;: &quot;my_test_collection&quot;,</span>
+<span class="go">            &quot;embedding_model&quot;: &quot;openai-embedding&quot;</span>
+<span class="go">        }</span>
+<span class="go">    )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+<span class="go">        print(&quot;TRACE:&quot;, out)</span>
+<span class="go">    else:</span>
+<span class="go">        print(out)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>batch_search</cite> is not implemented yet. There’s some issues from the <cite>qdrant_client</cite> library.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embeddings</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><em>float</em><em>]</em><em>]</em>) – list of embeddings</p></li>
+<li><p><strong>collection_name</strong> (<em>str</em>) – collection name</p></li>
+<li><p><strong>limit</strong> (<em>int</em><em>, </em><em>optional</em>) – limit. Defaults to 3.</p></li>
+<li><p><strong>offset</strong> (<em>int</em><em>, </em><em>optional</em>) – offset. Defaults to 0.</p></li>
+<li><p><strong>qdrant_url</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><em>Secret</em></a><em>, </em><em>optional</em>) – qdrant url or set env var <cite>QDRANT_API_URL</cite>.</p></li>
+<li><p><strong>qdrant_api_key</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><em>Secret</em></a><em>, </em><em>optional</em>) – qdrant api key or set env var <cite>QDRANT_API_KEY</cite>.</p></li>
+<li><p><strong>qdrant_search_hnsw_ef</strong> (<em>int</em><em>, </em><em>optional</em>) – qdrant search beam size, the larger the beam size the more accurate the search,
+if not set uses default value.</p></li>
+<li><p><strong>qdrant_search_exact</strong> (<em>bool</em><em>, </em><em>optional</em>) – qdrant search exact. Defaults to False.</p></li>
+<li><p><strong>batch_search</strong> (<em>bool</em><em>, </em><em>optional</em>) – batch search. Defaults to False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of results and error</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[List[Dict[str, Union[float, int]]], Optional[Exception]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.components.qdrant.qdrant_write">
+<span class="sig-prename descclassname"><span class="pre">chainfury.components.qdrant.</span></span><span class="sig-name descname"><span class="pre">qdrant_write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embeddings</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collection_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qdrant_api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_payload</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_if_not_present</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'cosine'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/qdrant.html#qdrant_write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.qdrant.qdrant_write" title="Permalink to this definition"></a></dt>
+<dd><p>Write to the Qdrant DB using the Qdrant client. In order to use this, access via the <cite>memory_registry</cite>:</p>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chainfury</span> <span class="kn">import</span> <span class="n">memory_registry</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mem</span> <span class="o">=</span> <span class="n">memory_registry</span><span class="o">.</span><span class="n">get_write</span><span class="p">(</span><span class="s2">&quot;qdrant&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sentence</span> <span class="o">=</span> <span class="s2">&quot;C.P. Cavafy is widely considered the most distinguished Greek poet of the 20th century.&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">mem</span><span class="p">(</span>
+<span class="go">        {</span>
+<span class="go">            &quot;items&quot;: [sentence],</span>
+<span class="go">            &quot;extra_payload&quot;: [</span>
+<span class="go">                {&quot;data&quot;: sentence},</span>
+<span class="go">            ],</span>
+<span class="go">            &quot;collection_name&quot;: &quot;my_test_collection&quot;,</span>
+<span class="go">            &quot;embedding_model&quot;: &quot;openai-embedding&quot;,</span>
+<span class="go">            &quot;create_if_not_present&quot;: True,</span>
+<span class="go">        }</span>
+<span class="go">    )</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+<span class="go">        print(&quot;TRACE:&quot;, out)</span>
+<span class="go">    else:</span>
+<span class="go">        print(out)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embeddings</strong> (<em>List</em><em>[</em><em>List</em><em>[</em><em>float</em><em>]</em><em>]</em>) – list of embeddings</p></li>
+<li><p><strong>collection_name</strong> (<em>str</em>) – collection name</p></li>
+<li><p><strong>qdrant_url</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><em>Secret</em></a><em>, </em><em>optional</em>) – qdrant url or set env var <cite>QDRANT_API_URL</cite>.</p></li>
+<li><p><strong>qdrant_api_key</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><em>Secret</em></a><em>, </em><em>optional</em>) – qdrant api key or set env var <cite>QDRANT_API_KEY</cite>.</p></li>
+<li><p><strong>extra_payload</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – extra payload. Defaults to [].</p></li>
+<li><p><strong>wait</strong> (<em>bool</em><em>, </em><em>optional</em>) – wait for the response. Defaults to True.</p></li>
+<li><p><strong>create_if_not_present</strong> (<em>bool</em><em>, </em><em>optional</em>) – create collection if not present. Defaults to True.</p></li>
+<li><p><strong>distance</strong> (<em>str</em><em>, </em><em>optional</em>) – distance metric. Defaults to “cosine”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>status and error</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[str, Optional[Exception]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chainfury.components.functional.html" class="btn btn-neutral float-left" title="functional components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.components.redis.html" class="btn btn-neutral float-right" title="redis components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

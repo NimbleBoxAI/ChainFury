@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>serper components &mdash; ChainFury 0.1.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="ai_actions components" href="chainfury.components.ai_actions.html" />
+    <link rel="prev" title="nbx components" href="chainfury.components.nbx.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ChainFury
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installing ChainFury</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Using ChainFury</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python APIs:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.agent.html">Agent File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.cli.html">chainfury CLI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.base.html">chainfury.base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.client.html">chainfury.client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.utils.html">chainfury utilities</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chainfury.version.html">Version</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Integrations:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="chainfury.components.html">chainfury Components</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.const.html">component constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.openai.html">openai components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.stability.html">stability AI components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.nbx.html">nbx components</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">serper components</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.components.serper.serper_api"><code class="docutils literal notranslate"><span class="pre">serper_api()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.ai_actions.html">ai_actions components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.functional.html">functional components</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.qdrant.html">qdrant component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="chainfury.components.redis.html">redis components</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ChainFury</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="chainfury.components.html">chainfury Components</a></li>
+      <li class="breadcrumb-item active">serper components</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/chainfury.components.serper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-chainfury.components.serper">
+<span id="serper-components"></span><h1>serper components<a class="headerlink" href="#module-chainfury.components.serper" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.components.serper.serper_api">
+<span class="sig-prename descclassname"><span class="pre">chainfury.components.serper.</span></span><span class="sig-name descname"><span class="pre">serper_api</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">serper_api_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><span class="pre">Secret</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'search'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'in'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'en'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">autocorrect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_per_page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_count</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_delay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Exception</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/chainfury/components/serper.html#serper_api"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.components.serper.serper_api" title="Permalink to this definition"></a></dt>
+<dd><p>Search the web with Serper.</p>
+<p><strong>NOTE</strong>: This action requires a Serper API key. You can get one for free at <a class="reference external" href="https://serper.dev">https://serper.dev</a>.</p>
+<p>Here’s a few types of responses that the different serper APIs return (this was written on 3rd July, 2023):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">news_api</span>
+<span class="go">{</span>
+<span class="go">    &quot;news&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;date&quot;: &quot;2 hours ago&quot;,</span>
+<span class="go">            &quot;imageUrl&quot;: &quot;https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0KmSaKaJRif6f0wIBvRfnQfcQOXnoWWQ9ZM0VfTz9n6NXbCEUp76Nj-z1bw&amp;s&quot;,</span>
+<span class="go">            &quot;link&quot;: &quot;https://sg.news.yahoo.com/apple-makes-history-first-3-085543504.html&quot;,</span>
+<span class="go">            &quot;position&quot;: 1,</span>
+<span class="go">            &quot;snippet&quot;: &quot;(Reuters) - Apple Inc become the first company in the world to reach a market value of $3 trillion, buoyed by hopes over its expansion in...&quot;,</span>
+<span class="go">            &quot;source&quot;: &quot;Yahoo News Singapore&quot;,</span>
+<span class="go">            &quot;title&quot;: &quot;Apple makes history as first $3 trillion company amid tech stock surge&quot;</span>
+<span class="go">        }</span>
+<span class="go">    ],</span>
+<span class="go">    &quot;searchParameters&quot;: {</span>
+<span class="go">        &quot;autocorrect&quot;: true,</span>
+<span class="go">        &quot;gl&quot;: &quot;us&quot;,</span>
+<span class="go">        &quot;hl&quot;: &quot;en&quot;,</span>
+<span class="go">        &quot;num&quot;: 10,</span>
+<span class="go">        &quot;page&quot;: 1,</span>
+<span class="go">        &quot;q&quot;: &quot;apple inc&quot;,</span>
+<span class="go">        &quot;type&quot;: &quot;news&quot;</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">search_api</span>
+<span class="go">{</span>
+<span class="go">    &quot;searchParameters&quot;: {</span>
+<span class="go">        &quot;q&quot;: &quot;apple inc&quot;,</span>
+<span class="go">        &quot;gl&quot;: &quot;us&quot;,</span>
+<span class="go">        &quot;hl&quot;: &quot;en&quot;,</span>
+<span class="go">        &quot;num&quot;: 20,</span>
+<span class="go">        &quot;autocorrect&quot;: false,</span>
+<span class="go">        &quot;page&quot;: 3,</span>
+<span class="go">        &quot;type&quot;: &quot;search&quot;</span>
+<span class="go">    },</span>
+<span class="go">    &quot;organic&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;title&quot;: &quot;Chennai, Tamil Nadu, India Weather Forecast - AccuWeather&quot;,</span>
+<span class="go">            &quot;link&quot;: &quot;https://www.accuweather.com/en/in/chennai/206671/weather-forecast/206671&quot;,</span>
+<span class="go">            &quot;snippet&quot;: &quot;Chennai, Tamil Nadu ; Current Weather. 4:17 PM. 82°F · RealFeel® 91° ; TODAY&#39;S WEATHER FORECAST. 7/3. 83°Hi. RealFeel® 95° ; TONIGHT&#39;S WEATHER FORECAST. 7/3. 78°Lo.&quot;,</span>
+<span class="go">            &quot;position&quot;: 1</span>
+<span class="go">        }</span>
+<span class="go">    ],</span>
+<span class="go">    &quot;answerBox&quot;: {</span>
+<span class="go">        &quot;title&quot;: &quot;Chennai, Tamil Nadu, India / Weather&quot;,</span>
+<span class="go">        &quot;answer&quot;: &quot;87°F&quot;</span>
+<span class="go">    },</span>
+<span class="go">    &quot;knowledgeGraph&quot;: {</span>
+<span class="go">        &quot;title&quot;: &quot;Jeff Bezos&quot;,</span>
+<span class="go">        &quot;type&quot;: &quot;Executive Chairman of Amazon&quot;,</span>
+<span class="go">        &quot;imageUrl&quot;: &quot;https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxFsGLOkNFB1vs2kvXM1_WNJZOwWHtdGaaLAnsHA&amp;s=0&quot;,</span>
+<span class="go">        &quot;description&quot;: &quot;Jeffrey Preston Bezos is an American entrepreneur, media proprietor, and investor. He is the founder, executive chairman, and former president and CEO of Amazon, the world&#39;s largest e-commerce and cloud computing company.&quot;,</span>
+<span class="go">        &quot;descriptionSource&quot;: &quot;Wikipedia&quot;,</span>
+<span class="go">        &quot;descriptionLink&quot;: &quot;https://en.wikipedia.org/wiki/Jeff_Bezos&quot;,</span>
+<span class="go">        &quot;attributes&quot;: {</span>
+<span class="go">            &quot;Born&quot;: &quot;12 January 1964 (age 59 years), Albuquerque, New Mexico, United States&quot;,</span>
+<span class="go">            &quot;Net worth&quot;: &quot;15,730 crores USD (2023)&quot;,</span>
+<span class="go">            &quot;Spouse&quot;: &quot;MacKenzie Scott (m. 1993–2019)&quot;,</span>
+<span class="go">            &quot;Children&quot;: &quot;Preston Bezos&quot;,</span>
+<span class="go">            &quot;Parents&quot;: &quot;Ted Jorgensen, Miguel Bezos and Jacklyn Bezos&quot;,</span>
+<span class="go">            &quot;Height&quot;: &quot;1.71 m&quot;,</span>
+<span class="go">            &quot;Nationality&quot;: &quot;American&quot;</span>
+<span class="go">        }</span>
+<span class="go">    }</span>
+<span class="go">    &quot;peopleAlsoAsk&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;question&quot;: &quot;What is the climate now in Chennai?&quot;,</span>
+<span class="go">            &quot;snippet&quot;: &quot;The weather today in Chennai will be very hot with temperatures reaching 96°F.&quot;,</span>
+<span class="go">            &quot;title&quot;: &quot;The local weather in Chennai today - Weather25.com&quot;,</span>
+<span class="go">            &quot;link&quot;: &quot;https://www.weather25.com/asia/india/tamil-nadu/chennai?page=today&quot;</span>
+<span class="go">        }</span>
+<span class="go">    ],</span>
+<span class="go">    &quot;relatedSearches&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;query&quot;: &quot;What is the weather in chennai this week&quot;</span>
+<span class="go">        },</span>
+<span class="go">        {</span>
+<span class="go">            &quot;query&quot;: &quot;Weather forecast Chennai cyclone&quot;</span>
+<span class="go">        }</span>
+<span class="go">    ]</span>
+<span class="go">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">image_api</span>
+<span class="go">{</span>
+<span class="go">    &quot;images&quot;: [</span>
+<span class="go">        {</span>
+<span class="go">            &quot;title&quot;: &quot;Chennai weather forecast: Chennai, other parts of Tamil Nadu ...&quot;,</span>
+<span class="go">            &quot;imageUrl&quot;: &quot;https://static.toiimg.com/photo/msid-71699845/71699845.jpg&quot;,</span>
+<span class="go">            &quot;imageWidth&quot;: 1200,</span>
+<span class="go">            &quot;imageHeight&quot;: 900,</span>
+<span class="go">            &quot;thumbnailUrl&quot;: &quot;https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTscW9XwTVb2S1aHCgaDHgvdTKHP6Vq8rAk4F9dm6YP8udSa6rZ&amp;amp;s&quot;,</span>
+<span class="go">            &quot;thumbnailWidth&quot;: 259,</span>
+<span class="go">            &quot;thumbnailHeight&quot;: 194,</span>
+<span class="go">            &quot;source&quot;: &quot;Times of India&quot;,</span>
+<span class="go">            &quot;domain&quot;: &quot;timesofindia.indiatimes.com&quot;,</span>
+<span class="go">            &quot;link&quot;: &quot;https://timesofindia.indiatimes.com/city/chennai/chennai-other-parts-of-tamil-nadu-likely-to-get-heavy-to-very-heavy-rain-for-next-three-days/articleshow/71699802.cms&quot;,</span>
+<span class="go">            &quot;position&quot;: 1</span>
+<span class="go">        }</span>
+<span class="go">    ],</span>
+<span class="go">    &quot;searchParameters&quot;: {</span>
+<span class="go">        &quot;q&quot;: &quot;what is the weather in chennai?&quot;,</span>
+<span class="go">        &quot;gl&quot;: &quot;us&quot;,</span>
+<span class="go">        &quot;hl&quot;: &quot;en&quot;,</span>
+<span class="go">        &quot;num&quot;: 20,</span>
+<span class="go">        &quot;autocorrect&quot;: false,</span>
+<span class="go">        &quot;page&quot;: 1,</span>
+<span class="go">        &quot;type&quot;: &quot;images&quot;</span>
+<span class="go">    }</span>
+<span class="go">}</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query</strong> (<em>str</em>) – The search query.</p></li>
+<li><p><strong>serper_api_key</strong> (<a class="reference internal" href="chainfury.base.html#chainfury.base.Secret" title="chainfury.base.Secret"><em>Secret</em></a>) – The Serper API key. Defaults to the value of SERPER_API_KEY environment variable.</p></li>
+<li><p><strong>search_type</strong> (<em>str</em>) – The type of search to perform. Must be one of “search”, “images”, “places”, or “news”.</p></li>
+<li><p><strong>resolver</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>]</em><em>]</em><em>]</em>) – The keys to return in the output JSON.</p></li>
+<li><p><strong>location</strong> (<em>str</em>) – The location to search from. Defaults to “in”.</p></li>
+<li><p><strong>locale</strong> (<em>str</em>) – The locale to search from. Defaults to “en”.</p></li>
+<li><p><strong>autocorrect</strong> (<em>bool</em>) – Whether to autocorrect the query. Defaults to True.</p></li>
+<li><p><strong>page</strong> (<em>int</em>) – The page number to return. Defaults to 1.</p></li>
+<li><p><strong>num_per_page</strong> (<em>int</em>) – The number of results to return per page. Defaults to 10.</p></li>
+<li><p><strong>retry_count</strong> (<em>int</em>) – The number of times to retry the request. Defaults to 3.</p></li>
+<li><p><strong>retry_delay</strong> (<em>int</em>) – The number of seconds to wait between retries. Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The search results.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="chainfury.components.nbx.html" class="btn btn-neutral float-left" title="nbx components" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="chainfury.components.ai_actions.html" class="btn btn-neutral float-right" title="ai_actions components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, NimbleBox Engineering.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
