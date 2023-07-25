@@ -156,7 +156,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">loc</span> <span class="o">=</span> <span class="n">loc</span>  <span class="c1"># this is the location from which this value is extracted</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Var(</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">required</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;, type=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">, items=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="si">}</span><span class="s2">, additionalProperties=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">additionalProperties</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Var(</span><span class="si">{</span><span class="s1">&#39;*&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">required</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;&#39;</span><span class="si">}</span><span class="s2">name=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;, type=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">&#39;, items=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="si">}</span><span class="s2">, additionalProperties=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">additionalProperties</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 <div class="viewcode-block" id="Var.to_dict"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Var.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialise this Var to a dictionary that can be JSON serialised and sent to the client.</span>
@@ -261,7 +261,7 @@
 <span class="sd">        allow_any (bool): Whether to allow the `Any` type.</span>
 <span class="sd">        allow_exc (bool): Whether to allow the `Exception` type.</span>
 <span class="sd">        allow_none (bool): Whether to allow the `None` type.</span>
-<span class="sd">        trace (bool, optional): Adds verbosity the schema generation. Defaults to False.</span>
+<span class="sd">        trace (bool, optional): Adds verbosity the schema generation also set FURY_LOG_LEVEL=&#39;debug&#39;. Defaults to False.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Var: The converted annotation.</span>
@@ -563,26 +563,42 @@
     <span class="k">return</span> <span class="n">indices</span></div>
 
 
-<div class="viewcode-block" id="get_value_by_keys"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.get_value_by_keys">[docs]</a><span class="k">def</span> <span class="nf">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<div class="viewcode-block" id="get_value_by_keys"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.get_value_by_keys">[docs]</a><span class="k">def</span> <span class="nf">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">_first_sentinal</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Takes in an arbitrary nested object and returns the value at the location specified by the keys.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        obj (Union[List, Dict[str, Any]]): The nested object.</span>
 <span class="sd">        keys (Union[str, List[str], Tuple[str, ...]]): The keys. See `extract_jinja_indices` for examples.</span>
+<span class="sd">        _first_sentinal (bool, optional): flag to tell if this is the first input or not, user should not use this. Defaults to False.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Any: The value at the location specified by the keys.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">obj</span>
+
     <span class="n">keys</span> <span class="o">=</span> <span class="p">(</span><span class="n">keys</span><span class="p">,)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="n">keys</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">keys</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_first_sentinal</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot use wildcard &#39;*&#39; as first key&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If the key is &quot;*&quot;, apply the subsequent keys to all elements in the current list or dictionary.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_first_sentinal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">obj</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_first_sentinal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">obj</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_first_sentinal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot use key &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; on a list&quot;</span><span class="p">)</span>
         <span class="n">key</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">key</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">return</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">obj</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">keys</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_first_sentinal</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
@@ -700,7 +716,9 @@
     <span class="n">PROGRAMATIC</span> <span class="o">=</span> <span class="s2">&quot;programatic&quot;</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for the programatic node type&quot;&quot;&quot;</span>
     <span class="n">AI</span> <span class="o">=</span> <span class="s2">&quot;ai-powered&quot;</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for the AI node type&quot;&quot;&quot;</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for the AI node type&quot;&quot;&quot;</span>
+    <span class="n">MEMORY</span> <span class="o">=</span> <span class="s2">&quot;memory&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for the memory node type&quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="Node"><a class="viewcode-back" href="../../source/chainfury.base.html#chainfury.base.Node">[docs]</a><span class="k">class</span> <span class="nc">Node</span><span class="p">:</span>
@@ -728,12 +746,9 @@
 <span class="sd">            tags (List[str], optional): The tags for the node. Defaults to [].</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># some bacic checks</span>
-        <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">AI</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="n">NodeType</span><span class="o">.</span><span class="n">PROGRAMATIC</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid node type: </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">, see Node.types for valid types&quot;</span><span class="p">)</span>
+        <span class="n">_valid_types</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">NodeType</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">NodeType</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;__&quot;</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_valid_types</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid node type: </span><span class="si">{</span><span class="nb">type</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">_valid_types</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># set the values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
@@ -869,8 +884,8 @@
                 <span class="k">raise</span> <span class="n">err</span>
 
             <span class="c1"># this is where we have to polish this outgoing result into the structure as configured in self.outputs</span>
-            <span class="c1"># logger.debug(&quot;&gt; fnout: &quot;, out)</span>
-            <span class="c1"># logger.debug(&quot;OUTPUTS:&quot;, self.outputs)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt; fn_out: </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt; OUTPUTS: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputs</span><span class="p">:</span>
                 <span class="c1"># logger.debug(&quot;  OP:&quot;, o.name, o._loc)</span>
                 <span class="n">o</span><span class="o">.</span><span class="n">set_value</span><span class="p">(</span><span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">o</span><span class="o">.</span><span class="n">loc</span><span class="p">))</span>

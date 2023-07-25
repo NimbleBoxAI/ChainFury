@@ -123,6 +123,37 @@ class TestGetValueByKeys(unittest.TestCase):
         expected_result = {"y": "blue", "z": "black"}
         self.assertEqual(get_value_by_keys(data, keys), expected_result)
 
+    def test_11_single_wildcard(self):
+        data = {
+            "object": "list",
+            "data": [
+                {
+                    "object": "embedding",
+                    "index": 0,
+                    "embedding": [
+                        -0.03472504,
+                        -0.025310948,
+                        0.0033682163,
+                        -0.0060247383,
+                        -0.030130738,
+                        -0.005823914,
+                    ],
+                }
+            ],
+        }
+        keys = ("data", "*", "embedding")
+        expected_result = [
+            [
+                -0.03472504,
+                -0.025310948,
+                0.0033682163,
+                -0.0060247383,
+                -0.030130738,
+                -0.005823914,
+            ]
+        ]
+        self.assertEqual(get_value_by_keys(data, keys), expected_result)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -415,7 +415,7 @@
         <span class="n">_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> is required in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> but not present&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field &#39;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is required in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> but not present&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
                 <span class="n">_data</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
@@ -636,18 +636,164 @@
 <span class="sd">`AIAction` instances. This is used by the server to serve the registered actions.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="c1"># Eventually build memory registry like the actions registry</span>
-<span class="c1">#</span>
-<span class="c1"># class Memory:</span>
-<span class="c1">#     def __init__(self, memory_id):</span>
-<span class="c1">#         self.node = Node(id=f&quot;cf-memory-{memory_id}&quot;, type=Node.types.MEMORY)</span>
-<span class="c1">#</span>
-<span class="c1">#     # user can subclass this and override the following functions</span>
-<span class="c1">#     def get(self, key: str):</span>
-<span class="c1">#         ...</span>
-<span class="c1">#</span>
-<span class="c1">#     def put(self, key: str, value: Any):</span>
-<span class="c1">#         ...</span>
+<span class="n">DEFAULT_MEMORY_CONSTANTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;openai-embedding&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;embedding_model_key&quot;</span><span class="p">:</span> <span class="s2">&quot;input_strings&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;embedding_model_params&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;model&quot;</span><span class="p">:</span> <span class="s2">&quot;text-embedding-ada-002&quot;</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;translation_layer&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;embeddings&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;embedding&quot;</span><span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Memory"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.Memory">[docs]</a><span class="k">class</span> <span class="nc">Memory</span><span class="p">:</span>
+    <span class="n">VECTOR</span> <span class="o">=</span> <span class="s2">&quot;vector&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;constant for vector DB&quot;&quot;&quot;</span>
+
+    <span class="n">fields_model</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;items&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;array&quot;</span><span class="p">,</span> <span class="n">items</span><span class="o">=</span><span class="p">[</span><span class="n">Var</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">)],</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">Var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;embedding_model&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">Var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;embedding_model_params&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="n">additionalProperties</span><span class="o">=</span><span class="n">Var</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">)),</span>
+        <span class="n">Var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;embedding_model_key&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">),</span>
+        <span class="n">Var</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;translation_layer&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;object&quot;</span><span class="p">,</span> <span class="n">additionalProperties</span><span class="o">=</span><span class="n">Var</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;string&quot;</span><span class="p">)),</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">vector_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_id</span> <span class="o">=</span> <span class="n">node_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_key</span> <span class="o">=</span> <span class="n">vector_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields_fn</span> <span class="o">=</span> <span class="n">func_to_vars</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_fn</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_model</span>
+
+<div class="viewcode-block" id="Memory.__call__"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.Memory.__call__">[docs]</a>    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="c1"># the first thing we have to do is get the data for the model. This is actually a very hard problem because this</span>
+        <span class="c1"># function needs to call some other arbitrary function where we know the inputs to this function &quot;items&quot; but we</span>
+        <span class="c1"># do not know which variable to pass this to in the undelying model&#39;s function. Thus we need to take in a huge</span>
+        <span class="c1"># amount of things as more inputs (&quot;embedding_model_key&quot;, &quot;embedding_model_params&quot;). Then we don&#39;t even know</span>
+        <span class="c1"># what the inputs to the underlying DB functionbare going to be, in which case we also need to add things like</span>
+        <span class="c1"># the translation that needs to be done (&quot;translation_layer&quot;). This makes the number of inputs a lot but</span>
+        <span class="c1"># ultimately is required to do the job for robust-ness. Which is why we provide a default for openai-embedding</span>
+        <span class="c1"># model. For any other model user will need to pass all the information.</span>
+        <span class="n">model_fields</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_model</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field &#39;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is required in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> but not present&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">model_fields</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">model_data</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">model_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_params&quot;</span><span class="p">,</span> <span class="p">{})}</span>
+        <span class="n">model_id</span> <span class="o">=</span> <span class="n">model_fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;embedding_model&quot;</span><span class="p">)</span>
+        <span class="n">embedding_model_default_config</span> <span class="o">=</span> <span class="n">DEFAULT_MEMORY_CONSTANTS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="k">if</span> <span class="n">embedding_model_default_config</span><span class="p">:</span>
+            <span class="n">model_data</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">embedding_model_default_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_params&quot;</span><span class="p">,</span> <span class="p">{}),</span> <span class="o">**</span><span class="n">model_data</span><span class="p">}</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="n">embedding_model_default_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_key&quot;</span><span class="p">,</span> <span class="s2">&quot;items&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">model_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_key&quot;</span><span class="p">)</span>
+            <span class="n">model_fields</span><span class="p">[</span><span class="s2">&quot;translation_layer&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;translation_layer&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">embedding_model_default_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;translation_layer&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">req_keys</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_model</span><span class="p">[</span><span class="mi">2</span><span class="p">:]]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">x</span> <span class="ow">in</span> <span class="n">model_fields</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">req_keys</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model </span><span class="si">{</span><span class="n">model_id</span><span class="si">}</span><span class="s2"> requires </span><span class="si">{</span><span class="n">req_keys</span><span class="si">}</span><span class="s2"> to be passed&quot;</span><span class="p">)</span>
+            <span class="n">model_key</span> <span class="o">=</span> <span class="n">model_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_key&quot;</span><span class="p">)</span>
+            <span class="n">model_data</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">model_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;embedding_model_params&quot;</span><span class="p">,</span> <span class="p">{}),</span> <span class="o">**</span><span class="n">model_data</span><span class="p">}</span>
+        <span class="n">model_data</span><span class="p">[</span><span class="n">model_key</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_fields</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;items&quot;</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">model_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">model_id</span><span class="p">)</span>
+        <span class="n">embeddings</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">model_data</span><span class="o">=</span><span class="n">model_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;error: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;traceback: </span><span class="si">{</span><span class="n">embeddings</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+        <span class="c1"># now that we have all the embeddings ready we now need to translate it to be fed into the DB function</span>
+        <span class="n">translated_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">model_fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;translation_layer&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">translated_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_value_by_keys</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="c1"># create the dictionary to call the underlying function</span>
+        <span class="n">db_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields_fn</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">required</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">or</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">translated_data</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Field &#39;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; is required in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">node_id</span><span class="si">}</span><span class="s2"> but not present&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">db_data</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">translated_data</span><span class="p">:</span>
+                <span class="n">db_data</span><span class="p">[</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">translated_data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">(</span><span class="o">**</span><span class="n">db_data</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">err</span></div></div>
+
+
+<div class="viewcode-block" id="MemoryRegistry"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry">[docs]</a><span class="k">class</span> <span class="nc">MemoryRegistry</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="MemoryRegistry.register_write"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry.register_write">[docs]</a>    <span class="k">def</span> <span class="nf">register_write</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">component_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">vector_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component_name</span><span class="si">}</span><span class="s2">-write&quot;</span>
+        <span class="n">mem_fn</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">vector_key</span><span class="o">=</span><span class="n">vector_key</span><span class="p">)</span>
+        <span class="n">output_fields</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">mem_fn</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">MEMORY</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">mem_fn</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">output_fields</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="MemoryRegistry.register_read"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry.register_read">[docs]</a>    <span class="k">def</span> <span class="nf">register_read</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">component_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">fn</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span>
+        <span class="n">outputs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">vector_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">description</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">tags</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Node</span><span class="p">:</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">component_name</span><span class="si">}</span><span class="s2">-read&quot;</span>
+        <span class="n">mem_fn</span> <span class="o">=</span> <span class="n">Memory</span><span class="p">(</span><span class="n">node_id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">vector_key</span><span class="o">=</span><span class="n">vector_key</span><span class="p">)</span>
+        <span class="n">output_fields</span> <span class="o">=</span> <span class="n">func_to_return_vars</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">returns</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">Node</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">node_id</span><span class="p">,</span>
+            <span class="n">fn</span><span class="o">=</span><span class="n">mem_fn</span><span class="p">,</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">Node</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">MEMORY</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">mem_fn</span><span class="o">.</span><span class="n">fields</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">output_fields</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+        <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="MemoryRegistry.get_write"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_write">[docs]</a>    <span class="k">def</span> <span class="nf">get_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span> <span class="o">+</span> <span class="s2">&quot;-write&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="MemoryRegistry.get_read"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_read">[docs]</a>    <span class="k">def</span> <span class="nf">get_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Node</span><span class="p">]:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node_id</span> <span class="o">+</span> <span class="s2">&quot;-read&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Memory &#39;</span><span class="si">{</span><span class="n">node_id</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+<div class="viewcode-block" id="MemoryRegistry.get_nodes"><a class="viewcode-back" href="../../source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_nodes">[docs]</a>    <span class="k">def</span> <span class="nf">get_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memories</span></div></div>
+
+
+<span class="n">memory_registry</span> <span class="o">=</span> <span class="n">MemoryRegistry</span><span class="p">()</span>
 </pre></div>
 
            </div>
