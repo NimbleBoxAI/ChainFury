@@ -71,7 +71,7 @@ class Var:
         self.loc = loc  # this is the location from which this value is extracted
 
     def __repr__(self) -> str:
-        return f"Var({'*' if self.required else ''}'{self.name}', type={self.type}, items={self.items}, additionalProperties={self.additionalProperties})"
+        return f"Var({'*' if self.required else ''}name='{self.name}', type='{self.type}', items={self.items}, additionalProperties={self.additionalProperties})"
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialise this Var to a dictionary that can be JSON serialised and sent to the client.
@@ -176,7 +176,7 @@ def pyannotation_to_json_schema(
         allow_any (bool): Whether to allow the `Any` type.
         allow_exc (bool): Whether to allow the `Exception` type.
         allow_none (bool): Whether to allow the `None` type.
-        trace (bool, optional): Adds verbosity the schema generation. Defaults to False.
+        trace (bool, optional): Adds verbosity the schema generation also set FURY_LOG_LEVEL='debug'. Defaults to False.
 
     Returns:
         Var: The converted annotation.
@@ -478,26 +478,42 @@ def extract_jinja_indices(data: Union[str, List, Dict[str, Any]], current_index=
     return indices
 
 
-def get_value_by_keys(obj, keys) -> Any:
+def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
     """Takes in an arbitrary nested object and returns the value at the location specified by the keys.
 
     Args:
         obj (Union[List, Dict[str, Any]]): The nested object.
         keys (Union[str, List[str], Tuple[str, ...]]): The keys. See `extract_jinja_indices` for examples.
+        _first_sentinal (bool, optional): flag to tell if this is the first input or not, user should not use this. Defaults to False.
 
     Returns:
         Any: The value at the location specified by the keys.
     """
     if not keys:
         return obj
+
     keys = (keys,) if not isinstance(keys, (list, tuple)) else keys
     key = keys[0]
+
+    if key == "*":
+        if not _first_sentinal:
+            raise ValueError("Cannot use wildcard '*' as first key")
+
+        # If the key is "*", apply the subsequent keys to all elements in the current list or dictionary.
+        if isinstance(obj, list):
+            return [get_value_by_keys(elem, keys[1:], _first_sentinal=True) for elem in obj]
+        elif isinstance(obj, dict):
+            return {k: get_value_by_keys(v, keys[1:], _first_sentinal=True) for k, v in obj.items()}
+
     if isinstance(obj, dict):
-        return get_value_by_keys(obj.get(key), keys[1:])
-    elif isinstance(obj, (list, tuple)):
+        return get_value_by_keys(obj.get(key), keys[1:], _first_sentinal=True)
+    elif isinstance(obj, (tuple, list)):
+        if not type(key) == int:
+            raise ValueError(f"Cannot use key '{key}' on a list")
         key = int(key)
         if isinstance(key, int) and 0 <= key < len(obj):
-            return get_value_by_keys(obj[key], keys[1:])
+            return get_value_by_keys(obj[key], keys[1:], _first_sentinal=True)
+
     return None
 
 
@@ -616,6 +632,8 @@ class NodeType:
     """constant for the programatic node type"""
     AI = "ai-powered"
     """constant for the AI node type"""
+    MEMORY = "memory"
+    """constant for the memory node type"""
 
 
 class Node:
@@ -643,12 +661,9 @@ class Node:
             tags (List[str], optional): The tags for the node. Defaults to [].
         """
         # some bacic checks
-        if type == NodeType.AI:
-            pass
-        elif type == NodeType.PROGRAMATIC:
-            pass
-        else:
-            raise ValueError(f"Invalid node type: {type}, see Node.types for valid types")
+        _valid_types = [getattr(NodeType, x) for x in dir(NodeType) if not x.startswith("__")]
+        if type not in _valid_types:
+            raise ValueError(f"Invalid node type: {type}, {_valid_types}")
 
         # set the values
         self.id = id

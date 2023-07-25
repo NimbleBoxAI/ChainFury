@@ -1,4 +1,4 @@
-echo "######\n>      python3 -m stories.fury_form\n######" && python3 -m stories.fury_form
+echo "######\n>      python3 -m stories.test_core\n######" && python3 -m stories.test_core --verbose
 
 echo "######\n>      python3 -m stories.fury_core nodes callm\n######" && python3 -m stories.fury_core nodes callm
 echo "######\n>      python3 -m stories.fury_core nodes callai\n######" && python3 -m stories.fury_core nodes callai

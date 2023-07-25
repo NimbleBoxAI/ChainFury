@@ -551,15 +551,141 @@ ai_actions_registry = AIActionsRegistry()
 `AIAction` instances. This is used by the server to serve the registered actions.
 """
 
-# Eventually build memory registry like the actions registry
-#
-# class Memory:
-#     def __init__(self, memory_id):
-#         self.node = Node(id=f"cf-memory-{memory_id}", type=Node.types.MEMORY)
-#
-#     # user can subclass this and override the following functions
-#     def get(self, key: str):
-#         ...
-#
-#     def put(self, key: str, value: Any):
-#         ...
+DEFAULT_MEMORY_CONSTANTS = {
+    "openai-embedding": {
+        "embedding_model_key": "input_strings",
+        "embedding_model_params": {
+            "model": "text-embedding-ada-002",
+        },
+        "translation_layer": {
+            "embeddings": ["data", "*", "embedding"],
+        },
+    }
+}
+
+
+class Memory:
+    VECTOR = "vector"
+    """constant for vector DB"""
+
+    fields_model = [
+        Var(name="items", type="array", items=[Var(type="string")], required=True),
+        Var(name="embedding_model", type="string", required=True),
+        Var(name="embedding_model_params", type="object", additionalProperties=Var(type="string")),
+        Var(name="embedding_model_key", type="string"),
+        Var(name="translation_layer", type="object", additionalProperties=Var(type="string")),
+    ]
+
+    def __init__(self, node_id: str, fn: object, vector_key: str):
+        self.node_id = node_id
+        self.vector_key = vector_key
+        self.fields_fn = func_to_vars(fn)
+        self.fields = self.fields_fn + self.fields_model
+
+    def vector_call(self):
+        # in this case we first need to call the model to get the vectors which will be passed to the underlying function
+        pass
+
+    def __call__(self, **data: Dict[str, Any]) -> Any:
+        # the first thing we have to do is get the data for the model. This is actually a very hard problem because this
+        # function needs to call some other arbitrary function where we know the inputs to this function "items" but we
+        # do not know which variable to pass this to in the undelying model's function. Thus we need to take in a huge
+        # amount of things as more inputs ("embedding_model_key", "embedding_model_params"). Then we don't even know
+        # what the inputs to the underlying DB functionbare going to be, in which case we also need to add things like
+        # the translation that needs to be done ("translation_layer"). This makes the number of inputs a lot but
+        # ultimately is required to do the job for robust-ness. Which is why we provide a default for openai-embedding
+        # model. For any other model user will need to pass all the information.
+        model_data: Dict[str, Any] = {}
+        for f in self.fields_model:
+            if f.required and f.name not in data:
+                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
+            if f.name in data:
+                model_data[f.name] = data.pop(f.name)
+        model_id = model_data.get("embedding_model")
+        _default = DEFAULT_MEMORY_CONSTANTS.get(model_id, {})
+        if _default:
+            model_data = {**_default, **model_data}
+        else:
+            req_keys = [x.name for x in self.fields_model[2:]]
+            if not all([x in model_data for x in req_keys]):
+                raise Exception(f"Model {model_id} requires {req_keys} to be passed")
+        model_key: str = model_data.get("embedding_model_key")
+        model = model_registry.get(model_id)
+        embeddings, err = model(
+            model_data={
+                model_key: model_data.get("items"),
+                **model_data.get("model_params", {}),
+            }
+        )
+        if err:
+            logger.error("error:", err)
+            logger.error("traceback:", embeddings)
+            raise err
+
+        # now that we have all the embeddings ready we now need to translate it to be fed into the DB function
+
+        # create the dictionary to call the underlying function
+        db_data = {}
+        for f in self.fields_fn:
+            if f.required and f.name not in data:
+                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
+            if f.name in data:
+                db_data[f.name] = data.pop(f.name)
+        return None
+
+
+class MemoryRegistry:
+    def __init__(self) -> None:
+        self._memories = {}
+
+    def register_write(
+        self,
+        component_name: str,
+        fn: object,
+        outputs: Dict[str, Any],
+        vector_key: str,
+        description: str = "",
+        tags: List[str] = [],
+    ) -> Node:
+        node_id = f"{component_name}-write"
+        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key)
+        output_fields = func_to_return_vars(fn, returns=outputs)
+        node = Node(
+            id=node_id,
+            fn=mem_fn,
+            type=Node.types.MEMORY,
+            fields=mem_fn.fields,
+            outputs=output_fields,
+            description=description,
+            tags=tags,
+        )
+        self._memories[node_id] = node
+        return node
+
+    def register_read(
+        self,
+        component_name: str,
+        fn: object,
+        outputs: Dict[str, Any],
+        action_name: str = "",
+        description: str = "",
+        tags: List[str] = [],
+    ) -> Node:
+        node_id = f"{component_name}-read"
+        pass
+
+    def get_write(self, node_id: str) -> Optional[Node]:
+        out = self._memories.get(node_id + "-write", None)
+        if out is None:
+            raise ValueError(f"Memory '{node_id}' not found")
+        # print(out)
+        return out
+        # return Node.from_dict(copy.deepcopy(out.to_dict()))
+
+    def get_nodes(
+        self,
+    ):
+        return self._memories
+
+
+memory_registry = MemoryRegistry()
