@@ -22,6 +22,13 @@ def _get_openai_token() -> str:
     return openai_token
 
 
+def _get_cf_token() -> str:
+    cf_token = os.environ.get("CF_TOKEN", "")
+    if not cf_token:
+        raise ValueError("CF_TOKEN token not found")
+    return cf_token
+
+
 class _Nodes:
     def callp(self, fail: bool = False):
         """Call a programatic action"""
@@ -30,7 +37,7 @@ class _Nodes:
         data = {
             "method": "get",
             "url": "http://127.0.0.1:8000/api/v1/fury/components/",
-            "headers": {"token": "my-booomerang-token"},
+            "headers": {"token": _get_cf_token()},
         }
         if fail:
             data["some-key"] = "some-value"
@@ -114,7 +121,7 @@ class _Chain:
             {
                 "method": "GET",
                 "url": "http://127.0.0.1:8000/api/v1/fury/",
-                "headers": {"token": "booboo"},
+                "headers": {"token": _get_cf_token()},
                 "pattern": "JWT",
                 "repl": "booboo-hooooo",
             },
@@ -174,7 +181,7 @@ class _Chain:
             {
                 "method": "get",
                 "url": "http://127.0.0.1:8000/api/v1/fury/",
-                "headers": {"token": "booboo"},
+                "headers": {"token": _get_cf_token()},
                 "openai_api_key": _get_openai_token(),
             }
         )

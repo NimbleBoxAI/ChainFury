@@ -108,3 +108,13 @@ def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> D
                 logger.info(f"Retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait for the calculated delay
     raise Exception("This should never happen")
+
+
+def folder(x: str) -> str:
+    """get the folder of this file path"""
+    return os.path.split(os.path.abspath(x))[0]
+
+
+def joinp(x: str, *args) -> str:
+    """convienience function for os.path.join"""
+    return os.path.join(x, *args)

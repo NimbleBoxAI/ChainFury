@@ -1,34 +1,20 @@
-from chainfury.components.openai import openai_chat, openai_completion
-from chainfury.components.serper import serper_api
-from chainfury.components.stability import (
-    stability_text_to_image,
-    # stability_image_to_image,
-    # stability_image_to_image_masking,
-    # stability_image_to_image_upscale,
-)
-from chainfury.components.functional import (
-    call_api_requests,
-    regex_search,
-    regex_substitute,
-)
-from chainfury.components.nbx import (
-    nbx_chat_api,
-)
+import os
+import importlib
 
-import chainfury.components.ai_actions
+from chainfury.utils import logger
+from chainfury.utils import folder, joinp
 
-__all__ = [
-    # all the included models
-    "openai_chat",
-    "openai_completion",
-    "stability_text_to_image",
-    # "stability_image_to_image",
-    # "stability_image_to_image_masking",
-    # "stability_image_to_image_upscale",
-    #
-    # functional things
-    "call_api_requests",
-    "regex_search",
-    "regex_substitute",
-    "serper_api",
-]
+
+all_items = set()
+for p in os.listdir(folder(__file__)):
+    if p.startswith("_") or p in ["functional", "ai_actions"]:
+        continue
+    if os.path.isdir(joinp(folder(__file__), p)):
+        mod = importlib.import_module(f"chainfury.components.{p}")
+        logger.debug(f"Adding file: {mod.__file__}")
+        all_items.add(p)
+all_items = list(all_items)
+
+# do this after the above components are loaded
+from chainfury.components.functional import *
+from chainfury.components.ai_actions import *

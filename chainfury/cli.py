@@ -7,6 +7,8 @@ from chainfury import Chain
 from chainfury.utils import logger
 from chainfury.client import get_client
 from chainfury.version import __version__
+from chainfury.components import all_items
+from chainfury.agent import model_registry, programatic_actions_registry, memory_registry
 
 
 def help():
@@ -95,6 +97,21 @@ def run(
 def main():
     Fire(
         {
+            "comp": {
+                "all": lambda: print(all_items),
+                "model": {
+                    "list": list(model_registry.get_models()),
+                    "all": model_registry.get_models(),
+                },
+                "prog": {
+                    "list": list(programatic_actions_registry.get_nodes()),
+                    "all": programatic_actions_registry.get_nodes(),
+                },
+                "memory": {
+                    "list": list(memory_registry.get_nodes()),
+                    "all": memory_registry.get_nodes(),
+                },
+            },
             "help": help,
             "run": run,
             "version": lambda: print(
