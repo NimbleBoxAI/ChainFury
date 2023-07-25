@@ -330,7 +330,7 @@ class AIAction:
         _data = {}
         for f in self.fields:
             if f.required and f.name not in data:
-                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
+                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
             if f.name in data:
                 _data[f.name] = data.pop(f.name)
 
@@ -578,13 +578,10 @@ class Memory:
 
     def __init__(self, node_id: str, fn: object, vector_key: str):
         self.node_id = node_id
+        self.fn = fn
         self.vector_key = vector_key
         self.fields_fn = func_to_vars(fn)
         self.fields = self.fields_fn + self.fields_model
-
-    def vector_call(self):
-        # in this case we first need to call the model to get the vectors which will be passed to the underlying function
-        pass
 
     def __call__(self, **data: Dict[str, Any]) -> Any:
         # the first thing we have to do is get the data for the model. This is actually a very hard problem because this
@@ -595,43 +592,52 @@ class Memory:
         # the translation that needs to be done ("translation_layer"). This makes the number of inputs a lot but
         # ultimately is required to do the job for robust-ness. Which is why we provide a default for openai-embedding
         # model. For any other model user will need to pass all the information.
-        model_data: Dict[str, Any] = {}
+        model_fields: Dict[str, Any] = {}
         for f in self.fields_model:
             if f.required and f.name not in data:
-                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
+                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
             if f.name in data:
-                model_data[f.name] = data.pop(f.name)
-        model_id = model_data.get("embedding_model")
-        _default = DEFAULT_MEMORY_CONSTANTS.get(model_id, {})
-        if _default:
-            model_data = {**_default, **model_data}
+                model_fields[f.name] = data.pop(f.name)
+
+        model_data = {**model_fields.get("embedding_model_params", {})}
+        model_id = model_fields.pop("embedding_model")
+        embedding_model_default_config = DEFAULT_MEMORY_CONSTANTS.get(model_id, {})
+        if embedding_model_default_config:
+            model_data = {**embedding_model_default_config.get("embedding_model_params", {}), **model_data}
+            model_key = embedding_model_default_config.get("embedding_model_key", "items") or model_data.get("embedding_model_key")
+            model_fields["translation_layer"] = model_fields.get("translation_layer") or embedding_model_default_config.get(
+                "translation_layer"
+            )
         else:
             req_keys = [x.name for x in self.fields_model[2:]]
-            if not all([x in model_data for x in req_keys]):
+            if not all([x in model_fields for x in req_keys]):
                 raise Exception(f"Model {model_id} requires {req_keys} to be passed")
-        model_key: str = model_data.get("embedding_model_key")
+            model_key = model_fields.get("embedding_model_key")
+            model_data = {**model_fields.get("embedding_model_params", {}), **model_data}
+        model_data[model_key] = model_fields.pop("items")  # type: ignore
         model = model_registry.get(model_id)
-        embeddings, err = model(
-            model_data={
-                model_key: model_data.get("items"),
-                **model_data.get("model_params", {}),
-            }
-        )
+        embeddings, err = model(model_data=model_data)
         if err:
-            logger.error("error:", err)
-            logger.error("traceback:", embeddings)
+            logger.error(f"error: {err}")
+            logger.error(f"traceback: {embeddings}")
             raise err
 
         # now that we have all the embeddings ready we now need to translate it to be fed into the DB function
+        translated_data = {}
+        for k, v in model_fields.get("translation_layer", {}).items():
+            translated_data[k] = get_value_by_keys(embeddings, v)
 
         # create the dictionary to call the underlying function
         db_data = {}
         for f in self.fields_fn:
-            if f.required and f.name not in data:
-                raise Exception(f"Field {f.name} is required in {self.node_id} but not present")
+            if f.required and not (f.name in data or f.name in translated_data):
+                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
             if f.name in data:
                 db_data[f.name] = data.pop(f.name)
-        return None
+            if f.name in translated_data:
+                db_data[f.name] = translated_data.pop(f.name)
+        out, err = self.fn(**db_data)  # type: ignore
+        return out, err
 
 
 class MemoryRegistry:
@@ -667,24 +673,38 @@ class MemoryRegistry:
         component_name: str,
         fn: object,
         outputs: Dict[str, Any],
-        action_name: str = "",
+        vector_key: str,
         description: str = "",
         tags: List[str] = [],
     ) -> Node:
         node_id = f"{component_name}-read"
-        pass
+        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key)
+        output_fields = func_to_return_vars(fn, returns=outputs)
+        node = Node(
+            id=node_id,
+            fn=mem_fn,
+            type=Node.types.MEMORY,
+            fields=mem_fn.fields,
+            outputs=output_fields,
+            description=description,
+            tags=tags,
+        )
+        self._memories[node_id] = node
+        return node
 
     def get_write(self, node_id: str) -> Optional[Node]:
         out = self._memories.get(node_id + "-write", None)
         if out is None:
             raise ValueError(f"Memory '{node_id}' not found")
-        # print(out)
         return out
-        # return Node.from_dict(copy.deepcopy(out.to_dict()))
 
-    def get_nodes(
-        self,
-    ):
+    def get_read(self, node_id: str) -> Optional[Node]:
+        out = self._memories.get(node_id + "-read", None)
+        if out is None:
+            raise ValueError(f"Memory '{node_id}' not found")
+        return out
+
+    def get_nodes(self):
         return self._memories
 
 

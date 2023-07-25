@@ -40,5 +40,6 @@ You can get all the environment variables in
    :maxdepth: 2
    :caption: Databases:
 
+   chainfury.components.qdrant
    chainfury.components.redis
 

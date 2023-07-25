@@ -62,7 +62,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.DoNotRetryException"><code class="docutils literal notranslate"><span class="pre">DoNotRetryException</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.UnAuthException"><code class="docutils literal notranslate"><span class="pre">UnAuthException</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.exponential_backoff"><code class="docutils literal notranslate"><span class="pre">exponential_backoff()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.folder"><code class="docutils literal notranslate"><span class="pre">folder()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.get_logger"><code class="docutils literal notranslate"><span class="pre">get_logger()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.joinp"><code class="docutils literal notranslate"><span class="pre">joinp()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.logger"><code class="docutils literal notranslate"><span class="pre">logger</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.store_blob"><code class="docutils literal notranslate"><span class="pre">store_blob()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.utils.terminal_top_with_text"><code class="docutils literal notranslate"><span class="pre">terminal_top_with_text()</span></code></a></li>
@@ -163,9 +165,21 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="chainfury.utils.folder">
+<span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/chainfury/utils.html#folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.folder" title="Permalink to this definition"></a></dt>
+<dd><p>get the folder of this file path</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="chainfury.utils.get_logger">
 <span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">get_logger</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Logger</span></span></span><a class="reference internal" href="../_modules/chainfury/utils.html#get_logger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.get_logger" title="Permalink to this definition"></a></dt>
 <dd><p>Returns a logger object</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="chainfury.utils.joinp">
+<span class="sig-prename descclassname"><span class="pre">chainfury.utils.</span></span><span class="sig-name descname"><span class="pre">joinp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/chainfury/utils.html#joinp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.utils.joinp" title="Permalink to this definition"></a></dt>
+<dd><p>convienience function for os.path.join</p>
 </dd></dl>
 
 <dl class="py data">

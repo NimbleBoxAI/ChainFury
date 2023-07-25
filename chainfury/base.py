@@ -799,8 +799,8 @@ class Node:
                 raise err
 
             # this is where we have to polish this outgoing result into the structure as configured in self.outputs
-            # logger.debug("> fnout: ", out)
-            # logger.debug("OUTPUTS:", self.outputs)
+            logger.debug(f"> fn_out: {out}")
+            logger.debug(f"> OUTPUTS: {self.outputs}")
             for o in self.outputs:
                 # logger.debug("  OP:", o.name, o._loc)
                 o.set_value(get_value_by_keys(out, o.loc))

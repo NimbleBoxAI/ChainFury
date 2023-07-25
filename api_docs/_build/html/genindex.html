@@ -100,6 +100,7 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -116,6 +117,8 @@
       <li><a href="source/chainfury.agent.html#chainfury.agent.AIAction.__call__">__call__() (chainfury.agent.AIAction method)</a>
 
       <ul>
+        <li><a href="source/chainfury.agent.html#chainfury.agent.Memory.__call__">(chainfury.agent.Memory method)</a>
+</li>
         <li><a href="source/chainfury.base.html#chainfury.base.Chain.__call__">(chainfury.base.Chain method)</a>
 </li>
         <li><a href="source/chainfury.base.html#chainfury.base.Model.__call__">(chainfury.base.Model method)</a>
@@ -209,8 +212,6 @@
         <li><a href="source/chainfury.components.ai_actions.html#module-chainfury.components.ai_actions">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     chainfury.components.const
 
@@ -218,6 +219,8 @@
         <li><a href="source/chainfury.components.const.html#module-chainfury.components.const">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     chainfury.components.functional
 
@@ -237,6 +240,13 @@
 
       <ul>
         <li><a href="source/chainfury.components.openai.html#module-chainfury.components.openai">module</a>
+</li>
+      </ul></li>
+      <li>
+    chainfury.components.qdrant
+
+      <ul>
+        <li><a href="source/chainfury.components.qdrant.html#module-chainfury.components.qdrant">module</a>
 </li>
       </ul></li>
       <li>
@@ -281,6 +291,8 @@
         <li><a href="source/chainfury.version.html#module-chainfury.version">module</a>
 </li>
       </ul></li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.ComponentMissingError">ComponentMissingError</a>
+</li>
       <li><a href="source/chainfury.client.html#chainfury.client.create_new_chain">create_new_chain() (in module chainfury.client)</a>
 </li>
   </ul></td>
@@ -336,6 +348,10 @@
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.CFData">FENode.CFData (class in chainfury.types)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.Position">FENode.Position (class in chainfury.types)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.Memory.fields_model">fields_model (chainfury.agent.Memory attribute)</a>
+</li>
+      <li><a href="source/chainfury.utils.html#chainfury.utils.folder">folder() (in module chainfury.utils)</a>
 </li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.AIAction.from_dict">from_dict() (chainfury.agent.AIAction class method)</a>
 
@@ -393,18 +409,22 @@
         <li><a href="source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_count_for_nodes">(chainfury.agent.ProgramaticActionsRegistry method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.utils.html#chainfury.utils.get_logger">get_logger() (in module chainfury.utils)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.agent.html#chainfury.agent.ModelRegistry.get_models">get_models() (chainfury.agent.ModelRegistry method)</a>
 </li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_nodes">get_nodes() (chainfury.agent.AIActionsRegistry method)</a>
 
       <ul>
+        <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_nodes">(chainfury.agent.MemoryRegistry method)</a>
+</li>
         <li><a href="source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry.get_nodes">(chainfury.agent.ProgramaticActionsRegistry method)</a>
 </li>
       </ul></li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_read">get_read() (chainfury.agent.MemoryRegistry method)</a>
+</li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.AIActionsRegistry.get_tags">get_tags() (chainfury.agent.AIActionsRegistry method)</a>
 
       <ul>
@@ -414,6 +434,8 @@
 </li>
       </ul></li>
       <li><a href="source/chainfury.base.html#chainfury.base.get_value_by_keys">get_value_by_keys() (in module chainfury.base)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry.get_write">get_write() (chainfury.agent.MemoryRegistry method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -455,10 +477,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.base.html#chainfury.base.jinja_schema_to_vars">jinja_schema_to_vars() (in module chainfury.base)</a>
 </li>
-      <li><a href="source/chainfury.components.functional.html#chainfury.components.functional.json_translator">json_translator() (in module chainfury.components.functional)</a>
+      <li><a href="source/chainfury.utils.html#chainfury.utils.joinp">joinp() (in module chainfury.utils)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.components.functional.html#chainfury.components.functional.json_translator">json_translator() (in module chainfury.components.functional)</a>
+</li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.AIAction.JTYPE">JTYPE (chainfury.agent.AIAction attribute)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.jtype_to_vars">jtype_to_vars() (in module chainfury.base)</a>
@@ -482,6 +506,12 @@
       <li><a href="source/chainfury.types.html#chainfury.types.Dag.main_in">main_in (chainfury.types.Dag attribute)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.Dag.main_out">main_out (chainfury.types.Dag attribute)</a>
+</li>
+      <li><a href="source/chainfury.base.html#chainfury.base.NodeType.MEMORY">MEMORY (chainfury.base.NodeType attribute)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.Memory">Memory (class in chainfury.agent)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry">MemoryRegistry (class in chainfury.agent)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.Model">Model (class in chainfury.base)</a>
 </li>
@@ -512,6 +542,8 @@
         <li><a href="source/chainfury.components.nbx.html#module-chainfury.components.nbx">chainfury.components.nbx</a>
 </li>
         <li><a href="source/chainfury.components.openai.html#module-chainfury.components.openai">chainfury.components.openai</a>
+</li>
+        <li><a href="source/chainfury.components.qdrant.html#module-chainfury.components.qdrant">chainfury.components.qdrant</a>
 </li>
         <li><a href="source/chainfury.components.redis.html#module-chainfury.components.redis">chainfury.components.redis</a>
 </li>
@@ -558,9 +590,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.components.openai.html#chainfury.components.openai.openai_chat">openai_chat() (in module chainfury.components.openai)</a>
 </li>
+      <li><a href="source/chainfury.components.openai.html#chainfury.components.openai.openai_completion">openai_completion() (in module chainfury.components.openai)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="source/chainfury.components.openai.html#chainfury.components.openai.openai_completion">openai_completion() (in module chainfury.components.openai)</a>
+      <li><a href="source/chainfury.components.openai.html#chainfury.components.openai.openai_embedding">openai_embedding() (in module chainfury.components.openai)</a>
 </li>
       <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.OPENAI_TOKEN">OPENAI_TOKEN() (chainfury.components.const.Env method)</a>
 </li>
@@ -570,14 +604,18 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.PINECONE_API_KEY">PINECONE_API_KEY() (chainfury.components.const.Env method)</a>
+</li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.PINECONE_ENV">PINECONE_ENV() (chainfury.components.const.Env method)</a>
+</li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.position">position (chainfury.types.FENode attribute)</a>
 </li>
       <li><a href="source/chainfury.types.html#chainfury.types.FENode.position_absolute">position_absolute (chainfury.types.FENode attribute)</a>
 </li>
-      <li><a href="source/chainfury.base.html#chainfury.base.NodeType.PROGRAMATIC">PROGRAMATIC (chainfury.base.NodeType attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.base.html#chainfury.base.NodeType.PROGRAMATIC">PROGRAMATIC (chainfury.base.NodeType attribute)</a>
+</li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.programatic_actions_registry">programatic_actions_registry (in module chainfury.agent)</a>
 </li>
       <li><a href="source/chainfury.agent.html#chainfury.agent.ProgramaticActionsRegistry">ProgramaticActionsRegistry (class in chainfury.agent)</a>
@@ -585,6 +623,22 @@
       <li><a href="source/chainfury.base.html#chainfury.base.put_value_by_keys">put_value_by_keys() (in module chainfury.base)</a>
 </li>
       <li><a href="source/chainfury.base.html#chainfury.base.pyannotation_to_json_schema">pyannotation_to_json_schema() (in module chainfury.base)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.QDRANT_API_KEY">QDRANT_API_KEY() (chainfury.components.const.Env method)</a>
+</li>
+      <li><a href="source/chainfury.components.const.html#chainfury.components.const.Env.QDRANT_API_URL">QDRANT_API_URL() (chainfury.components.const.Env method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.components.qdrant.html#chainfury.components.qdrant.qdrant_read">qdrant_read() (in module chainfury.components.qdrant)</a>
+</li>
+      <li><a href="source/chainfury.components.qdrant.html#chainfury.components.qdrant.qdrant_write">qdrant_write() (in module chainfury.components.qdrant)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -606,6 +660,10 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry.register_read">register_read() (chainfury.agent.MemoryRegistry method)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.MemoryRegistry.register_write">register_write() (chainfury.agent.MemoryRegistry method)</a>
+</li>
       <li><a href="source/chainfury.cli.html#chainfury.cli.run">run() (in module chainfury.cli)</a>
 </li>
   </ul></td>
@@ -717,6 +775,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="source/chainfury.base.html#chainfury.base.Var">Var (class in chainfury.base)</a>
+</li>
+      <li><a href="source/chainfury.agent.html#chainfury.agent.Memory.VECTOR">VECTOR (chainfury.agent.Memory attribute)</a>
 </li>
   </ul></td>
 </tr></table>

@@ -1,4 +1,4 @@
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 _major, _minor, _patch = __version__.split(".")
 _major = int(_major)
 _minor = int(_minor)

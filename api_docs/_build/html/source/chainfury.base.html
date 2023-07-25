@@ -86,6 +86,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#chainfury.base.NodeType"><code class="docutils literal notranslate"><span class="pre">NodeType</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#chainfury.base.NodeType.AI"><code class="docutils literal notranslate"><span class="pre">NodeType.AI</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chainfury.base.NodeType.MEMORY"><code class="docutils literal notranslate"><span class="pre">NodeType.MEMORY</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#chainfury.base.NodeType.PROGRAMATIC"><code class="docutils literal notranslate"><span class="pre">NodeType.PROGRAMATIC</span></code></a></li>
 </ul>
 </li>
@@ -566,6 +567,12 @@ response is the final response or not.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="chainfury.base.NodeType.MEMORY">
+<span class="sig-name descname"><span class="pre">MEMORY</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'memory'</span></em><a class="headerlink" href="#chainfury.base.NodeType.MEMORY" title="Permalink to this definition"></a></dt>
+<dd><p>constant for the memory node type</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="chainfury.base.NodeType.PROGRAMATIC">
 <span class="sig-name descname"><span class="pre">PROGRAMATIC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'programatic'</span></em><a class="headerlink" href="#chainfury.base.NodeType.PROGRAMATIC" title="Permalink to this definition"></a></dt>
 <dd><p>constant for the programatic node type</p>
@@ -723,13 +730,14 @@ response is the final response or not.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="chainfury.base.get_value_by_keys">
-<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">get_value_by_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#get_value_by_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.get_value_by_keys" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">chainfury.base.</span></span><span class="sig-name descname"><span class="pre">get_value_by_keys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_first_sentinal</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Any</span></span></span><a class="reference internal" href="../_modules/chainfury/base.html#get_value_by_keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chainfury.base.get_value_by_keys" title="Permalink to this definition"></a></dt>
 <dd><p>Takes in an arbitrary nested object and returns the value at the location specified by the keys.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>obj</strong> (<em>Union</em><em>[</em><em>List</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – The nested object.</p></li>
 <li><p><strong>keys</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>...</em><em>]</em><em>]</em>) – The keys. See <cite>extract_jinja_indices</cite> for examples.</p></li>
+<li><p><strong>_first_sentinal</strong> (<em>bool</em><em>, </em><em>optional</em>) – flag to tell if this is the first input or not, user should not use this. Defaults to False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -802,7 +810,7 @@ clients.</p>
 <li><p><strong>allow_any</strong> (<em>bool</em>) – Whether to allow the <cite>Any</cite> type.</p></li>
 <li><p><strong>allow_exc</strong> (<em>bool</em>) – Whether to allow the <cite>Exception</cite> type.</p></li>
 <li><p><strong>allow_none</strong> (<em>bool</em>) – Whether to allow the <cite>None</cite> type.</p></li>
-<li><p><strong>trace</strong> (<em>bool</em><em>, </em><em>optional</em>) – Adds verbosity the schema generation. Defaults to False.</p></li>
+<li><p><strong>trace</strong> (<em>bool</em><em>, </em><em>optional</em>) – Adds verbosity the schema generation also set FURY_LOG_LEVEL=’debug’. Defaults to False.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
