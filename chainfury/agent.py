@@ -565,23 +565,49 @@ DEFAULT_MEMORY_CONSTANTS = {
 
 
 class Memory:
-    VECTOR = "vector"
-    """constant for vector DB"""
+    """Class to wrap the DB functions as a callable.
+
+    Args:
+        node_id (str): The id of the node
+        fn (object): The function that is used for this action
+        vector_key (str): The key for the vector in the DB
+        read_mode (bool, optional): If the function is a read function, if `False` then this is a write function.
+    """
 
     fields_model = [
-        Var(name="items", type="array", items=[Var(type="string")], required=True),
+        Var(name="items", type=[Var(type="string"), Var(type="array", items=[Var(type="string")])], required=True),
         Var(name="embedding_model", type="string", required=True),
         Var(name="embedding_model_params", type="object", additionalProperties=Var(type="string")),
         Var(name="embedding_model_key", type="string"),
         Var(name="translation_layer", type="object", additionalProperties=Var(type="string")),
     ]
+    """These are the fields that are used to map the input items to the embedding model, do not use directly"""
 
-    def __init__(self, node_id: str, fn: object, vector_key: str):
+    def __init__(self, node_id: str, fn: object, vector_key: str, read_mode: bool = False):
         self.node_id = node_id
         self.fn = fn
         self.vector_key = vector_key
+        self.read_mode = read_mode
         self.fields_fn = func_to_vars(fn)
         self.fields = self.fields_fn + self.fields_model
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the Memory object to a dict."""
+        return {
+            "node_id": self.node_id.split("-")[0],
+            "vector_key": self.vector_key,
+            "read_mode": self.read_mode,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        """Deserialize the Memory object from a dict."""
+        read_mode = data["read_mode"]
+        if read_mode:
+            fn = memory_registry.get_read(data["node_id"])
+        else:
+            fn = memory_registry.get_write(data["node_id"])
+        return fn
 
     def __call__(self, **data: Dict[str, Any]) -> Any:
         # the first thing we have to do is get the data for the model. This is actually a very hard problem because this
@@ -654,7 +680,7 @@ class MemoryRegistry:
         tags: List[str] = [],
     ) -> Node:
         node_id = f"{component_name}-write"
-        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key)
+        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key, read_mode=False)
         output_fields = func_to_return_vars(fn, returns=outputs)
         node = Node(
             id=node_id,
@@ -678,7 +704,7 @@ class MemoryRegistry:
         tags: List[str] = [],
     ) -> Node:
         node_id = f"{component_name}-read"
-        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key)
+        mem_fn = Memory(node_id=node_id, fn=fn, vector_key=vector_key, read_mode=True)
         output_fields = func_to_return_vars(fn, returns=outputs)
         node = Node(
             id=node_id,

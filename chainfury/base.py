@@ -702,13 +702,15 @@ class Node:
         Returns:
             Dict[str, Any]: The dictionary representation of the node.
         """
-        from chainfury.agent import AIAction
+        from chainfury.agent import AIAction, Memory
 
         fn = {}
         name = self.id
         if isinstance(self.fn, AIAction):
             fn = self.fn.to_dict(no_vars=True)
             name = fn.pop("action_name")
+        elif isinstance(self.fn, Memory):
+            fn = self.fn.to_dict()
 
         return {
             "id": self.id,
@@ -726,6 +728,7 @@ class Node:
 
         Args:
             data (Dict[str, Any]): The dictionary representation of the node.
+            verbose (bool, optional): Whether to print verbose logs. Defaults to False.
 
         Returns:
             Node: The node created from the dictionary.
@@ -738,14 +741,18 @@ class Node:
         if not fn:
             raise ValueError(f"Invalid fn: {fn}")
 
-        from chainfury.agent import AIAction
+        from chainfury.agent import AIAction, Memory
 
-        ai_action = AIAction.from_dict(fn)
+        node_type = data["type"]
+        if node_type == NodeType.AI:
+            fn = AIAction.from_dict(fn)
+        elif node_type == NodeType.MEMORY:
+            fn = Memory.from_dict(fn)
 
         return cls(
             id=data["id"],
-            type=data["type"],
-            fn=ai_action,
+            type=node_type,
+            fn=fn,
             description=data["description"],
             fields=fields,
             outputs=outputs,

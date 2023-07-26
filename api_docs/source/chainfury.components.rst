@@ -8,9 +8,16 @@ ecosystem. You can talk to the components directly but we recommend wrapping the
 You can get all the environment variables in 
 
 
+
 .. toctree::
    :maxdepth: 2
-   :caption: Models:
+   :caption: Constants
+
+   chainfury.components.const
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Models
 
    chainfury.components.openai
    chainfury.components.stability
@@ -18,20 +25,20 @@ You can get all the environment variables in
 
 .. toctree::
    :maxdepth: 2
-   :caption: Popular APIs:
+   :caption: Popular APIs
 
    chainfury.components.serper
 
 .. toctree::
    :maxdepth: 2
-   :caption: Actions:
+   :caption: Actions
 
    chainfury.components.ai_actions
    chainfury.components.functional
 
 .. toctree::
    :maxdepth: 2
-   :caption: Databases:
+   :caption: Databases
 
    chainfury.components.qdrant
    chainfury.components.redis
