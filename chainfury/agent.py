@@ -709,3 +709,7 @@ class MemoryRegistry:
 
 
 memory_registry = MemoryRegistry()
+"""
+`memory_registry` is a global instance of MemoryRegistry class. This is used to register and unregister Memory instances.
+This is what the user should use when they want to use the memory elements in their chain.
+"""
