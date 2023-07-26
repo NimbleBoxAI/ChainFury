@@ -69,21 +69,6 @@ app.include_router(langflow_router, prefix=c.API_URL + "/flow")
 ####################################################
 
 
-# templates = Jinja2Templates(directory="templates")
-templates = Jinja2Templates(directory=joinp(folder(__file__), "templates"))
-
-
-@app.get("/ui/{rest_of_path:path}")
-async def serve_spa(request: Request, rest_of_path: str):
-    return templates.TemplateResponse("index.html", {"request": request})
-
-
-if "static" not in os.listdir("./"):
-    # make static folder
-    logger.info("Static folder not found. Creating one...")
-    os.mkdir("static")
-
-
 # get https://chainfury.framer.website/ and serve on /
 @app.get("/")
 async def serve_farmer():
@@ -95,7 +80,16 @@ async def serve_farmer():
 
 
 # add static files
-app.mount("/", StaticFiles(directory=joinp(folder(__file__), "static")), name="assets")
+_static_fp = joinp(folder(__file__), "static")
+static = Jinja2Templates(directory=_static_fp)
+
+
+@app.get("/ui/{rest_of_path:path}")
+async def serve_spa(request: Request, rest_of_path: str):
+    return static.TemplateResponse("index.html", {"request": request})
+
+
+app.mount("/", StaticFiles(directory=_static_fp), name="assets")
 
 # warmup and initialize plugins
 get_phandler()

@@ -11,6 +11,7 @@ fi
 # build the project
 # Go into the client folder and build the project using yarn
 cd client
+yarn install
 yarn build
 
 # Go back to the root directory
@@ -27,7 +28,6 @@ fi
 
 mkdir static
 cp -r ../../client/dist/. static/.
-cp ../../client/dist/index.html templates/.
 
 # Go back to the root directory
 cd ../..
