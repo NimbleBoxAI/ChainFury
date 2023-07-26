@@ -146,4 +146,6 @@ notebooks/*
 stories/fury.json
 workers/
 private.sh
+api_docs/_build/
+api_docs/_static/
 cf
