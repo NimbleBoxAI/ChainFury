@@ -8,13 +8,6 @@ ecosystem. You can talk to the components directly but we recommend wrapping the
 You can get all the environment variables in 
 
 
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Constants:
-
-   chainfury.components.const
-
 .. toctree::
    :maxdepth: 2
    :caption: Models:
