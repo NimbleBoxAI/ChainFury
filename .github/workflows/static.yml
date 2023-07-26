@@ -44,6 +44,8 @@ jobs:
           python -m pip install .
           python -m pip install Sphinx==6.2.1
           python -m pip install sphinx-rtd-theme==1.2.2
+          cd server
+          python3 -m pip install .
 
       - name: Build docs
         run: |
