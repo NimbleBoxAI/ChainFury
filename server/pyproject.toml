@@ -6,7 +6,7 @@ authors = ["NimbleBox Engineering <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
 readme = "README.md"
 repository = "https://github.com/NimbleBoxAI/ChainFury"
-include = ["chainfury_server/static/*", "chainfury_server/static/*/*", "chainfury_server/templates/*"]
+include = ["chainfury_server/static/*", "chainfury_server/static/*/*"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"

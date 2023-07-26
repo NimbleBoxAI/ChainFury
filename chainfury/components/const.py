@@ -14,7 +14,8 @@ class Env:
     * OPENAI_TOKEN: OpenAI API token, see platform.openai.com
     * SERPER_API_KEY: Serper API key, see serper.dev/
     * STABILITY_KEY: Stability API key, see dreamstudio.ai
-    * PINECONE_API_KEY & PINECONE_ENVIRONMENT: Pinecone secrets, see pinecone.io
+    * PINECONE_API_KEY & PINECONE_ENVIRONMENT: Pinecone secrets, see https://pinecone.io/
+    * QDRANT_API_URL & QDRANT_API_KEY: Qdrant secrets, see https://qdrant.tech/
     """
 
     # when you want to use chainfury as a client you need to set the following vars
