@@ -13,8 +13,12 @@ complex chat applications using LLMs.
 
 .. code-block:: bash
 
+   # install the chainfury engine and client
    pip install chainfury
-   chainfury serve
+
+   # you can install the self hosted server as follows
+   pip install chainfury_server
+   python3 -m chainfury_server
 
 
 Read the latest blog posts:
@@ -32,6 +36,12 @@ Read the latest blog posts:
    usage
 
 .. toctree::
+   :maxdepth: 4
+   :caption: Contents:
+
+   examples/vector-db-use
+
+.. toctree::
    :maxdepth: 2
    :caption: Python APIs:
 
@@ -47,6 +57,16 @@ Read the latest blog posts:
    :caption: Integrations:
 
    source/chainfury.components
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Server:
+
+   cf_server/chainfury_server.api
+   cf_server/chainfury_server.commons
+   cf_server/chainfury_server.database_utils
+   cf_server/chainfury_server.engines
+   cf_server/chainfury_server.plugins
 
 Indices and tables
 ==================
