@@ -50,12 +50,12 @@ Read the latest blog posts:
    source/chainfury.base
    source/chainfury.client
    source/chainfury.utils
-   source/chainfury.version
 
 .. toctree::
    :maxdepth: 2
    :caption: Integrations:
 
+   source/chainfury.components.const
    source/chainfury.components
 
 .. toctree::
