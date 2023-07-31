@@ -1,5 +1,6 @@
 import requests
-from typing import Any, List, Union, Dict
+from pydantic import BaseModel
+from typing import Any, List, Union, Dict, Optional
 
 from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
 from chainfury.components.const import Env
@@ -111,6 +112,36 @@ model_registry.register(
 )
 
 
+class OpenAIChat(BaseModel):
+    """This model is used to chat with the OpenAI API"""
+
+    class Message(BaseModel):
+        role: str
+        content: str
+        name: Optional[str] = None
+        function_call: Optional[Union[str, Dict[str, str]]] = None
+
+    class Function(BaseModel):
+        name: str
+        description: Optional[str] = None
+        parameters: Dict[str, str]
+        function_call: Optional[str] = None
+
+    model: str
+    messages: List[Message]
+    functions: Optional[List[Function]] = None
+    temperature: Optional[float] = 1
+    top_p: Optional[float] = 1
+    n: Optional[int] = 1
+    stream: Optional[bool] = False
+    stop: Optional[Union[str, List[str]]] = None
+    max_tokens: Optional[int] = 2 << 32 - 1
+    presence_penalty: Optional[float] = 0
+    frequency_penalty: Optional[float] = 0
+    logit_bias: Optional[Dict[str, int]] = None
+    user: Optional[str] = None
+
+
 def openai_chat(
     model: str,
     messages: List[Dict[str, str]],
@@ -157,6 +188,11 @@ def openai_chat(
         openai_api_key = Secret(Env.OPENAI_TOKEN("")).value
     if not openai_api_key:
         raise Exception("OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function")
+
+    if not len(messages):
+        raise Exception("Messages cannot be empty")
+    if isinstance(messages[0], OpenAIChat.Message):
+        messages = [x.dict(skip_defaults=True) for x in messages]
 
     def _fn():
         r = requests.post(

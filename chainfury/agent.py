@@ -607,7 +607,7 @@ class Memory:
             fn = memory_registry.get_read(data["node_id"])
         else:
             fn = memory_registry.get_write(data["node_id"])
-        return fn
+        return fn.fn
 
     def __call__(self, **data: Dict[str, Any]) -> Any:
         # the first thing we have to do is get the data for the model. This is actually a very hard problem because this
@@ -731,7 +731,7 @@ class MemoryRegistry:
         return out
 
     def get_nodes(self):
-        return self._memories
+        return {k: v.to_dict() for k, v in self._memories.items()}
 
 
 memory_registry = MemoryRegistry()

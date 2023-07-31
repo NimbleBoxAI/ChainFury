@@ -37,9 +37,11 @@ Read the latest blog posts:
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents
+   :caption: Examples
 
    examples/vector-db-use
+   examples/stability-apis
+   examples/functional-chains
 
 .. toctree::
    :maxdepth: 2

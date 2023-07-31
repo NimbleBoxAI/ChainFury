@@ -141,6 +141,7 @@ memory_registry.register_write(
 def qdrant_read(
     embeddings: List[List[float]],
     collection_name: str,
+    cutoff_score: float = 0.0,
     limit: int = 3,
     offset: int = 0,
     qdrant_url: Secret = Secret(""),
@@ -148,7 +149,7 @@ def qdrant_read(
     qdrant_search_hnsw_ef: int = 0,
     qdrant_search_exact: bool = False,
     batch_search: bool = False,
-) -> Tuple[List[Dict[str, Union[float, int]]], Optional[Exception]]:
+) -> Tuple[Dict[str, List[Dict[str, Union[float, int]]]], Optional[Exception]]:
     """
     Read from the Qdrant DB using the Qdrant client. In order to use this access via the `memory_registry`:
 
@@ -174,6 +175,7 @@ def qdrant_read(
     Args:
         embeddings (List[List[float]]): list of embeddings
         collection_name (str): collection name
+        cutoff_score (float, optional): cutoff score. Defaults to 0.0.
         limit (int, optional): limit. Defaults to 3.
         offset (int, optional): offset. Defaults to 0.
         qdrant_url (Secret, optional): qdrant url or set env var `QDRANT_API_URL`.
@@ -228,8 +230,9 @@ def qdrant_read(
         offset=offset,
         search_params=search_params,
     )
+    out = [x for x in out if x.score > cutoff_score]
     res = [_x.dict(skip_defaults=False) for _x in out]
-    return res, None
+    return {"data": res}, None
 
 
 memory_registry.register_read(
