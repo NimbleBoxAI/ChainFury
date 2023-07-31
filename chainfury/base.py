@@ -497,7 +497,7 @@ def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
 
     if key == "*":
         if not _first_sentinal:
-            raise ValueError("Cannot use wildcard '*' as first key")
+            raise ValueError("gvk1: Cannot use wildcard '*' as first key")
 
         # If the key is "*", apply the subsequent keys to all elements in the current list or dictionary.
         if isinstance(obj, list):
@@ -508,8 +508,12 @@ def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
     if isinstance(obj, dict):
         return get_value_by_keys(obj.get(key), keys[1:], _first_sentinal=True)
     elif isinstance(obj, (tuple, list)):
+        try:
+            key = int(key)
+        except ValueError:
+            raise ValueError(f"gvk2: Cannot use key '{key}' on a list")
         if not type(key) == int:
-            raise ValueError(f"Cannot use key '{key}' on a list")
+            raise ValueError(f"gvk3: Cannot use key '{key}' on a list")
         key = int(key)
         if isinstance(key, int) and 0 <= key < len(obj):
             return get_value_by_keys(obj[key], keys[1:], _first_sentinal=True)
@@ -702,13 +706,15 @@ class Node:
         Returns:
             Dict[str, Any]: The dictionary representation of the node.
         """
-        from chainfury.agent import AIAction
+        from chainfury.agent import AIAction, Memory
 
         fn = {}
         name = self.id
         if isinstance(self.fn, AIAction):
             fn = self.fn.to_dict(no_vars=True)
             name = fn.pop("action_name")
+        elif isinstance(self.fn, Memory):
+            fn = self.fn.to_dict()
 
         return {
             "id": self.id,
@@ -726,6 +732,7 @@ class Node:
 
         Args:
             data (Dict[str, Any]): The dictionary representation of the node.
+            verbose (bool, optional): Whether to print verbose logs. Defaults to False.
 
         Returns:
             Node: The node created from the dictionary.
@@ -738,14 +745,18 @@ class Node:
         if not fn:
             raise ValueError(f"Invalid fn: {fn}")
 
-        from chainfury.agent import AIAction
+        from chainfury.agent import AIAction, Memory
 
-        ai_action = AIAction.from_dict(fn)
+        node_type = data["type"]
+        if node_type == NodeType.AI:
+            fn = AIAction.from_dict(fn)
+        elif node_type == NodeType.MEMORY:
+            fn = Memory.from_dict(fn)
 
         return cls(
             id=data["id"],
-            type=data["type"],
-            fn=ai_action,
+            type=node_type,
+            fn=fn,
             description=data["description"],
             fields=fields,
             outputs=outputs,
@@ -794,7 +805,9 @@ class Node:
                 print("Inputs:\n------")
                 print(pformat(data))
 
-            out, err = self.fn(**data)  # type: ignore
+            _out = self.fn(**data)  # type: ignore
+            out = _out[0] if isinstance(_out, tuple) else _out
+            err = _out[1] if isinstance(_out, tuple) and len(_out) > 1 else None
             if err:
                 raise err
 
@@ -813,6 +826,11 @@ class Node:
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
+
+    def forward(self, *args, **kwargs):
+        """This is a convinience method so users can subclass this and implement their own forward method while the
+        underlying processing implemented within __call__ method remain intact."""
+        return self(*args, **kwargs)
 
 
 #
@@ -1049,7 +1067,7 @@ class Chain:
             _data[edge.trg_node_var] = ir_value
 
         # then run the node
-        out, err = node(_data, print_thoughts=print_thoughts)
+        out, err = node.forward(_data, print_thoughts=print_thoughts)
         if err:
             logger.error(f"TRACE: {out}")
             raise err

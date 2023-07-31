@@ -30,20 +30,22 @@ Read the latest blog posts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
 
    install
    usage
 
 .. toctree::
    :maxdepth: 4
-   :caption: Contents:
+   :caption: Examples
 
    examples/vector-db-use
+   examples/stability-apis
+   examples/functional-chains
 
 .. toctree::
    :maxdepth: 2
-   :caption: Python APIs:
+   :caption: Python APIs
 
    source/chainfury.agent
    source/chainfury.cli
@@ -53,14 +55,14 @@ Read the latest blog posts:
 
 .. toctree::
    :maxdepth: 2
-   :caption: Integrations:
+   :caption: Integrations
 
    source/chainfury.components.const
    source/chainfury.components
 
 .. toctree::
    :maxdepth: 2
-   :caption: Server:
+   :caption: Server
 
    cf_server/chainfury_server.api
    cf_server/chainfury_server.commons
