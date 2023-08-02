@@ -42,6 +42,7 @@ Read the latest blog posts:
    examples/vector-db-use
    examples/stability-apis
    examples/functional-chains
+   examples/storing-private-data
 
 .. toctree::
    :maxdepth: 2

@@ -607,7 +607,10 @@ class Memory:
             fn = memory_registry.get_read(data["node_id"])
         else:
             fn = memory_registry.get_write(data["node_id"])
-        return fn.fn
+
+        # here we do return Memory type but instead of creating one we use a previously existing Node and return
+        # the fn for the Node which is ultimately this precise Memory object
+        return fn.fn  # type: ignore
 
     def __call__(self, **data: Dict[str, Any]) -> Any:
         # the first thing we have to do is get the data for the model. This is actually a very hard problem because this
