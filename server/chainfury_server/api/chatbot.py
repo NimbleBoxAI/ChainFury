@@ -25,6 +25,7 @@ class ChatBotDetails(BaseModel):
     created_at: datetime = None  # type: ignore
     engine: str = ""
     update_keys: List[str] = []
+    tag_id: str = ""
 
 
 # C: POST /chatbot/
@@ -61,6 +62,7 @@ def create_chatbot(
         dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
+        tag_id=chatbot_data.tag_id,
     )
     db.add(chatbot)
     db.commit()
@@ -75,6 +77,7 @@ def get_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
@@ -82,7 +85,10 @@ def get_chatbot(
     user = verify_user(db, username)
 
     # query the db
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
+    if tag_id:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
+    else:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -97,6 +103,7 @@ def update_chatbot(
     token: Annotated[str, Header()],
     id: str,
     chatbot_data: ChatBotDetails,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
@@ -115,7 +122,10 @@ def update_chatbot(
         return {"message": f"Invalid keys {unq_keys.difference(valid_keys)}"}
 
     # find and update
-    chatbot: ChatBot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
+    if tag_id:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
+    else:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -140,14 +150,17 @@ def delete_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
     username = get_user_from_jwt(token)
     user = verify_user(db, username)
-
     # find and delete
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
+    if tag_id:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
+    else:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -164,12 +177,24 @@ def list_chatbots(
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
     username = get_user_from_jwt(token)
     user = verify_user(db, username)
-
     # query the db
-    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
+    if tag_id:
+        chatbots = (
+            db.query(ChatBot)
+            .filter(ChatBot.deleted_at == None)
+            .filter(ChatBot.created_by == user.id)
+            .filter(ChatBot.tag_id == tag_id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+    else:
+        chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
+
     return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}

@@ -81,6 +81,7 @@ class ChatBot(Base):
     dag = Column(JSON)
     meta = Column(JSON)
     engine = Column(String(80), nullable=False)
+    tag_id = Column(String(80), nullable=True)
     created_at = Column(DateTime, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
 
