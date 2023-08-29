@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, List, Dict, Any
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, Query
 from fastapi.requests import Request
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -103,7 +103,7 @@ def update_chatbot(
     token: Annotated[str, Header()],
     id: str,
     chatbot_data: ChatBotDetails,
-    tag_id: str = "",
+    tag_id: Annotated[str, Query()] = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
@@ -150,7 +150,7 @@ def delete_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
-    tag_id: str = "",
+    tag_id: Annotated[str, Query()] = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
@@ -177,7 +177,7 @@ def list_chatbots(
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
-    tag_id: str = "",
+    tag_id: Annotated[str, Query()] = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
