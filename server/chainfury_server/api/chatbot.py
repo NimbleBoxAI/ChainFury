@@ -149,7 +149,7 @@ def delete_chatbot(
     user = verify_user(db, username)
 
     # find and delete
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
+    chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
