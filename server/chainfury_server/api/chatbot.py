@@ -142,14 +142,17 @@ def delete_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
     username = get_user_from_jwt(token)
     user = verify_user(db, username)
-
     # find and delete
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
+    if tag_id:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
+    else:
+        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
