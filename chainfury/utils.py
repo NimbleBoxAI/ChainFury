@@ -1,8 +1,12 @@
 import os
 import time
+import time
 import logging
+from uuid import uuid4
 from urllib.parse import quote
-from typing import Any, Dict
+from typing import Any, Dict, List, Union, Tuple
+
+from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 
 
 class CFEnv:
@@ -197,3 +201,35 @@ def folder(x: str) -> str:
 def joinp(x: str, *args) -> str:
     """convienience function for os.path.join"""
     return os.path.join(x, *args)
+
+
+"""
+Parallel processing
+"""
+
+
+def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20, _name: str = "") -> Union[Dict[Future, int], List[Any]]:
+    """
+    inputs is a list of tuples, each tuple is the input for single invocation of fn. order is preserved.
+
+    Args:
+        fn (function): The function to call
+        inputs (List[Tuple[Any]]): All the inputs to the function, can be a generator
+        wait (bool, optional): If true, wait for all the threads to finish, otherwise return a dict of futures. Defaults to True.
+        max_threads (int, optional): The maximum number of threads to use. Defaults to 20.
+        _name (str, optional): The name of the thread pool. Defaults to "".
+    """
+    _name = _name or str(uuid4())
+    results = [None for _ in range(len(inputs))]
+    with ThreadPoolExecutor(max_workers=max_threads, thread_name_prefix=_name) as exe:
+        _fn = lambda i, x: [i, fn(*x)]
+        futures = {exe.submit(_fn, i, x): i for i, x in enumerate(inputs)}
+        if not wait:
+            return futures
+        for future in as_completed(futures):
+            try:
+                i, res = future.result()
+                results[i] = res
+            except Exception as e:
+                raise e
+    return results

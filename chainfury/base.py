@@ -17,7 +17,7 @@ from chainfury.types import FENode
 class Secret(str):
     """This class just means that in Var it will be taken as a password field"""
 
-    def __init__(self, value):
+    def __init__(self, value = ""):
         self.value = value
 
 
@@ -715,6 +715,11 @@ class Node:
             name = fn.pop("action_name")
         elif isinstance(self.fn, Memory):
             fn = self.fn.to_dict()
+        elif callable(self.fn):
+            fn = {
+                "fn_name": self.fn.__name__,  # type: ignore
+                "fn_module": self.fn.__module__,
+            }
 
         return {
             "id": self.id,
@@ -752,6 +757,10 @@ class Node:
             fn = AIAction.from_dict(fn)
         elif node_type == NodeType.MEMORY:
             fn = Memory.from_dict(fn)
+        elif node_type == NodeType.PROGRAMATIC and isinstance(fn, dict):
+            import importlib
+
+            fn = getattr(importlib.import_module(fn["fn_module"]), fn["fn_name"])
 
         return cls(
             id=data["id"],
@@ -801,7 +810,7 @@ class Node:
             if not data_keys.issubset(template_keys):
                 raise ValueError(f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}")
             if print_thoughts:
-                print(terminal_top_with_text(f"Node: {self.id}"))
+                print(f"Node: {self.id}")
                 print("Inputs:\n------")
                 print(pformat(data))
 
@@ -1205,7 +1214,7 @@ class Chain:
         """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            assert self.main_in, "main_in not defined, pass dictionary input"
             data = {self.main_in: data}
         _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
         _data.update(data)

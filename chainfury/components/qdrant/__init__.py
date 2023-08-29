@@ -12,20 +12,33 @@ except ImportError:
 from chainfury import Secret, memory_registry, logger
 from chainfury.components.const import Env, ComponentMissingError
 
+# https://qdrant.tech/documentation/concepts/filtering
+# Must : "must" : AND
+# Should : "should" : OR
+# Must Not: "must_not" : NOT
+# Match: =
+# Match Any: IN
+# Match Except: NOT IN
 
 @lru_cache(maxsize=1)
-def _get_qdrant_client(url: str, api_key: str):
+def _get_qdrant_client(qdrant_url: Secret = Secret(), qdrant_api_key: Secret = Secret()):
     """Create a qdrant client and cache it
 
     Args:
-        url (str): qdrant url
-        api_key (str): qdrant api key
+        qdrant_url (Secret, optional): qdrant url or set env var `QDRANT_API_URL`.
+        qdrant_api_key (Secret, optional): qdrant api key or set env var `QDRANT_API_KEY`.
 
     Returns:
         qdrant_client.QdrantClient: qdrant client
     """
+    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
+    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
+    if not qdrant_url:
+        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
+    if not qdrant_api_key:
+        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
     logger.info("Creating Qdrant client")
-    return QdrantClient(url=url, api_key=api_key)
+    return QdrantClient(url=qdrant_url, api_key=qdrant_api_key)
 
 
 def qdrant_write(
@@ -77,12 +90,12 @@ def qdrant_write(
     # client check
     if not QDRANT_CLIENT_INSTALLED:
         raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
-    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
-    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
-    if not qdrant_url:
-        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
-    if not qdrant_api_key:
-        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
+    # qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
+    # qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
+    # if not qdrant_url:
+    #     raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
+    # if not qdrant_api_key:
+    #     raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -142,8 +155,10 @@ def qdrant_read(
     embeddings: List[List[float]],
     collection_name: str,
     cutoff_score: float = 0.0,
-    limit: int = 3,
+    top: int = 5,
+    limit: int = 0,
     offset: int = 0,
+    filters: Dict[str, Dict[str, str]] = {},
     qdrant_url: Secret = Secret(""),
     qdrant_api_key: Secret = Secret(""),
     qdrant_search_hnsw_ef: int = 0,
@@ -191,12 +206,6 @@ def qdrant_read(
     # client check
     if not QDRANT_CLIENT_INSTALLED:
         raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
-    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
-    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
-    if not qdrant_url:
-        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
-    if not qdrant_api_key:
-        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -205,6 +214,8 @@ def qdrant_read(
         raise NotImplementedError("Batch search is not implemented yet")
     if not batch_search and len(embeddings) > 1:
         raise Exception("Batch search is not enabled, but multiple embeddings are passed")
+    if not top and not limit:
+        raise Exception("Either top or limit should be set")
 
     client: QdrantClient = _get_qdrant_client(qdrant_url, qdrant_api_key)
 
@@ -223,10 +234,16 @@ def qdrant_read(
         )
         res = [[_x.dict(skip_defaults=False) for _x in x] for x in out]
 
+    query_filter = None
+    if filters:
+        query_filter = models.Filter(**filters)
+
     out = client.search(
         collection_name=collection_name,
         query_vector=embeddings[0],
-        limit=limit,
+        query_filter = query_filter,
+        top=top,
+        limit=max(limit, top),
         offset=offset,
         search_params=search_params,
     )

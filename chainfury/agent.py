@@ -476,6 +476,15 @@ class AIActionsRegistry:
                 self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
         return node
 
+    def register_node(self, node: Node) -> Node:
+        logger.debug(f"Registering ai-node '{node.id}'")
+        if node.id in self.nodes:
+            raise ValueError(f"ai-node '{node.id}' already exists")
+        self.nodes[node.id] = node
+        for tag in node.tags:
+            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node.id]
+        return node
+
     def unregister(self, node_id: str):
         """Unregister an ai-node
 
