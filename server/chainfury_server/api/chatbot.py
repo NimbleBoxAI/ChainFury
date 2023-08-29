@@ -25,6 +25,7 @@ class ChatBotDetails(BaseModel):
     created_at: datetime = None  # type: ignore
     engine: str = ""
     update_keys: List[str] = []
+    tag_id: str = ""
 
 
 # C: POST /chatbot/
@@ -61,6 +62,7 @@ def create_chatbot(
         dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
+        tag_id=chatbot_data.tag_id,
     )
     db.add(chatbot)
     db.commit()
@@ -164,12 +166,24 @@ def list_chatbots(
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
+    tag_id: str = "",
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
     username = get_user_from_jwt(token)
     user = verify_user(db, username)
-
     # query the db
-    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
+    if tag_id:
+        chatbots = (
+            db.query(ChatBot)
+            .filter(ChatBot.deleted_at == None)
+            .filter(ChatBot.created_by == user.id)
+            .filter(ChatBot.tag_id == tag_id)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+    else:
+        chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
+
     return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}
