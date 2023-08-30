@@ -8,7 +8,7 @@ from typing import Annotated, Dict, Any, Union
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Header, Request, Response, Query
 
-from chainfury.agent import model_registry, programatic_actions_registry, ai_actions_registry
+from chainfury.agent import model_registry, programatic_actions_registry, ai_actions_registry, memory_registry
 from chainfury.base import Node
 
 from chainfury_server.database import fastapi_db_session, FuryActions
@@ -32,6 +32,7 @@ _MODEL = "models"
 _PROGRAMATIC = "programatic_actions"
 _ACTION_AI = "ai_actions"
 _BUILTIN_AI = "builtin_ai"
+_MEMORY = "memory"
 
 
 @lru_cache(1)
@@ -40,6 +41,7 @@ def _components(to_dict: bool = False):
         _MODEL: model_registry.get_models(),
         _PROGRAMATIC: programatic_actions_registry.get_nodes(),
         _BUILTIN_AI: ai_actions_registry.get_nodes(),
+        _MEMORY: memory_registry.get_nodes(),
     }
 
 

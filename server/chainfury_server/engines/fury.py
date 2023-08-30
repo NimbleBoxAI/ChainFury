@@ -116,6 +116,8 @@ class FuryThoughts:
         intermediate_response = thought.get("value", "")
         if intermediate_response is None:
             intermediate_response = ""
+        if type(intermediate_response) != str:
+            intermediate_response = str(intermediate_response)
         create_intermediate_steps(self.db, prompt_id=self.prompt_id, intermediate_response=intermediate_response)
         self.count += 1
 

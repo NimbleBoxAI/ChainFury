@@ -16,8 +16,7 @@ COPY ./chainfury /app/chainfury
 COPY pyproject.toml /app
 COPY README.md /app
 WORKDIR /app
-RUN python3 -m pip install .
-RUN python3 -m pip install PyMySQL
+RUN python3 -m pip install .\[all\]
 WORKDIR /
 
 # copy over the server files including the server installer, since chainfury is already installed
@@ -26,8 +25,9 @@ COPY ./server/chainfury_server /app/chainfury_server
 COPY ./server/pyproject.toml /app
 COPY ./server/README.md /app
 WORKDIR /app
+RUN python3 -m pip install PyMySQL
 RUN python3 -m pip install -e .
-# RUN python3 -m pip install --no-deps langflow==0.0.89
+RUN python3 -m pip install langflow==0.0.54
 WORKDIR /
 
 # Copy over the files from the client build
