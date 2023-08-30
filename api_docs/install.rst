@@ -51,8 +51,19 @@ fury engine. To build the entire system you can run the following commands:
     python3 -m venv venv
     source venv/bin/activate
 
+    sudo apt update
+
+    #Install npm
+    sudo apt install npm
+
+    #Install Node.js
+    sudo apt install -y nodejs #Install version >= 14.0
+
+    #Install Yarn
+    sudo npm install -g yarn   #install yarn globally
+
     # build the client
-    sh stories/build_and_copy.sh
+    sh scripts/build_and_copy.sh
 
     # setup the server env
     pip install setuptools
@@ -63,3 +74,5 @@ fury engine. To build the entire system you can run the following commands:
     # to start the server
     cd chainfury_server
     python3 server.py
+
+    #
