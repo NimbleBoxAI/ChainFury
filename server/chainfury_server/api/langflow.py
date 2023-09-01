@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request, Response, Header
+from typing import Annotated
 from functools import lru_cache
 
 from chainfury_server.commons import config as c
@@ -19,5 +20,9 @@ def _get_lf_components():
     return build_langchain_types_dict()
 
 @router.get("/components")
-def get_lf_components():
+def get_lf_components(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+):
     return _get_lf_components()

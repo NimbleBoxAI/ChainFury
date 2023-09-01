@@ -26,8 +26,8 @@ COPY ./server/pyproject.toml /app
 COPY ./server/README.md /app
 WORKDIR /app
 RUN python3 -m pip install PyMySQL
-RUN python3 -m pip install -e .
 RUN python3 -m pip install langflow==0.0.54
+RUN python3 -m pip install -e .
 WORKDIR /
 
 # Copy over the files from the client build
