@@ -14,6 +14,7 @@ Jinja2 = "3.1.2"
 jinja2schema = "0.1.4"
 pydantic = "^1.10.7"
 requests = "^2.28.2"
+litellm = { version = "0.1.531", optional = true }
 stability-sdk = { version = "0.8.3", optional = true }
 qdrant-client = { version = "1.3.1", optional = true }
 
