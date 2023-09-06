@@ -40,8 +40,10 @@ Read the latest blog posts:
    :caption: Examples
 
    examples/vector-db-use
+   examples/qa-rag
    examples/stability-apis
    examples/functional-chains
+   examples/storing-private-data
 
 .. toctree::
    :maxdepth: 2

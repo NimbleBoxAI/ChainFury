@@ -12,20 +12,34 @@ except ImportError:
 from chainfury import Secret, memory_registry, logger
 from chainfury.components.const import Env, ComponentMissingError
 
+# https://qdrant.tech/documentation/concepts/filtering
+# Must : "must" : AND
+# Should : "should" : OR
+# Must Not: "must_not" : NOT
+# Match: =
+# Match Any: IN
+# Match Except: NOT IN
+
 
 @lru_cache(maxsize=1)
-def _get_qdrant_client(url: str, api_key: str):
+def _get_qdrant_client(qdrant_url: Secret = Secret(), qdrant_api_key: Secret = Secret()):
     """Create a qdrant client and cache it
 
     Args:
-        url (str): qdrant url
-        api_key (str): qdrant api key
+        qdrant_url (Secret, optional): qdrant url or set env var `QDRANT_API_URL`.
+        qdrant_api_key (Secret, optional): qdrant api key or set env var `QDRANT_API_KEY`.
 
     Returns:
         qdrant_client.QdrantClient: qdrant client
     """
+    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value  # type: ignore
+    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value  # type: ignore
+    if not qdrant_url:
+        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
+    if not qdrant_api_key:
+        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
     logger.info("Creating Qdrant client")
-    return QdrantClient(url=url, api_key=api_key)
+    return QdrantClient(url=qdrant_url, api_key=qdrant_api_key)  # type: ignore
 
 
 def qdrant_write(
@@ -77,12 +91,6 @@ def qdrant_write(
     # client check
     if not QDRANT_CLIENT_INSTALLED:
         raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
-    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
-    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
-    if not qdrant_url:
-        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
-    if not qdrant_api_key:
-        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -90,7 +98,7 @@ def qdrant_write(
     if extra_payload and len(extra_payload) != len(embeddings):
         raise Exception("Length of extra_payload should be equal to embeddings")
 
-    client: QdrantClient = _get_qdrant_client(qdrant_url, qdrant_api_key)
+    client: QdrantClient = _get_qdrant_client(qdrant_url, qdrant_api_key)  # type: ignore
 
     # next we create points and upsert them into the DB
     points = []
@@ -98,8 +106,8 @@ def qdrant_write(
         payload = {}
         if extra_payload:
             payload = extra_payload[i]
-        points.append(models.PointStruct(id=str(uuid4()), payload=payload, vector=embedding))
-    batch = models.Batch(
+        points.append(models.PointStruct(id=str(uuid4()), payload=payload, vector=embedding))  # type: ignore
+    batch = models.Batch(  # type: ignore
         ids=[point.id for point in points],
         vectors=[point.vector for point in points],
         payloads=[point.payload for point in points],
@@ -120,9 +128,9 @@ def qdrant_write(
     if err and err.status_code == 404 and create_if_not_present:  # type: ignore
         collection = client.recreate_collection(
             collection_name=collection_name,
-            vectors_config=models.VectorParams(
+            vectors_config=models.VectorParams(  # type: ignore
                 size=len(embeddings[0]),
-                distance=getattr(models.Distance, distance.upper()),
+                distance=getattr(models.Distance, distance.upper()),  # type: ignore
             ),
         )
         logger.info(f"Created collection {collection}")
@@ -142,8 +150,10 @@ def qdrant_read(
     embeddings: List[List[float]],
     collection_name: str,
     cutoff_score: float = 0.0,
-    limit: int = 3,
+    top: int = 5,
+    limit: int = 0,
     offset: int = 0,
+    filters: Dict[str, Dict[str, str]] = {},
     qdrant_url: Secret = Secret(""),
     qdrant_api_key: Secret = Secret(""),
     qdrant_search_hnsw_ef: int = 0,
@@ -191,12 +201,6 @@ def qdrant_read(
     # client check
     if not QDRANT_CLIENT_INSTALLED:
         raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
-    qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value
-    qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value
-    if not qdrant_url:
-        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
-    if not qdrant_api_key:
-        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -205,10 +209,12 @@ def qdrant_read(
         raise NotImplementedError("Batch search is not implemented yet")
     if not batch_search and len(embeddings) > 1:
         raise Exception("Batch search is not enabled, but multiple embeddings are passed")
+    if not top and not limit:
+        raise Exception("Either top or limit should be set")
 
-    client: QdrantClient = _get_qdrant_client(qdrant_url, qdrant_api_key)
+    client: QdrantClient = _get_qdrant_client(qdrant_url, qdrant_api_key)  # type: ignore
 
-    search_params = models.SearchParams()
+    search_params = models.SearchParams()  # type: ignore
     if qdrant_search_hnsw_ef:
         search_params.hnsw_ef = qdrant_search_hnsw_ef
     if qdrant_search_exact:
@@ -221,17 +227,23 @@ def qdrant_read(
             collection_name=collection_name,
             requests=search_queries,
         )
-        res = [[_x.dict(skip_defaults=False) for _x in x] for x in out]
+        res = [[_x.dict(skip_defaults=False) for _x in x] for x in out]  # type: ignore
+
+    query_filter = None
+    if filters:
+        query_filter = models.Filter(**filters)  # type: ignore
 
     out = client.search(
         collection_name=collection_name,
         query_vector=embeddings[0],
-        limit=limit,
+        query_filter=query_filter,
+        top=top,
+        limit=max(limit, top),
         offset=offset,
         search_params=search_params,
     )
     out = [x for x in out if x.score > cutoff_score]
-    res = [_x.dict(skip_defaults=False) for _x in out]
+    res = [_x.dict(skip_defaults=False) for _x in out]  # type: ignore
     return {"data": res}, None
 
 
@@ -241,3 +253,81 @@ memory_registry.register_read(
     outputs={"items": 0},
     vector_key="embeddings",
 )
+
+
+# helper functions
+
+
+def recreate_collection(collection_name: str, embedding_dim: int) -> bool:
+    """
+    Deletes and recreates a collection
+
+    Note:
+        This will delete all the data in the collection, use with caution
+
+    Args:
+        collection_name (str): collection name
+        embedding_dim (int): embedding dimension
+
+    Returns:
+        bool: success
+    """
+    client: QdrantClient = _get_qdrant_client()  # type: ignore
+    return client.recreate_collection(
+        collection_name=collection_name,
+        vectors_config=models.VectorParams(  # type: ignore
+            size=embedding_dim,
+            distance=models.Distance.COSINE,  # type: ignore
+        ),
+        optimizers_config=models.OptimizersConfigDiff(  # type: ignore
+            indexing_threshold=0,
+        ),
+    )
+
+
+def enable_indexing(collection_name: str, indexing_threshold: int = 20000) -> bool:
+    """
+    Enable indexing for a collection, use this in conjunction with `disable_indexing`. Read more
+    `here <https://qdrant.tech/documentation/tutorials/bulk-upload/#upload-directly-to-disk>`_.
+
+    Example:
+        >>> from chainfury.components.qdrant import enable_indexing, disable_indexing, qdrant_write
+        >>> disable_indexing("my_collection")
+        >>> qdrant_write([[1, 2, 3] for _ in range(100)], "my_collection")
+        >>> enable_indexing("my_collection")
+
+
+    Args:
+        collection_name (str): collection name
+        indexing_threshold (int, optional): indexing threshold. Defaults to 20000.
+
+    Returns:
+        bool: success
+    """
+    client: QdrantClient = _get_qdrant_client()  # type: ignore
+    return client.update_collection(
+        collection_name=collection_name,
+        optimizer_config=models.OptimizersConfigDiff(  # type: ignore
+            indexing_threshold=indexing_threshold,
+        ),
+    )
+
+
+def disable_indexing(collection_name: str):
+    """
+    Disable indexing for a collection, use this in conjunction with `enable_indexing`. Read more
+    `here <https://qdrant.tech/documentation/tutorials/bulk-upload/#upload-directly-to-disk>`_.
+
+    Args:
+        collection_name (str): collection name
+
+    Returns:
+        bool: success
+    """
+    client: QdrantClient = _get_qdrant_client()  # type: ignore
+    return client.update_collection(
+        collection_name=collection_name,
+        optimizer_config=models.OptimizersConfigDiff(  # type: ignore
+            indexing_threshold=0,
+        ),
+    )

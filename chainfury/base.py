@@ -17,7 +17,7 @@ from chainfury.types import FENode
 class Secret(str):
     """This class just means that in Var it will be taken as a password field"""
 
-    def __init__(self, value):
+    def __init__(self, value = ""):
         self.value = value
 
 
@@ -208,7 +208,7 @@ def pyannotation_to_json_schema(
         elif x == type(None) and allow_none:
             return Var(type="null", required=False, show=False)
         else:
-            raise ValueError(f"i0: Unsupported type: {x}")
+            raise ValueError(f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)")
     elif isinstance(x, str):
         if trace:
             logger.debug("t1")
@@ -673,8 +673,8 @@ class Node:
         self.id = id
         self.type = type
         self.description = description
-        self.fields = fields
-        self.outputs = outputs
+        self.fields: List[Var] = fields
+        self.outputs: List[Var] = outputs
         self.fn = fn
         self.tags = tags
 
@@ -715,6 +715,11 @@ class Node:
             name = fn.pop("action_name")
         elif isinstance(self.fn, Memory):
             fn = self.fn.to_dict()
+        elif callable(self.fn):
+            fn = {
+                "fn_name": self.fn.__name__,  # type: ignore
+                "fn_module": self.fn.__module__,
+            }
 
         return {
             "id": self.id,
@@ -752,6 +757,10 @@ class Node:
             fn = AIAction.from_dict(fn)
         elif node_type == NodeType.MEMORY:
             fn = Memory.from_dict(fn)
+        elif node_type == NodeType.PROGRAMATIC and isinstance(fn, dict):
+            import importlib
+
+            fn = getattr(importlib.import_module(fn["fn_module"]), fn["fn_name"])
 
         return cls(
             id=data["id"],
@@ -801,7 +810,7 @@ class Node:
             if not data_keys.issubset(template_keys):
                 raise ValueError(f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}")
             if print_thoughts:
-                print(terminal_top_with_text(f"Node: {self.id}"))
+                print(f"Node: {self.id}")
                 print("Inputs:\n------")
                 print(pformat(data))
 
@@ -826,11 +835,6 @@ class Node:
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
-
-    def forward(self, *args, **kwargs):
-        """This is a convinience method so users can subclass this and implement their own forward method while the
-        underlying processing implemented within __call__ method remain intact."""
-        return self(*args, **kwargs)
 
 
 #
@@ -859,6 +863,8 @@ class Edge:
         self.trg_node_id = trg_node_id
         self.src_node_var = src_node_var
         self.trg_node_var = trg_node_var
+        self.source = f"{self.src_node_id}/{self.src_node_var}"
+        self.target = f"{self.trg_node_id}/{self.trg_node_var}"
 
     def __repr__(self) -> str:
         out = f"FuryEdge('{self.src_node_id}/{self.src_node_var}' => '{self.trg_node_id}/{self.trg_node_var}')"
@@ -993,13 +999,13 @@ class Chain:
         edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
         return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
 
-    def to_json(self) -> str:
+    def to_json(self, indent=None) -> str:
         """Serializes the chain to a JSON string.
 
         Returns:
             str: The JSON string representation of the chain.
         """
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=indent)
 
     @classmethod
     def from_json(cls, data: str):
@@ -1043,7 +1049,7 @@ class Chain:
         incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
 
         # clear out all the nodes that this thing needs into a separate rep
-        logger.debug(f"Processing node: {node_id}")
+        logger.debug(f">>> Processing node: {node_id}")
         logger.debug(f"Current full_ir: {set(full_ir.keys())}")
         _data = {}
 
@@ -1067,11 +1073,12 @@ class Chain:
             _data[edge.trg_node_var] = ir_value
 
         # then run the node
-        out, err = node.forward(_data, print_thoughts=print_thoughts)
+        out, err = node(_data, print_thoughts=print_thoughts)
         if err:
             logger.error(f"TRACE: {out}")
             raise err
 
+        # create the thoughts buffer
         yield_dict = {}
         for k, v in out.items():
             key = f"{node_id}/{k}"
@@ -1103,18 +1110,18 @@ class Chain:
             >>> chain = Chain(...)
             >>> out, thoughts = chain("Hello world")
             >>> print(out)
-            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
             >>> print(thoughts)
-            ... {
-                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
-                        'timestamp': '2023-06-27T16:50:04.178833',
-                        'value': '...'
-                    }
-                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
-                        'timestamp': '2023-06-27T16:50:07.818709',
-                        'value': '...'
-                    }
+            {
+                '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                    'timestamp': '2023-06-27T16:50:04.178833',
+                    'value': '...'
                 }
+                '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                    'timestamp': '2023-06-27T16:50:07.818709',
+                    'value': '...'
+                }
+            }
 
         You can also stream the intermediate responses by setting using `stream_call` method. You can get the exact same
         result as above by iterating over the response and getting the last response.
@@ -1130,7 +1137,7 @@ class Chain:
         """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            assert self.main_in, "main_in not defined, pass dictionary input"
             data = {self.main_in: data}
         _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
         _data.update(data)
@@ -1183,18 +1190,18 @@ class Chain:
             ...     else:
             ...         thoughts.update(ir)
             >>> print(out)
-            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
             >>> print(thoughts)
-            ... {
-                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
-                        'timestamp': '2023-06-27T16:50:04.178833',
-                        'value': '...'
-                    }
-                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
-                        'timestamp': '2023-06-27T16:50:07.818709',
-                        'value': '...'
-                    }
+            {
+                '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                    'timestamp': '2023-06-27T16:50:04.178833',
+                    'value': '...'
                 }
+                '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                    'timestamp': '2023-06-27T16:50:07.818709',
+                    'value': '...'
+                }
+            }
 
         Args:
             data (Union[str, Dict[str, Any]]): The data to run the chain on.
@@ -1207,7 +1214,7 @@ class Chain:
         """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            assert self.main_in, "main_in not defined, pass dictionary input"
             data = {self.main_in: data}
         _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
         _data.update(data)
