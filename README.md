@@ -13,6 +13,14 @@
 
 The documentation page contains all the information on using `chainfury` and `chainfury_server`.
 
+# Looking for Inspirations?
+
+Here's a few example to get your journey started on Software 2.0:
+
+- 📚 Retrieval Augmented Generation (RAG): Load a PDF and ask it questions, read [docs](https://nimbleboxai.github.io/ChainFury/examples/qa-rag.html)
+- 🏞️ Image generation using Stability: Generate your world, read [here](https://nimbleboxai.github.io/ChainFury/examples/stability-apis.html)
+- 🔐 Private Storage: Privately store the data on AWS S3, read [privacy](https://nimbleboxai.github.io/ChainFury/examples/storing-private-data.html)
+
 # Installation
 
 There are two separate packages built into this repository, first is `chainfury` which contains the fury-engine for running
