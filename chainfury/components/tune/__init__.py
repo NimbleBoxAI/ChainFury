@@ -57,7 +57,7 @@ def chatnbx(
     if not len(messages):
         raise Exception("Messages cannot be empty")
     if isinstance(messages[0], ChatNBX.Message):
-        messages = [x.dict(skip_defaults=True) for x in messages]
+        messages = [x.dict(skip_defaults=True) for x in messages]  # type: ignore
 
     def _fn():
         url = "https://chat.nbox.ai/api/chat/completions"
