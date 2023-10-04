@@ -63,7 +63,7 @@ def nbx_chat_api(
         raise Exception("NBX_DEPLOY_URL not set, please set it in your environment or pass it as an argument")
 
     if not nbx_header_token:
-        nbx_header_token = Secret(Env.NBX_DEPLOY_KEY("")).value
+        nbx_header_token = Secret(Env.NBX_DEPLOY_KEY("")).value  # type: ignore
     if not nbx_header_token:
         raise Exception("NBX_DEPLOY_KEY not set, please set it in your environment or pass it as an argument")
 

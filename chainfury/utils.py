@@ -1,10 +1,11 @@
 import os
+import json
 import time
 import time
 import logging
 from uuid import uuid4
 from urllib.parse import quote
-from typing import Any, Dict, List, Union, Tuple
+from typing import Any, Dict, List, Union, Tuple, Optional
 
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 
@@ -233,3 +234,48 @@ def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20
             except Exception as e:
                 raise e
     return results
+
+
+"""
+Ser/Deser
+"""
+
+
+def to_json(x: dict, fp: str = "", indent=2, tight: bool = False) -> Optional[str]:
+    """
+    Convert a dict to json string and write to file if ``fp`` is provided.
+
+    Args:
+        x (dict): The dict to convert
+        fp (str, optional): The file path to write to. Defaults to "".
+        indent (int, optional): The indentation level. Defaults to 2.
+        tight (bool, optional): If true, remove all the whitespaces, ignores ``indent``. Defaults to False.
+
+    Returns:
+        Optional[str]: The json string if ``fp`` is not provided
+    """
+    kwargs: Dict[str, Any] = {"indent": 0 if tight else indent}
+    if tight:
+        kwargs["separators"] = (",", ":")  # type: ignore
+    if fp:
+        with open(fp, "w") as f:
+            f.write(json.dumps(x, **kwargs))
+    else:
+        return json.dumps(x, **kwargs)
+
+
+def from_json(fp: str = "") -> Dict[str, Any]:
+    """
+    Load a JSON string or filepath and return a dictionary.
+
+    Args:
+        fp (str): The filepath or JSON-ified string
+
+    Returns:
+
+    """
+    if os.path.exists(fp):
+        with open(fp, "r") as f:
+            return json.load(f)
+    else:
+        return json.loads(fp)

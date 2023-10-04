@@ -237,7 +237,6 @@ def qdrant_read(
         collection_name=collection_name,
         query_vector=embeddings[0],
         query_filter=query_filter,
-        top=top,
         limit=max(limit, top),
         offset=offset,
         search_params=search_params,

@@ -17,7 +17,7 @@ from chainfury.types import FENode
 class Secret(str):
     """This class just means that in Var it will be taken as a password field"""
 
-    def __init__(self, value = ""):
+    def __init__(self, value=""):
         self.value = value
 
 
@@ -167,6 +167,7 @@ def pyannotation_to_json_schema(
     allow_none: bool,
     *,
     trace: bool = False,
+    is_return: bool = False,
 ) -> Var:
     """Function to convert the given annotation from python to a Var which can then be JSON serialised and sent to the
     clients.
@@ -208,7 +209,10 @@ def pyannotation_to_json_schema(
         elif x == type(None) and allow_none:
             return Var(type="null", required=False, show=False)
         else:
-            raise ValueError(f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)")
+            if is_return:
+                raise ValueError(f"i0: Unsupported type: {x}. Is your output annotated? Write like ... foo() -> Dict[str, str]")
+            else:
+                raise ValueError(f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)")
     elif isinstance(x, str):
         if trace:
             logger.debug("t1")
@@ -306,7 +310,7 @@ def func_to_vars(func: object) -> List[Var]:
     return fields
 
 
-def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
+def func_to_return_vars(func, returns: Dict[str, Tuple[int]]) -> List[Var]:
     """
     Analyses the return annotation type of the signature of a function and converts it to an array of named Var objects.
 
@@ -315,10 +319,16 @@ def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
         returns (Dict[str, Tuple]): The dictionary of return types.
 
     Returns:
-        List[Var]: The array of Var objects.
+        Dict[str, Tuple[int]]: A dictionary with the name of the return type and the location of the return type.
     """
     signature = inspect.signature(func)
-    schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=False, allow_exc=True, allow_none=True)
+    schema = pyannotation_to_json_schema(
+        signature.return_annotation,
+        allow_any=False,
+        allow_exc=True,
+        allow_none=True,
+        is_return=True,
+    )
     if not (
         schema.type == "array"
         and len(schema.items) == 2
@@ -970,7 +980,7 @@ class Chain:
         main_out = main_out or self.main_out
         sample = sample or self.sample
         if main_in not in sample:
-            logger.error(f"Key should be present in 'sample': {main_in}")
+            logger.warning(f"Key should be present in 'sample': {main_in}")
         # assert main_in in sample, f"Invalid key: {main_in}"
 
         if not (main_in or main_out or sample):
@@ -1158,6 +1168,8 @@ class Chain:
                 print_thoughts=print_thoughts,
                 thoughts_callback=thoughts_callback,
             )
+
+        print(full_ir.keys())
 
         if self.main_out:
             out = full_ir.get(self.main_out)["value"]  # type: ignore
