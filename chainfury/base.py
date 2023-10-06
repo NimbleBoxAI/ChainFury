@@ -527,7 +527,8 @@ def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
         key = int(key)
         if isinstance(key, int) and 0 <= key < len(obj):
             return get_value_by_keys(obj[key], keys[1:], _first_sentinal=True)
-
+    elif type(obj) in [str, int, float, bool, type(None)]:
+        return obj
     return None
 
 
@@ -834,8 +835,9 @@ class Node:
             logger.debug(f"> fn_out: {out}")
             logger.debug(f"> OUTPUTS: {self.outputs}")
             for o in self.outputs:
-                # logger.debug("  OP:", o.name, o._loc)
-                o.set_value(get_value_by_keys(out, o.loc))
+                _value = get_value_by_keys(out, o.loc)
+                logger.debug(f"  OP: {o.name}, {o.loc}, {_value}")
+                o.set_value(_value)
 
             fout = {o.name: o.value for o in self.outputs}
             if print_thoughts:
@@ -1168,8 +1170,6 @@ class Chain:
                 print_thoughts=print_thoughts,
                 thoughts_callback=thoughts_callback,
             )
-
-        print(full_ir.keys())
 
         if self.main_out:
             out = full_ir.get(self.main_out)["value"]  # type: ignore

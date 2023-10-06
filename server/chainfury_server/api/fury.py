@@ -12,7 +12,13 @@ from chainfury.agent import model_registry, programatic_actions_registry, ai_act
 from chainfury.base import Node
 
 from chainfury_server.database import fastapi_db_session, FuryActions
-from chainfury_server.commons.utils import get_user_from_jwt, verify_user
+from chainfury_server.commons.utils import get_user_from_jwt, verify_user, logger
+
+try:
+    import cf_internal  # type: ignore
+except ImportError:
+    pass
+
 
 # build router
 fury_router = APIRouter(tags=["fury"])

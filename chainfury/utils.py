@@ -22,6 +22,7 @@ class CFEnv:
     * CF_BLOB_AWS_CLOUD_FRONT: blob storage cloud front url, if not provided defaults to primary S3 URL (only used for `s3` engine)
     """
 
+    CF_LOG_LEVEL = lambda: os.getenv("CF_LOG_LEVEL", "info")
     CF_FOLDER = lambda: os.path.expanduser(os.getenv("CF_FOLDER", "~/cf"))
     CF_BLOB_STORAGE = lambda: os.path.join(CFEnv.CF_FOLDER(), "blob")
     CF_BLOB_ENGINE = lambda: os.getenv("CF_BLOB_ENGINE", "local")
@@ -133,7 +134,7 @@ def terminal_top_with_text(msg: str = "") -> str:
 def get_logger() -> logging.Logger:
     """Returns a logger object"""
     logger = logging.getLogger("fury")
-    lvl = os.getenv("FURY_LOG_LEVEL", "info").upper()
+    lvl = CFEnv.CF_LOG_LEVEL().upper()
     logger.setLevel(getattr(logging, lvl))
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(
@@ -254,9 +255,11 @@ def to_json(x: dict, fp: str = "", indent=2, tight: bool = False) -> Optional[st
     Returns:
         Optional[str]: The json string if ``fp`` is not provided
     """
-    kwargs: Dict[str, Any] = {"indent": 0 if tight else indent}
+    kwargs: Dict[str, Any] = {}
     if tight:
         kwargs["separators"] = (",", ":")  # type: ignore
+    else:
+        kwargs["indent"] = indent
     if fp:
         with open(fp, "w") as f:
             f.write(json.dumps(x, **kwargs))
