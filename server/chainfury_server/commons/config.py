@@ -47,7 +47,7 @@ if not db:
         },
     )
 else:
-    logger.info(f"Using database: {db}")
+    logger.info(f"Using via database URL")
     engine = create_engine(
         db,
         poolclass=QueuePool,
