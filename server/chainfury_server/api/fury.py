@@ -14,10 +14,9 @@ from chainfury.base import Node
 from chainfury_server.database import fastapi_db_session, FuryActions
 from chainfury_server.commons.utils import get_user_from_jwt, verify_user, logger
 
-import cf_internal  # type: ignore
-
 try:
     import cf_internal  # type: ignore
+    from cf_internal import echo
 
     logger.info("[CFI] Loaded")
 except ImportError:
