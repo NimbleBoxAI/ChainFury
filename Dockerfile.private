@@ -21,8 +21,8 @@ WORKDIR /
 
 # this is copying over the chainfury-internal and installing it
 COPY ./cf_internal /app/cf_internal
-COPY pyproject.toml /app
-WORKDIR /app
+COPY ./cf_internal/pyproject.toml /app/cf_internal
+WORKDIR /app/cf_internal
 RUN python3 -m pip install .
 WORKDIR /
 
