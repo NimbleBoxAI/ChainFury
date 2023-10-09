@@ -313,7 +313,7 @@ def list_fury_actions(
     user = verify_user(db, username)
 
     # read from db
-    fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()
+    fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()  # type: ignore
     return fury_actions
 
 
