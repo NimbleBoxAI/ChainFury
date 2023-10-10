@@ -5,6 +5,7 @@ import time
 import logging
 from uuid import uuid4
 from urllib.parse import quote
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Union, Tuple, Optional
 
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
@@ -282,3 +283,35 @@ def from_json(fp: str = "") -> Dict[str, Any]:
             return json.load(f)
     else:
         return json.loads(fp)
+
+
+class SimplerTimes:
+    """
+    A class that provides a simpler interface to datetime and time modules.
+    """
+
+    tz = timezone.utc
+
+    def get_now_datetime() -> datetime:  # type: ignore
+        """Get the current datetime in UTC timezone"""
+        return datetime.now(SimplerTimes.tz)
+
+    def get_now_float() -> float:  # type: ignore
+        """Get the current datetime in UTC timezone as a float"""
+        return SimplerTimes.get_now_datetime().timestamp()
+
+    def get_now_i64() -> int:  # type: ignore
+        """Get the current datetime in UTC timezone as a int"""
+        return int(SimplerTimes.get_now_datetime().timestamp())
+
+    def get_now_str() -> str:  # type: ignore
+        """Get the current datetime in UTC timezone as a string"""
+        return SimplerTimes.get_now_datetime().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+    def i64_to_datetime(i64: int) -> datetime:  # type: ignore
+        """Convert an int to datetime in UTC timezone"""
+        return datetime.fromtimestamp(i64, SimplerTimes.tz)
+
+    def get_now_human() -> str:  # type: ignore
+        """Get the current datetime in UTC timezone as a human readable string"""
+        return SimplerTimes.get_now_datetime().strftime("%A %d %B, %Y at %I:%M %p")

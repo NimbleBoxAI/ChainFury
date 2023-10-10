@@ -53,6 +53,10 @@ def create_chatbot(
         resp.status_code = 400
         return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
 
+    if len(chatbot_data.description) > 1024:
+        resp.status_code = 400
+        return {"message": "Description too long"}
+
     # actually create
     dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
     chatbot = ChatBot(
@@ -61,7 +65,8 @@ def create_chatbot(
         dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
-    )
+        description=chatbot_data.description,
+    )  # type: ignore
     db.add(chatbot)
     db.commit()
     db.refresh(chatbot)

@@ -297,25 +297,6 @@ def get_fe_chain_from_chain(chain: Chain) -> Dict[str, Any]:
             dragging=False,
         )
 
-        # out, err = stub.fury.actions(
-        #     "post",
-        #     trailing="/",
-        #     json={
-        #         "name": node["name"],
-        #         "description": "",
-        #         "fn": {
-        #             "model_id": node["fn"]["model"]["id"],
-        #             "model_params": node["fn"]["model_params"],
-        #             "fn": node["fn"]["fn"],
-        #         },
-        #         "outputs": node["outputs"],
-        #     },
-        # )
-        # if err:
-        #     raise ValueError(f"Could not create node: {out}")
-        # logger.info(f"Created new action with ID: {out['id']}")
-        # _node_data.cf_id = out["id"]
-
         # in this case the entire action is stored with the DAG object
         _node_data.cf_id = node.id
         _node_data.cf_data = FENode.CFData(
