@@ -8,7 +8,7 @@ from fastapi.responses import Response, StreamingResponse
 from typing import Annotated, Any, Tuple, Dict
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 from chainfury_server.schemas.prompt_schema import PromptBody
 from chainfury_server.commons.utils import get_user_from_jwt, verify_user
@@ -101,9 +101,8 @@ def process_prompt(
             content=_get_streaming_response(result),
         )
     else:
-        out = result.__dict__
-        out.pop("prompt")
-        return out
+        # out = result.__dict__
+        return result.to_dict()
 
 
 class InternalFeedbackModel(BaseModel):
