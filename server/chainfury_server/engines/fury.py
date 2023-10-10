@@ -35,7 +35,7 @@ class FuryEngine(EngineInterface):
             callback = FuryThoughts(db, prompt_row.id)
             mainline_out, full_ir = chain(prompt.new_message, thoughts_callback=callback, print_thoughts=False)
             result = CFPromptResult(
-                result=json.dumps(mainline_out),
+                result=json.dumps(mainline_out) if type(mainline_out) != str else mainline_out,
                 thought=[{"engine": "fury", "ir_steps": callback.count, "thoughts": list(full_ir.keys())}],
                 num_tokens=1,
                 prompt=prompt_row,
