@@ -948,6 +948,8 @@ class Chain:
             self.topo_order = topological_sort(self.edges)
         self.sample = sample
         self.main_in = main_in
+
+        op_key = main_out.split("/")[-1]  # TODO: @yashbonde - make this useful
         self.main_out = main_out
 
         for node_id in self.topo_order:
