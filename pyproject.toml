@@ -13,7 +13,7 @@ fire = "0.5.0"
 Jinja2 = "3.1.2"
 jinja2schema = "0.1.4"
 pydantic = "^1.10.7"
-requests = "^2.28.2"
+requests = "^2.31.0"
 python-dotenv = "1.0.0"
 stability-sdk = { version = "0.8.3", optional = true }
 qdrant-client = { version = "1.5.4", optional = true }
