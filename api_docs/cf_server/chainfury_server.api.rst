@@ -11,10 +11,8 @@ chainfury\_server.api package
 
    chainfury_server.api.auth
    chainfury_server.api.chatbot
-   chainfury_server.api.dashboard
    chainfury_server.api.feedback
    chainfury_server.api.fury
-   chainfury_server.api.intermediate_steps
    chainfury_server.api.langflow
    chainfury_server.api.metrics
    chainfury_server.api.prompts

@@ -1,5 +1,5 @@
-Using ChainFury
-===============
+Using ChainFury (Hardcore)
+==========================
 
 ChainFury is a Python library for creating and manipulating automated agents. It is built ground up to be used in backend
 services with superior user experience. This is a simple example script on how you can use the `chainfury`.
