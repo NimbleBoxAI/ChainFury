@@ -10,6 +10,7 @@ logger = c.get_logger(__name__)
 # build router
 router = APIRouter(prefix="", tags=["flow"])
 
+
 @lru_cache()
 def _get_lf_components():
     try:
@@ -18,6 +19,7 @@ def _get_lf_components():
         logger.error("langflow not installed")
         return {}
     return build_langchain_types_dict()
+
 
 @router.get("/components")
 def get_lf_components(

@@ -2,6 +2,7 @@ import copy
 import json
 import inspect
 import datetime
+import importlib
 import traceback
 from pprint import pformat
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable, Generator
@@ -663,6 +664,7 @@ class Node:
         outputs: List[Var],
         description: str = "",
         tags: List[str] = [],
+        allow_callback: bool = False,
     ):
         """Node is a single unit of computation in a Dag. All the actions are considered as nodes.
 
@@ -688,6 +690,7 @@ class Node:
         self.outputs: List[Var] = outputs
         self.fn = fn
         self.tags = tags
+        self.allow_callback = allow_callback
 
     def __repr__(self) -> str:
         out = f"FuryNode{{ ('{self.id}', '{self.type}') ["
@@ -740,6 +743,7 @@ class Node:
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
             "outputs": [o.to_dict() for o in self.outputs],
+            "allow_callback": self.allow_callback,
         }
 
     @classmethod
@@ -769,8 +773,6 @@ class Node:
         elif node_type == NodeType.MEMORY:
             fn = Memory.from_dict(fn)
         elif node_type == NodeType.PROGRAMATIC and isinstance(fn, dict):
-            import importlib
-
             fn = getattr(importlib.import_module(fn["fn_module"]), fn["fn_name"])
 
         return cls(
@@ -780,6 +782,7 @@ class Node:
             description=data["description"],
             fields=fields,
             outputs=outputs,
+            allow_callback=data.get("allow_callback", False),
         )
 
     def to_json(self, indent=None) -> str:
@@ -1103,7 +1106,9 @@ class Chain:
             full_ir[key] = value
             thought = {"key": key, **value}
             yield_dict[key] = value
-            if thoughts_callback is not None:
+
+            # if node has disabled the callback then do not run it
+            if thoughts_callback is not None and node.allow_callback:
                 thoughts_callback(thought)
                 if print_thoughts:
                     print(thought)

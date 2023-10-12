@@ -7,14 +7,16 @@ from chainfury_server.schemas.prompt_schema import PromptBody
 
 
 class EngineInterface(object):
-    def __call__(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float, stream: bool = False):
+    def __call__(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float, stream: bool = False, task: bool = False):
         """
         This is the main entry point for the engine. It should return a CFPromptResult.
         """
-        if stream:
-            return self.stream(chatbot, prompt, db, start)
+        if task:
+            return self.submit(chatbot=chatbot, prompt=prompt, db=db, start=start)
+        elif stream:
+            return self.stream(chatbot=chatbot, prompt=prompt, db=db, start=start)
         else:
-            return self.run(chatbot, prompt, db, start)
+            return self.run(chatbot=chatbot, prompt=prompt, db=db, start=start)
 
     def run(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float) -> CFPromptResult:
         """
@@ -28,7 +30,10 @@ class EngineInterface(object):
         """
         This is the main entry point for the engine. It should return a CFPromptResult.
         """
-        raise NotImplementedError("Subclass this and implement run_streaming()")
+        raise NotImplementedError("Subclass this and implement stream()")
+
+    def submit(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float) -> CFPromptResult:
+        raise NotImplementedError("Subclass this and implement submit()")
 
 
 class EngineRegistry:

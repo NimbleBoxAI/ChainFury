@@ -1,12 +1,13 @@
 from sqlalchemy.orm import Session
 from fastapi.requests import Request
 from fastapi.responses import Response
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from typing import Annotated
 
 from chainfury_server import database
-from chainfury_server.commons.utils import update_chatbot_user_rating, get_user_from_jwt, verify_user
+from chainfury_server import database_constants as constants
+from chainfury_server.commons.utils import get_user_from_jwt
 from chainfury_server.database_constants import PromptRating
 
 feedback_router = APIRouter(tags=["feedback"])
@@ -26,8 +27,21 @@ def post_chatbot_user_feedback(
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = get_user_from_jwt(token=token, db=db)
 
-    feedback = update_chatbot_user_rating(db, prompt_id, inputs.score)
-    return {"rating": inputs.score}
+    # store in the DB
+    prompt = db.query(database.Prompt).filter(database.Prompt.id == prompt_id).first()  # type: ignore
+    if prompt is not None:
+        if prompt.chatbot_user_rating is not constants.PromptRating.UNRATED:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chatbot user rating already exists",
+            )
+        prompt.chatbot_user_rating = inputs.score
+        db.commit()
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unable to find the prompt",
+        )
+    return {"rating": prompt.chatbot_user_rating}

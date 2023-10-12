@@ -12,17 +12,7 @@ from chainfury.agent import model_registry, programatic_actions_registry, ai_act
 from chainfury.base import Node
 
 from chainfury_server.database import fastapi_db_session, FuryActions
-from chainfury_server.commons.utils import get_user_from_jwt, logger
-
-try:
-    import cf_internal  # type: ignore
-    from cf_internal import echo
-
-    logger.info("[CFI] Loaded")
-except ImportError:
-    logger.info("[CFI] not loaded")
-    pass
-
+from chainfury_server.commons.utils import get_user_from_jwt
 
 # build router
 fury_router = APIRouter(tags=["fury"])
@@ -55,7 +45,6 @@ def _components(to_dict: bool = False):
     }
 
 
-@fury_router.get("/")
 def list_components_types(
     req: Request,
     resp: Response,
@@ -72,8 +61,6 @@ def list_components_types(
 #
 
 
-# L
-@fury_router.get("/components/{component_type}")
 def list_components(
     req: Request,
     resp: Response,
@@ -89,8 +76,6 @@ def list_components(
     return _components()[component_type]
 
 
-# R
-@fury_router.get("/components/{component_type}/{component_id}")
 def get_component(
     req: Request,
     resp: Response,
@@ -147,8 +132,7 @@ class ActionUpdateRequest(BaseModel):
 
 
 # C - Create a new FuryAction
-@fury_router.post("/actions/")
-def create_fury_action(
+def create_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -184,8 +168,7 @@ def create_fury_action(
 
 
 # R - Retrieve a FuryAction by ID
-@fury_router.get("/actions/{fury_action_id}")
-def get_fury_action(
+def get_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -204,8 +187,7 @@ def get_fury_action(
 
 
 # U - Update an existing FuryAction
-@fury_router.put("/actions/{fury_action_id}")
-def update_fury_action(
+def update_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -269,8 +251,7 @@ def update_fury_action(
 
 
 # D - Delete a FuryAction by ID
-@fury_router.delete("/actions/{fury_action_id}")
-def delete_fury_action(
+def delete_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -291,8 +272,7 @@ def delete_fury_action(
 
 
 # L - List all FuryActions
-@fury_router.get("/actions/")
-def list_fury_actions(
+def list_actions(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -304,7 +284,7 @@ def list_fury_actions(
     user = get_user_from_jwt(token=token, db=db)
 
     # read from db
-    fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()  # type: ignore
+    fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()
     return fury_actions
 
 

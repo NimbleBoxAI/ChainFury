@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 
+from chainfury_server.commons.utils import JWTPayload
 from chainfury_server.commons import config as c
-from chainfury_server.commons.utils import get_user_from_jwt, get_user_id_from_jwt
 
 auth_router = APIRouter(tags=["authentication"])
 
@@ -31,24 +31,13 @@ class SignUpModal(BaseModel):
 def login(auth: AuthModel, db: Session = Depends(database.fastapi_db_session)):
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
-        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.Env.JWT_SECRET())
+        token = jwt.encode(
+            payload=JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=c.Env.JWT_SECRET(),
+        )
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}
-    return response
-
-
-@auth_router.post("/get_user_info", status_code=200)
-def decode_token(token: Annotated[str, Header()]):
-    username = None
-    userid = None
-    try:
-        username = get_user_from_jwt(token)
-        userid = get_user_id_from_jwt(token)
-    except Exception as e:
-        logger.exception(e)
-        response = {"msg": "failed"}
-    response = {"msg": "success", "username": username, "user_id": userid}
     return response
 
 

@@ -1,20 +1,22 @@
+import json
+import time
 from datetime import datetime
 from typing import Annotated, List, Dict, Any
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
+from fastapi import Depends, Header
 from fastapi.requests import Request
-from fastapi.responses import Response
+from fastapi.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 from chainfury_server import database
-from chainfury_server.database import ChatBot, IntermediateStep, ChatBotTypes
+from chainfury_server.database import ChatBot, ChatBotTypes
 from chainfury_server.commons.utils import get_user_from_jwt
 from chainfury_server.commons.types import Dag
 from chainfury_server.commons import config as c
+from chainfury_server.engines import call_engine
+from chainfury_server.schemas.prompt_schema import PromptBody
 
 logger = c.get_logger(__name__)
-
-chatbot_router = APIRouter(tags=["chatbot"])
 
 
 class ChatBotDetails(BaseModel):
@@ -27,8 +29,6 @@ class ChatBotDetails(BaseModel):
     update_keys: List[str] = []
 
 
-# C: POST /chatbot/
-@chatbot_router.post("/", status_code=201)
 def create_chatbot(
     req: Request,
     resp: Response,
@@ -52,10 +52,6 @@ def create_chatbot(
         resp.status_code = 400
         return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
 
-    if len(chatbot_data.description) > 1024:
-        resp.status_code = 400
-        return {"message": "Description too long"}
-
     # actually create
     dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
     chatbot = ChatBot(
@@ -64,16 +60,13 @@ def create_chatbot(
         dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
-        description=chatbot_data.description,
-    )  # type: ignore
+    )
     db.add(chatbot)
     db.commit()
     db.refresh(chatbot)
     return chatbot
 
 
-# R: GET /chatbot/{id}
-@chatbot_router.get("/{id}", status_code=200)
 def get_chatbot(
     req: Request,
     resp: Response,
@@ -85,15 +78,13 @@ def get_chatbot(
     user = get_user_from_jwt(token=token, db=db)
 
     # query the db
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
+    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
     return chatbot
 
 
-# U: PUT /chatbot/{id}
-@chatbot_router.put("/{id}", status_code=200)
 def update_chatbot(
     req: Request,
     resp: Response,
@@ -135,8 +126,6 @@ def update_chatbot(
     return chatbot
 
 
-# D: DELETE /chatbot/{id}
-@chatbot_router.delete("/{id}", status_code=200)
 def delete_chatbot(
     req: Request,
     resp: Response,
@@ -148,7 +137,7 @@ def delete_chatbot(
     user = get_user_from_jwt(token=token, db=db)
 
     # find and delete
-    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
+    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -157,8 +146,6 @@ def delete_chatbot(
     return {"msg": f"ChatBot '{chatbot.id}' deleted successfully"}
 
 
-# L: GET /chatbot/
-@chatbot_router.get("/", status_code=200)
 def list_chatbots(
     req: Request,
     resp: Response,
@@ -171,24 +158,52 @@ def list_chatbots(
     user = get_user_from_jwt(token=token, db=db)
 
     # query the db
-    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()  # type: ignore
+    chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
     return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}
 
 
-# L: GET /chatbot/prompt/prompt_id
-@chatbot_router.get("/prompt/{prompt_id}", status_code=200)
-def get_intermediate_steps(
+def run_chain(
     req: Request,
     resp: Response,
+    id: str,
     token: Annotated[str, Header()],
-    prompt_id: int,
+    prompt: PromptBody,
+    stream: bool = False,
+    as_task: bool = False,
     db: Session = Depends(database.fastapi_db_session),
 ):
-    user = get_user_from_jwt(token=token, db=db)  # validate user
+    """
+    This is the master function to run any chain over the API. This can behave in a bunch of different formats like:
+    - (default) this will wait for the entire chain to execute and return the response
+    - if ``stream`` is passed it will give a streaming response with line by line JSON and last response containing ``"done":true``
+    - if ``as_task`` is passed then a task ID is received and you can poll for the results at ``/chains/{id}/results`` this supercedes the ``stream``.
+    """
+    # validate user
+    user = get_user_from_jwt(token=token, db=db)
 
-    # get intermediate steps
-    intermediate_steps = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt_id).all()  # type: ignore
-    if intermediate_steps is None:
+    # query the db
+    chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()
+    if not chatbot:
         resp.status_code = 404
-        return {"msg": "prompt not found"}
-    return {"data": intermediate_steps}
+        return {"message": "ChatBot not found"}
+    st = time.time()
+    result = call_engine(chatbot=chatbot, prompt=prompt, db=db, start=st, stream=stream)
+
+    def _get_streaming_response(result):
+        for ir, done in result:
+            if done:
+                ir.pop("result")
+                result = {**ir, "done": done}
+            else:
+                if type(ir) == str:
+                    ir = {"main_out": ir}
+                result = {**ir, "done": done}
+            yield json.dumps(result) + "\n"
+
+    if stream:
+        return StreamingResponse(
+            content=_get_streaming_response(result),
+        )
+    else:
+        # out = result.__dict__
+        return result.to_dict()

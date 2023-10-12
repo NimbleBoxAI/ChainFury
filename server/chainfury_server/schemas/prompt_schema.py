@@ -1,8 +1,9 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any
 
 
 class PromptBody(BaseModel):
-    chat_history: List[str] = []
     session_id: str
-    new_message: str
+    chat_history: List[str] = []
+    data: Dict[str, Any] = dict()
+    new_message: str = ""

@@ -15,7 +15,7 @@ from chainfury_server.database import ChatBot, Session, FuryActions
 from chainfury_server.commons import config as c
 from chainfury_server.commons.types import CFPromptResult
 from chainfury_server.database_utils.prompt import create_prompt
-from chainfury_server.database_utils.intermediate_step import create_intermediate_steps, insert_intermediate_steps
+from chainfury_server.database_utils.intermediate_step import create_intermediate_steps
 
 from chainfury_server.engines.registry import EngineInterface, engine_registry
 
@@ -25,6 +25,8 @@ logger = c.get_logger(__name__)
 
 class FuryEngine(EngineInterface):
     def run(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float) -> CFPromptResult:
+        if prompt.new_message and prompt.data:
+            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
             logger.debug("Adding prompt to database")
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
@@ -33,7 +35,13 @@ class FuryEngine(EngineInterface):
             # prompt.chat_history
             chain = convert_chatbot_dag_to_fury_chain(chatbot=chatbot, db=db)
             callback = FuryThoughts(db, prompt_row.id)
-            mainline_out, full_ir = chain(prompt.new_message, thoughts_callback=callback, print_thoughts=False)
+            if prompt.new_message:
+                prompt.data = {chain.main_in: prompt.new_message}
+            mainline_out, full_ir = chain(
+                data=prompt.data,
+                thoughts_callback=callback,
+                print_thoughts=False,
+            )
             result = CFPromptResult(
                 result=json.dumps(mainline_out) if type(mainline_out) != str else mainline_out,
                 thought=[{"engine": "fury", "ir_steps": callback.count, "thoughts": list(full_ir.keys())}],
@@ -51,7 +59,6 @@ class FuryEngine(EngineInterface):
             # result["prompt_id"] = prompt_row.id
             logger.debug("Processed graph")
             return result
-
         except Exception as e:
             traceback.print_exc()
             logger.exception(e)
@@ -60,15 +67,22 @@ class FuryEngine(EngineInterface):
     def stream(
         self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float
     ) -> Generator[Tuple[Union[CFPromptResult, Dict[str, Any]], bool], None, None]:
+        if prompt.new_message and prompt.data:
+            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
             logger.debug("Adding prompt to database")
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
 
             # Create a Fury chain then run the chain while logging all the intermediate steps
-            # prompt.chat_history
             chain = convert_chatbot_dag_to_fury_chain(chatbot=chatbot, db=db)
             callback = FuryThoughts(db, prompt_row.id)
-            iterator = chain.stream(prompt.new_message, thoughts_callback=callback, print_thoughts=False)
+            if prompt.new_message:
+                prompt.data = {chain.main_in: prompt.new_message}
+            iterator = chain.stream(
+                data=prompt.data,
+                thoughts_callback=callback,
+                print_thoughts=False,
+            )
             full_ir = {}
             mainline_out = ""
             for ir, done in iterator:
@@ -100,6 +114,9 @@ class FuryEngine(EngineInterface):
             traceback.print_exc()
             logger.exception(e)
             raise HTTPException(status_code=500, detail=str(e)) from e
+
+    def submit(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float) -> CFPromptResult:
+        raise NotImplementedError("Subclass this and implement submit()")
 
 
 engine_registry.register(FuryEngine(), "fury")

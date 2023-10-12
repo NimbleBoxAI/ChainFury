@@ -337,63 +337,11 @@ const BotMetrics = ({ metricsInfo }: { metricsInfo: MetricsInterface }) => {
         <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
           <div className="flex gap-[8px] items-center">
             <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Total tokens processed
+              Total Usage
             </span>
           </div>
           <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['total_tokens_processed']}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by developers
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_developer']}/
             {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_developer_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by users
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_end_user']}/
-            {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_chatbot_user_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by gpt
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_openai']}/
-            {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_openai_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Average rating
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {Math.round(metricsInfo?.['average_rating'] * 100) / 100}
           </span>
         </div>
       </div>

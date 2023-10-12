@@ -1,7 +1,7 @@
 import { Dialog } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useAuthStates } from '../redux/hooks/dispatchHooks';
-import { useAddInternalFeedBackMutation, useGetStepsMutation } from '../redux/services/auth';
+import { useAddInternalFeedBackMutation, useGetStepsMutation, useDeletePromptMutation } from '../redux/services/auth';
 import SvgClose from './SvgComps/Close';
 
 export function Table({
@@ -21,6 +21,7 @@ export function Table({
   const TableDialog = ({ onClose }: { onClose: () => void }) => {
     const [getSteps] = useGetStepsMutation();
     const [addFeedBack] = useAddInternalFeedBackMutation();
+    const [deletePrompt] = useDeletePromptMutation();
     const [responses, setResponses] = useState(
       [] as {
         ques: string;
@@ -66,6 +67,19 @@ export function Table({
         });
     };
 
+    const handleDeletePrompt = (promptId: string) => {
+      deletePrompt({
+        prompt_id: promptId,
+        token: auth?.accessToken
+      })
+        .then(() => {
+          alert('Prompt deleted successfully');
+        })
+        .catch(() => {
+          alert('Error deleting prompt');
+        });
+    }
+
     return (
       <Dialog open={true} onClose={onClose}>
         <div
@@ -106,11 +120,23 @@ export function Table({
             {headings?.map((value, id) => (
               <div key={id} className="flex py-[8px] flex-col">
                 <span className="semiBold250">{value}</span>
-                <span className="medium250">{values[selectedRow]?.[id] ?? '-'}</span>
+                {value === 'Input Prompt' || value === 'Final Prompt' ? (
+                  <div className="w-full h-[200px] resize-none rounded-md p-[8px] text-sm text-light-neutral-grey-900 bg-light-neutral-grey-100 overflow-scroll">
+                    {values[selectedRow]?.[id] ?? '-'}
+                  </div>
+                ) : (
+                  <span className="medium250">{values[selectedRow]?.[id] ?? '-'}</span>
+                )}
               </div>
             ))}
+            <button onClick={() => {
+              handleDeletePrompt(values?.[selectedRow]?.[0] + '')
+            }}
+              className="bg-red-400 rounded-md px-[8px] py-[4px] mt-[8px] hover:bg-red-600"
+            >Delete Prompt</button>
           </div>{' '}
-          {responses?.length ? (
+          {/* TODO: fix this to show IR as well */}
+          {/* {responses?.length ? (
             <>
               <span className="semiBold250">Intermediate Steps</span>
               <div className="flex py-[8px] flex-col overflow-scroll h-full">
@@ -130,7 +156,7 @@ export function Table({
             </>
           ) : (
             ''
-          )}
+          )} */}
         </div>
       </Dialog>
     );

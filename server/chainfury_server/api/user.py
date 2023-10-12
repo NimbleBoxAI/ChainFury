@@ -6,11 +6,10 @@ from passlib.hash import sha256_crypt
 from fastapi import APIRouter, Depends, Query, Header
 from pydantic import BaseModel
 
-from chainfury_server import database
-from chainfury_server.database import User
-from chainfury_server.commons.utils import get_user_from_jwt, verify_user
+from chainfury_server.database import fastapi_db_session
+from chainfury_server.commons.utils import get_user_from_jwt
 
-user_router = APIRouter(prefix="/user", tags=["user"])
+user_router = APIRouter(tags=["user"])
 
 
 class ChangePasswordModel(BaseModel):
@@ -25,17 +24,12 @@ def change_password(
     resp: Response,
     token: Annotated[str, Header()],
     inputs: ChangePasswordModel,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = get_user_from_jwt(token=token, db=db)
 
-    if user is None:
-        resp.status_code = 404
-        return {"msg": "user not found"}
-
-    if sha256_crypt.verify(inputs.old_password, user.password):  # type: ignore
+    if sha256_crypt.verify(inputs.old_password, user.password):
         password = sha256_crypt.hash(inputs.new_password)
         user.password = password  # type: ignore
         db.commit()
