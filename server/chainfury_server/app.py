@@ -41,20 +41,13 @@ add_default_templates()
 ################ INITIALIZE ########################
 ####################################################
 
-# TODO: deprecate
-app.include_router(chatbot_router, prefix="/api/v1/chatbot")
-app.include_router(fury_router, prefix="/api/v1/fury")
-
-# see if we can move the prompts to v2 functions one by one
-# app.include_router(prompts_router, prefix="/api/v1/chatbot")
-app.add_api_route("/api/v1/chatbot/{chatbot_id}/prompt", api_prompts.list_prompts, methods=["GET"], tags=["auth"])  # type: ignore
-app.add_api_route("/api/v1/chatbot/{chatbot_id}/prompt/{prompt_id}", api_prompts.get_prompt, methods=["GET"], tags=["auth"])  # type: ignore
+# TODO: deprecate this
+app.add_api_route("/api/v1/prompts/{id}/prompt", api_chains.run_chain, methods=["POST"], tags=["deprecated"])  # type: ignore
 
 
 ####################################################
 ################ v2 APIs (Koval) ###################
 ####################################################
-
 
 # auth endpoints for v2
 app.add_api_route("/user/login/", api_auth.login, methods=["POST"], tags=["auth"])  # type: ignore
@@ -62,27 +55,27 @@ app.add_api_route("/user/signup/", api_auth.sign_up, methods=["POST"], tags=["au
 app.add_api_route("/user/change_password/", api_auth.change_password, methods=["POST"], tags=["auth"])  # type: ignore
 
 # chains
-app.add_api_route("/api/v2/chains/", api_chains.list_chatbots, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/", api_chains.create_chatbot, methods=["PUT"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/{id}/", api_chains.get_chatbot, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/{id}/", api_chains.delete_chatbot, methods=["DELETE"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/{id}/", api_chains.update_chatbot, methods=["PATCH"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/{id}/", api_chains.run_chain, methods=["POST"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/chains/{id}/metrics/", api_chains.get_chain_metrics, methods=["GET"], tags=["metrics"])  # type: ignore
+app.add_api_route("/api/v2/chains/", api_chains.list_chatbots, methods=["GET"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/", api_chains.create_chatbot, methods=["PUT"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/{id}/", api_chains.get_chatbot, methods=["GET"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/{id}/", api_chains.delete_chatbot, methods=["DELETE"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/{id}/", api_chains.update_chatbot, methods=["PATCH"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/{id}/", api_chains.run_chain, methods=["POST"], tags=["chains"])  # type: ignore
+app.add_api_route("/api/v2/chains/{id}/metrics/", api_chains.get_chain_metrics, methods=["GET"], tags=["chains"])  # type: ignore
 
 # actions
-app.add_api_route("/api/v2/fury/", api_fury.list_actions, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/fury/", api_fury.create_action, methods=["PUT"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/fury/{id}/", api_fury.get_action, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/fury/{id}/", api_fury.delete_action, methods=["DELETE"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/fury/{id}/", api_fury.update_action, methods=["PATCH"], tags=["v2"])  # type: ignore
-# app.add_api_route("/api/v2/fury/{id}/", fury.run_action, methods=["POST"], tags=["v2"])  # type: ignore
+app.add_api_route("/api/v2/fury/", api_fury.list_actions, methods=["GET"], tags=["fury"])  # type: ignore
+app.add_api_route("/api/v2/fury/", api_fury.create_action, methods=["PUT"], tags=["fury"])  # type: ignore
+app.add_api_route("/api/v2/fury/{id}/", api_fury.get_action, methods=["GET"], tags=["fury"])  # type: ignore
+app.add_api_route("/api/v2/fury/{id}/", api_fury.delete_action, methods=["DELETE"], tags=["fury"])  # type: ignore
+app.add_api_route("/api/v2/fury/{id}/", api_fury.update_action, methods=["PATCH"], tags=["fury"])  # type: ignore
+# app.add_api_route("/api/v2/fury/{id}/", fury.run_action, methods=["POST"], tags=["fury"])  # type: ignore
 
 # prompts
-app.add_api_route("/api/v2/prompts/", api_prompts.list_prompts, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/prompts/{prompt_id}/", api_prompts.get_prompt, methods=["GET"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/prompts/{prompt_id}/", api_prompts.delete_prompt, methods=["DELETE"], tags=["v2"])  # type: ignore
-app.add_api_route("/api/v2/prompts/{prompt_id}/feedback", api_prompts.prompt_feedback, methods=["PUT"], tags=["feedback"])  # type: ignore
+app.add_api_route("/api/v2/prompts/", api_prompts.list_prompts, methods=["GET"], tags=["prompts"])  # type: ignore
+app.add_api_route("/api/v2/prompts/{prompt_id}/", api_prompts.get_prompt, methods=["GET"], tags=["prompts"])  # type: ignore
+app.add_api_route("/api/v2/prompts/{prompt_id}/", api_prompts.delete_prompt, methods=["DELETE"], tags=["prompts"])  # type: ignore
+app.add_api_route("/api/v2/prompts/{prompt_id}/feedback", api_prompts.prompt_feedback, methods=["PUT"], tags=["prompts"])  # type: ignore
 
 
 ####################################################
