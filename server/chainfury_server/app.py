@@ -38,16 +38,11 @@ add_default_user()
 add_default_templates()
 
 ####################################################
-################ INITIALIZE ########################
+################ v2 APIs (Koval) ###################
 ####################################################
 
 # TODO: deprecate this
-app.add_api_route("/api/v1/prompts/{id}/prompt", api_chains.run_chain, methods=["POST"], tags=["deprecated"])  # type: ignore
-
-
-####################################################
-################ v2 APIs (Koval) ###################
-####################################################
+app.add_api_route("/api/v1/chatbot/{id}/prompt", api_chains.run_chain, methods=["POST"], tags=["deprecated"])  # type: ignore
 
 # auth endpoints for v2
 app.add_api_route("/user/login/", api_auth.login, methods=["POST"], tags=["auth"])  # type: ignore
