@@ -2,10 +2,7 @@ from fastapi import APIRouter, Request, Response, Header
 from typing import Annotated
 from functools import lru_cache
 
-from chainfury_server.commons import config as c
-
-logger = c.get_logger(__name__)
-
+from chainfury_server.commons.utils import logger
 
 # build router
 router = APIRouter(prefix="", tags=["flow"])

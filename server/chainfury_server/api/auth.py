@@ -8,12 +8,10 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 
-from chainfury_server.commons.utils import JWTPayload
-from chainfury_server.commons import config as c
+from chainfury_server.commons.utils import logger, Env
+from chainfury_server import database as DB
 
 auth_router = APIRouter(tags=["authentication"])
-
-logger = c.get_logger(__name__)
 
 
 class AuthModel(BaseModel):
@@ -32,8 +30,8 @@ def login(auth: AuthModel, db: Session = Depends(database.fastapi_db_session)):
     user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
         token = jwt.encode(
-            payload=JWTPayload(username=auth.username, user_id=user.id).to_dict(),
-            key=c.Env.JWT_SECRET(),
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
         )
         response = {"msg": "success", "token": token}
     else:
@@ -61,7 +59,10 @@ def sign_up(auth: SignUpModal, db: Session = Depends(database.fastapi_db_session
         user: User = User(username=auth.username, email=auth.email, password=sha256_crypt.hash(auth.password))  # type: ignore
         db.add(user)
         db.commit()
-        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.Env.JWT_SECRET())
+        token = jwt.encode(
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
+        )
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}

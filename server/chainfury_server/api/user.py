@@ -3,11 +3,10 @@ from fastapi.requests import Request
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from passlib.hash import sha256_crypt
-from fastapi import APIRouter, Depends, Query, Header
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 
-from chainfury_server.database import fastapi_db_session
-from chainfury_server.commons.utils import get_user_from_jwt
+from chainfury_server import database as DB
 
 user_router = APIRouter(tags=["user"])
 
@@ -24,10 +23,10 @@ def change_password(
     resp: Response,
     token: Annotated[str, Header()],
     inputs: ChangePasswordModel,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     if sha256_crypt.verify(inputs.old_password, user.password):
         password = sha256_crypt.hash(inputs.new_password)

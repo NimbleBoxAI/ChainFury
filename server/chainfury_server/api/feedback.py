@@ -5,16 +5,14 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel
 from typing import Annotated
 
-from chainfury_server import database
-from chainfury_server import database_constants as constants
-from chainfury_server.commons.utils import get_user_from_jwt
-from chainfury_server.database_constants import PromptRating
+from chainfury_server import database as DB
+
 
 feedback_router = APIRouter(tags=["feedback"])
 
 
 class FeedbackModel(BaseModel):
-    score: PromptRating
+    score: DB.PromptRating
 
 
 @feedback_router.put("/feedback", status_code=200)
@@ -24,15 +22,15 @@ def post_chatbot_user_feedback(
     token: Annotated[str, Header()],
     inputs: FeedbackModel,
     prompt_id: int,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # store in the DB
-    prompt = db.query(database.Prompt).filter(database.Prompt.id == prompt_id).first()  # type: ignore
+    prompt: DB.Prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()  # type: ignore
     if prompt is not None:
-        if prompt.chatbot_user_rating is not constants.PromptRating.UNRATED:
+        if prompt.chatbot_user_rating is not DB.PromptRating.UNRATED:
             raise HTTPException(
                 status_code=400,
                 detail=f"Chatbot user rating already exists",

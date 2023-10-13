@@ -5,9 +5,7 @@ from fastapi.requests import Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from chainfury_server import database
-from chainfury_server.database import Template
-from chainfury_server.commons.utils import get_user_from_jwt
+from chainfury_server import database as DB
 
 template_router = APIRouter(tags=["template"])
 
@@ -23,12 +21,12 @@ def get_all_templates(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
-    templates = db.query(Template).all()
+    templates = db.query(DB.Template).all()
     template_list = []
     for t in templates:
         data = t.to_dict()

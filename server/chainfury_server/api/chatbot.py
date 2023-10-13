@@ -6,13 +6,9 @@ from fastapi.requests import Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from chainfury_server import database
-from chainfury_server.database import ChatBot, IntermediateStep, ChatBotTypes
-from chainfury_server.commons.utils import get_user_from_jwt
-from chainfury_server.commons.types import Dag
-from chainfury_server.commons import config as c
+from chainfury.types import Dag
 
-logger = c.get_logger(__name__)
+from chainfury_server import database as DB
 
 chatbot_router = APIRouter(tags=["chatbot"])
 
@@ -34,10 +30,10 @@ def create_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     chatbot_data: ChatBotDetails,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate chatbot
     if not chatbot_data.name:
@@ -48,9 +44,9 @@ def create_chatbot(
         resp.status_code = 400
         return {"message": "Engine not specified"}
 
-    if chatbot_data.engine not in ChatBotTypes.all():
+    if chatbot_data.engine not in DB.ChatBotTypes.all():
         resp.status_code = 400
-        return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
+        return {"message": f"Invalid engine should be one of {DB.ChatBotTypes.all()}"}
 
     if len(chatbot_data.description) > 1024:
         resp.status_code = 400
@@ -58,7 +54,7 @@ def create_chatbot(
 
     # actually create
     dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
-    chatbot = ChatBot(
+    chatbot = DB.ChatBot(
         name=chatbot_data.name,
         created_by=user.id,
         dag=dag,
@@ -79,10 +75,10 @@ def get_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # query the db
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
@@ -100,10 +96,10 @@ def update_chatbot(
     token: Annotated[str, Header()],
     id: str,
     chatbot_data: ChatBotDetails,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate chatbot update
     if not len(chatbot_data.update_keys):
@@ -142,10 +138,10 @@ def delete_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # find and delete
     chatbot = db.query(ChatBot).filter(ChatBot.id == id, ChatBot.deleted_at == None).first()  # type: ignore
@@ -165,10 +161,10 @@ def list_chatbots(
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # query the db
     chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()  # type: ignore
@@ -182,9 +178,9 @@ def get_intermediate_steps(
     resp: Response,
     token: Annotated[str, Header()],
     prompt_id: int,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
-    user = get_user_from_jwt(token=token, db=db)  # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)  # validate user
 
     # get intermediate steps
     intermediate_steps = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt_id).all()  # type: ignore

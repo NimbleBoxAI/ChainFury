@@ -6,8 +6,8 @@ from fastapi.responses import Response
 from typing import Annotated
 from sqlalchemy.orm import Session
 
-from chainfury_server.commons.utils import get_user_from_jwt
-from chainfury_server.database import fastapi_db_session, Prompt as PromptModel, IntermediateStep
+from chainfury_server import database as DB
+from chainfury_server.commons.utils import logger
 
 
 # build router
@@ -17,8 +17,6 @@ router.__doc__ = """
 # Prompts API
 """
 
-logger = logging.getLogger(__name__)
-
 
 def list_prompts(
     req: Request,
@@ -27,19 +25,19 @@ def list_prompts(
     chatbot_id: str,
     limit: int = 100,
     offset: int = 0,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # get prompts
     if limit < 1 or limit > 100:
         limit = 100
     offset = offset if offset > 0 else 0
     prompts = (
-        db.query(PromptModel)  # type: ignore
-        .filter(PromptModel.chatbot_id == chatbot_id)
-        .order_by(PromptModel.created_at.desc())
+        db.query(DB.Prompt)  # type: ignore
+        .filter(DB.Prompt.chatbot_id == chatbot_id)
+        .order_by(DB.Prompt.created_at.desc())
         .limit(limit)
         .offset(offset)
         .all()
@@ -52,13 +50,13 @@ def get_prompt(
     resp: Response,
     prompt_id: int,
     token: Annotated[str, Header()],
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # get prompt
-    prompt = db.query(PromptModel).filter(PromptModel.id == prompt_id).first()  # type: ignore
+    prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
@@ -73,13 +71,13 @@ def delete_prompt(
     resp: Response,
     prompt_id: int,
     token: Annotated[str, Header()],
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # hard delete
-    prompt = db.query(PromptModel).filter(PromptModel.id == prompt_id).first()  # type: ignore
+    prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     db.delete(prompt)

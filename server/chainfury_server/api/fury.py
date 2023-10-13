@@ -11,22 +11,12 @@ from fastapi import APIRouter, Depends, Header, Request, Response, Query
 from chainfury.agent import model_registry, programatic_actions_registry, ai_actions_registry, memory_registry
 from chainfury.base import Node
 
-from chainfury_server.database import fastapi_db_session, FuryActions
-from chainfury_server.commons.utils import get_user_from_jwt, logger
+from chainfury_server import database as DB
+from chainfury_server.commons.utils import logger
 
 # build router
 fury_router = APIRouter(tags=["fury"])
 
-# add docs to router
-fury_router.__doc__ = """
-# Fury API
-
-Fury API contains the following:
-- ability to get the list of components or get a specific component (`/components/...`)
-- ability to CRUDL fury actions (`/actions/...`)
-"""
-
-logger = logging.getLogger(__name__)
 
 _MODEL = "models"
 _PROGRAMATIC = "programatic_actions"
@@ -50,9 +40,9 @@ def list_components_types(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     return {"components": list(_components().keys()), "actions": [_ACTION_AI]}
 
@@ -69,9 +59,9 @@ def list_components(
     resp: Response,
     token: Annotated[str, Header()],
     component_type: str,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     if component_type not in _components():
         resp.status_code = 404
@@ -87,9 +77,9 @@ def get_component(
     token: Annotated[str, Header()],
     component_type: str,
     component_id: str,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     if component_type not in _components():
         resp.status_code = 404
@@ -143,10 +133,10 @@ def create_fury_action(
     resp: Response,
     token: Annotated[str, Header()],
     fury_action: ActionRequest,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate action
     node, modified_resp = validate_action(fury_action, resp)
@@ -158,7 +148,7 @@ def create_fury_action(
         _node = node.to_dict()
         _node["created_by"] = user.id
         _node["name"] = fury_action.name
-        fury_action_data = FuryActions(**_node)
+        fury_action_data = DB.FuryActions(**_node)
         db.add(fury_action_data)
         db.commit()
         db.refresh(fury_action_data)
@@ -180,13 +170,13 @@ def get_fury_action(
     resp: Response,
     token: Annotated[str, Header()],
     fury_action_id: str,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # read from db
-    fury_action = db.query(FuryActions).get(fury_action_id)
+    fury_action = db.query(DB.FuryActions).get(fury_action_id)
     if not fury_action:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
@@ -201,10 +191,10 @@ def update_fury_action(
     token: Annotated[str, Header()],
     fury_action_id: str,
     fury_action: ActionUpdateRequest,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate fields
     if not len(fury_action.update_fields):
@@ -241,7 +231,7 @@ def update_fury_action(
             update_dict.update(node.to_dict())
 
     # find object
-    fury_action_db: FuryActions = db.query(FuryActions).get(fury_action_id)
+    fury_action_db: DB.FuryActions = db.query(DB.FuryActions).get(fury_action_id)
     if not fury_action_db:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
@@ -265,13 +255,13 @@ def delete_fury_action(
     resp: Response,
     token: Annotated[str, Header()],
     fury_action_id: str,
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # delete from db
-    fury_action = db.query(FuryActions).get(fury_action_id)
+    fury_action = db.query(DB.FuryActions).get(fury_action_id)
     if not fury_action:
         resp.status_code = 404
         return {"error": "FuryAction not found"}
@@ -280,7 +270,7 @@ def delete_fury_action(
     return {"msg": "FuryAction deleted successfully"}
 
 
-# L - List all FuryActions
+# L - List all DB.FuryActions
 @fury_router.get("/actions/")
 def list_fury_actions(
     req: Request,
@@ -288,13 +278,13 @@ def list_fury_actions(
     token: Annotated[str, Header()],
     offset: int = Query(0, ge=0),
     limit: int = Query(25, ge=1, le=25),
-    db: Session = Depends(fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    user = get_user_from_jwt(token=token, db=db)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # read from db
-    fury_actions = db.query(FuryActions).offset(offset).limit(limit).all()  # type: ignore
+    fury_actions = db.query(DB.FuryActions).offset(offset).limit(limit).all()  # type: ignore
     return fury_actions
 
 

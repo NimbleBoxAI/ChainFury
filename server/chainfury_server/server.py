@@ -26,17 +26,28 @@ def _main(
 
     assert type(config_plugins) == list, "config_plugins must be a list, try '[\"echo\"]'"
     import chainfury_server.commons.config as c
+    from chainfury_server.commons.utils import logger
 
     c.PluginsConfig.plugins_list = config_plugins
     port = int(port)
 
     for mod in pre:
+        logger.info(f"Pre Loading {mod}")
         importlib.import_module(mod)
 
     from chainfury_server.app import app  # load the server here
 
+    # for r in app.routes:
+    #     if r.path == "/help":
+    #         print(r)
+    #         print(r.endpoint)
+    #         print(r.endpoint())
+
     for mod in post:
-        importlib.import_module(mod)
+        logger.info(f"Post Loading {mod}")
+        _module = importlib.import_module(mod)
+        # if hasattr(_module, "modify_app"):
+        #     app = _module.modify_app(app)
 
     uvicorn.run(app, host=host, port=port)
 

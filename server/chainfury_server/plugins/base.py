@@ -1,11 +1,6 @@
-from typing import List, Dict, Any, Union, Callable
-from sqlalchemy.orm import Session
+from typing import Dict, Any, Callable
 
-from chainfury_server.commons.config import get_logger
-
-# from chainfury_server.database import PluginKeyValue
-
-logger = get_logger("cf_plugins")
+from chainfury_server.commons.utils import logger
 
 
 class EventType:
@@ -15,7 +10,7 @@ class EventType:
 class Event:
     types = EventType
 
-    def __init__(self, event_type: str, data: Any = {}):
+    def __init__(self, event_type: str, data: Dict[str, Any] = {}):
         self.event_type = event_type
         self.data = data
 
@@ -31,19 +26,6 @@ class CFPluginMetadata:
 
     def __repr__(self) -> str:
         return f"<CFPluginMetadata ({self.plugin_class.__name__}) {self.name}=={self.version}>"
-
-
-# # One day, some day
-# def __get_db() -> Session:
-#     return Session()
-#
-# class CFPluginKV:
-#     __plugin_name = ""
-#     def write(self, key: str, value: str) -> str:
-#         db = __get_db()
-#         k = self.__plugin_name + "/" + key
-#         db.merge(PluginKeyValue(key=k, value=value))
-#         return key
 
 
 class CFPlugin:

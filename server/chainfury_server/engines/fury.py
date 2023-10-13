@@ -1,6 +1,7 @@
 import time
 import json
 import traceback
+from uuid import uuid4
 from pprint import pprint, pformat
 from functools import partial
 from fastapi import HTTPException
@@ -9,18 +10,13 @@ from sqlalchemy.orm import Session
 
 from chainfury.types import Dag as DagType
 from chainfury import Chain, Node, Edge, ai_actions_registry, programatic_actions_registry
+from chainfury.utils import SimplerTimes
 
-from chainfury_server.schemas.prompt_schema import PromptBody
-from chainfury_server.database import ChatBot, Session, FuryActions
-from chainfury_server.commons import config as c
-from chainfury_server.commons.types import CFPromptResult
-from chainfury_server.database_utils.prompt import create_prompt
-from chainfury_server.database_utils.intermediate_step import create_intermediate_steps
+from chainfury_server.commons.utils import logger
+from chainfury_server.database import ChatBot, Session, FuryActions, IntermediateStep
+from chainfury_server.commons.types import CFPromptResult, PromptBody
 
-from chainfury_server.engines.registry import EngineInterface, engine_registry
-
-
-logger = c.get_logger(__name__)
+from chainfury_server.engines.registry import EngineInterface, engine_registry, create_prompt
 
 
 class FuryEngine(EngineInterface):
@@ -32,11 +28,12 @@ class FuryEngine(EngineInterface):
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
 
             # Create a Fury chain then run the chain while logging all the intermediate steps
-            # prompt.chat_history
             chain = convert_chatbot_dag_to_fury_chain(chatbot=chatbot, db=db)
             callback = FuryThoughts(db, prompt_row.id)
             if prompt.new_message:
                 prompt.data = {chain.main_in: prompt.new_message}
+
+            # call the chain
             mainline_out, full_ir = chain(
                 data=prompt.data,
                 thoughts_callback=callback,
@@ -78,6 +75,8 @@ class FuryEngine(EngineInterface):
             callback = FuryThoughts(db, prompt_row.id)
             if prompt.new_message:
                 prompt.data = {chain.main_in: prompt.new_message}
+
+            # call the chain
             iterator = chain.stream(
                 data=prompt.data,
                 thoughts_callback=callback,
@@ -116,7 +115,37 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     def submit(self, chatbot: ChatBot, prompt: PromptBody, db: Session, start: float) -> CFPromptResult:
-        raise NotImplementedError("Subclass this and implement submit()")
+        if prompt.new_message and prompt.data:
+            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
+        try:
+            logger.debug("Adding prompt to database")
+            prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
+
+            # Create a Fury chain then run the chain while logging all the intermediate steps
+            chain = convert_chatbot_dag_to_fury_chain(chatbot=chatbot, db=db)
+            callback = FuryThoughts(db, prompt_row.id)
+            if prompt.new_message:
+                prompt.data = {chain.main_in: prompt.new_message}
+
+            # call the chain
+            task_id: str = str(uuid4())
+
+            result = CFPromptResult(
+                result=f"Task '{task_id}' scheduled",
+                prompt_id=prompt_row.id,
+                task_id=task_id,
+            )
+            prompt_row.response = result.result  # type: ignore
+            prompt_row.time_taken = float(time.time() - start)  # type: ignore
+            prompt_row.num_tokens = 0  # type: ignore
+            db.commit()
+
+            return result
+
+        except Exception as e:
+            traceback.print_exc()
+            logger.exception(e)
+            raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 engine_registry.register(FuryEngine(), "fury")
@@ -164,7 +193,9 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
             actions_map[x.id] = x.cf_data
         else:
             cf_action_ids.add(x.cf_id)
-    actions: List[FuryActions] = db.query(FuryActions).filter(FuryActions.id.in_(cf_action_ids)).all()
+    actions: List[FuryActions] = []
+    if cf_action_ids:
+        actions = db.query(FuryActions).filter(FuryActions.id.in_(cf_action_ids)).all()  # type: ignore
     actions_map.update({str(x.id): x.to_dict() for x in actions})
     for node in dag_nodes:
         cf_action = actions_map.get(node.cf_id, None)
@@ -218,3 +249,23 @@ def convert_chatbot_dag_to_fury_chain(chatbot: ChatBot, db: Session) -> Chain:
         main_out=dag.main_out,
     )
     return out
+
+
+def create_intermediate_steps(
+    db: Session,
+    prompt_id: int,
+    intermediate_prompt: str = "",
+    intermediate_response: str = "",
+    response_json: Dict = {},
+) -> IntermediateStep:
+    db_prompt = IntermediateStep(
+        prompt_id=prompt_id,
+        intermediate_prompt=intermediate_prompt,
+        intermediate_response=intermediate_response,
+        response_json=response_json,
+        created_at=SimplerTimes.get_now_datetime(),
+    )  # type: ignore
+    db.add(db_prompt)
+    db.commit()
+    db.refresh(db_prompt)
+    return db_prompt
