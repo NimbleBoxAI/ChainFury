@@ -4,8 +4,6 @@ import json
 from fire import Fire
 
 from chainfury import Chain
-from chainfury.utils import logger
-from chainfury.client import get_client
 from chainfury.version import __version__
 from chainfury.components import all_items
 from chainfury.agent import model_registry, programatic_actions_registry, memory_registry
@@ -58,7 +56,10 @@ def run(
             with open(inp, "r") as f:
                 inp = json.load(f)
         else:
-            inp = json.loads(inp)
+            try:
+                inp = json.loads(inp)
+            except Exception as e:
+                raise ValueError("Input must be a valid json string or a json file path")
     assert isinstance(inp, dict), "Input must be a dict"
 
     # create chain

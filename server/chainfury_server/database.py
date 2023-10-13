@@ -1,10 +1,78 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Text, Float, DateTime, Enum
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import scoped_session
-from sqlalchemy.orm import sessionmaker
-from chainfury_server.database_constants import PromptRating, ID_LENGTH
-from chainfury_server.commons.config import Base, get_local_session, engine
-from chainfury_server.database_utils import general_utils
+import os
+import jwt
+import json
+import random, string
+from enum import Enum as EnumType
+from fastapi import HTTPException
+from passlib.hash import sha256_crypt
+from dataclasses import dataclass, asdict
+
+from sqlalchemy.pool import QueuePool
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Text, Float, DateTime, Enum, create_engine
+
+from chainfury_server.utils import logger, Env, folder, joinp
+
+########
+#
+# Init things
+#
+########
+
+Base = declarative_base()
+
+ID_LENGTH = 8
+
+db = Env.CFS_DATABASE("")
+if not db:
+    # create a sqlite in the chainfury directory
+    cf_folder = os.path.expanduser("~/cf")
+    os.makedirs(cf_folder, exist_ok=True)
+    db = "sqlite:///" + cf_folder + "/cfs.db"
+    logger.warning(f"No database passed will connect to local SQLite: {db}")
+    engine = create_engine(
+        db,
+        connect_args={
+            "check_same_thread": False,
+        },
+    )
+else:
+    logger.info(f"Using via database URL")
+    engine = create_engine(
+        db,
+        poolclass=QueuePool,
+        pool_size=10,
+        pool_recycle=30,
+        pool_pre_ping=True,
+    )
+
+
+########
+#
+# Helper Functions
+#
+########
+
+
+def get_random_alphanumeric_string(length) -> str:
+    letters_and_digits = string.ascii_letters + string.digits
+    result_str = "".join((random.choice(letters_and_digits) for i in range(length)))
+    return result_str
+
+
+def get_random_number(length) -> int:
+    smallest_number = 10 ** (length - 1)
+    largest_number = (10**length) - 1
+    random_numbers = random.randint(smallest_number, largest_number)
+    return random_numbers
+
+
+def get_local_session() -> sessionmaker:
+    logger.debug("Database opened successfully")
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    return SessionLocal
 
 
 def db_session() -> Session:  # type: ignore
@@ -26,14 +94,14 @@ def fastapi_db_session():
         db.close()
 
 
-def unique_string(Table, row_reference):
+def unique_string(table, row_reference):
     """
     Gets Random Unique String for Primary key and makes sure its unique for the table.
     """
     db = db_session()
-    random_string = general_utils.get_random_alphanumeric_string(ID_LENGTH).lower()
-    while db.query(Table).filter(row_reference == random_string).limit(1).first() is not None:
-        random_string = general_utils.get_random_alphanumeric_string(ID_LENGTH).lower()
+    random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
+    while db.query(table).filter(row_reference == random_string).limit(1).first() is not None:  # type: ignore
+        random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
 
     return random_string
 
@@ -43,11 +111,60 @@ def unique_number(Table, row_reference):
     Gets Random Unique Number for Primary key and makes sure its unique for the table.
     """
     db = db_session()
-    random_number = general_utils.get_random_number(ID_LENGTH)
-    while db.query(Table).filter(row_reference == random_number).limit(1).first() is not None:
-        random_number = general_utils.get_random_number(ID_LENGTH)
+    random_number = get_random_number(ID_LENGTH)
+    while db.query(Table).filter(row_reference == random_number).limit(1).first() is not None:  # type: ignore
+        random_number = get_random_number(ID_LENGTH)
 
     return random_number
+
+
+def add_default_user():
+    admin_password = sha256_crypt.hash("admin")
+    db = db_session()
+    try:
+        db.add(User(username="admin", password=admin_password, email="admin@admin.com", meta=""))  # type: ignore
+        db.commit()
+    except IntegrityError as e:
+        logger.info("Not adding default user")
+
+
+def add_default_templates():
+    db = db_session()
+    try:
+        ex_folder = joinp(folder(__file__), "examples")
+        # with open("./examples/index.json") as f:
+        with open(joinp(ex_folder, "index.json")) as f:
+            data = json.load(f)
+        for template_data in data:
+            template = db.query(Template).filter_by(id=template_data["id"]).first()
+            if template:
+                template.name = template_data["name"]
+                template.description = template_data["description"]
+                # with open("./examples/" + template_data["dag"]) as f:
+                with open(joinp(ex_folder, template_data["dag"])) as f:
+                    dag = json.load(f)
+                template.dag = dag
+            else:
+                # with open("./examples/" + template_data["dag"]) as f:
+                with open(joinp(ex_folder, template_data["dag"])) as f:
+                    dag = json.load(f)
+                template = Template(
+                    id=template_data["id"],
+                    name=template_data["name"],
+                    description=template_data["description"],
+                    dag=dag,
+                )  # type: ignore
+                db.add(template)
+        db.commit()
+    except IntegrityError as e:
+        logger.info("Not adding default templates")
+
+
+########
+#
+# Tables
+#
+########
 
 
 class User(Base):
@@ -67,14 +184,18 @@ class ChatBotTypes:
     LANGFLOW = "langflow"
     FURY = "fury"
 
-    def all():
+    def all():  # type: ignore
         return [getattr(ChatBotTypes, attr) for attr in dir(ChatBotTypes) if not attr.startswith("__")]
 
 
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
-    id = Column(String(8), default=lambda: unique_string(ChatBot, ChatBot.id), primary_key=True)
+    id = Column(
+        String(8),
+        default=lambda: unique_string(ChatBot, ChatBot.id),
+        primary_key=True,
+    )
     name = Column(String(80), unique=False)
     description = Column(Text, nullable=True)
     created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
@@ -93,22 +214,39 @@ class ChatBot(Base):
             "created_by": self.created_by,
             "dag": self.dag,
             "meta": self.meta,
+            "engine": self.engine,
+            "tag_id": self.tag_id,
+            "created_at": self.created_at,
+            "deleted_at": self.deleted_at,
         }
 
     def __repr__(self):
         return f"ChatBot(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
 
 
+class PromptRating(EnumType):
+    """Enum to know how the conversation went with chat."""
+
+    UNRATED = 0
+    SAD = 1
+    NEUTRAL = 2
+    HAPPY = 3
+
+
 class Prompt(Base):
     __tablename__ = "prompt"
 
-    id = Column(Integer, default=lambda: unique_number(Prompt, Prompt.id), primary_key=True)
+    id = Column(
+        Integer,
+        default=lambda: unique_number(Prompt, Prompt.id),
+        primary_key=True,
+    )
     chatbot_id = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
     input_prompt = Column(Text, nullable=False)
     response = Column(Text, nullable=True)
     gpt_rating = Column(String(5), nullable=True)
-    user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
-    chatbot_user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
+    user_rating = Column(Enum(PromptRating), nullable=True)
+    chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
     time_taken = Column(Float, nullable=True)
     num_tokens = Column(Integer, nullable=True)
     created_at = Column(DateTime, nullable=False)
@@ -134,6 +272,7 @@ class Prompt(Base):
 
 class IntermediateStep(Base):
     __tablename__ = "intermediate_step"
+
     id = Column(
         String(8),
         default=lambda: unique_string(IntermediateStep, IntermediateStep.id),
@@ -163,7 +302,12 @@ class IntermediateStep(Base):
 
 class Template(Base):
     __tablename__ = "template"
-    id = Column(Integer, default=lambda: unique_number(Template, Template.id), primary_key=True)
+
+    id = Column(
+        Integer,
+        default=lambda: unique_number(Template, Template.id),
+        primary_key=True,
+    )
     name = Column(Text, nullable=False)
     dag = Column(JSON, nullable=False)
     description = Column(Text)
@@ -182,23 +326,16 @@ class Template(Base):
         return f"Template(id={self.id}, name={self.name}, description={self.description}, dag={self.dag}, meta={self.meta})"
 
 
-# A true plugin architecture allows for plugins to be able to CRUDL some state via a simple mechanism
-# so that they can become more powerful, however we don't want to plugins to be very heavy on the DB
-# thus the plugins must build a simple key-value based state management system.
-
-
-# class PluginKeyValue(Base):
-#     __tablename__ = "plugin_kv"
-#     key = Column(String, primary_key=True)
-#     value = Column(String, nullable=False)
-
-
 # A fury action is an AI powered node that can be used in a fury chain it is the DB equivalent of fury.Node
 
 
 class FuryActions(Base):
     __tablename__ = "fury_actions"
-    id: Column = Column(String(36), primary_key=True)
+
+    id: Column = Column(
+        String(36),
+        primary_key=True,
+    )
     created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
     type: str = Column(String(80), nullable=False)  # the AI Action type
     name: str = Column(String(80), unique=False)
@@ -230,4 +367,34 @@ class FuryActions(Base):
         self.tags = data.get("tags", self.tags)
 
 
-Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)  # type: ignore
+
+########
+#
+# JWT Helpers
+#
+########
+
+
+@dataclass
+class JWTPayload:
+    username: str
+    user_id: int
+
+    def to_dict(self):
+        return asdict(self)
+
+
+def get_user_from_jwt(token, db: Session) -> User:
+    try:
+        payload = jwt.decode(token, key=Env.JWT_SECRET(), algorithms=["HS256"])
+        payload = JWTPayload(
+            username=payload.get("username", ""),
+            user_id=payload.get("user_id", "") or payload.get("userid", ""),  # grandfather 'userid'
+        )
+    except Exception as e:
+        logger.error("Could not decode JWT token")
+        raise HTTPException(status_code=401, detail="Could not decode JWT token")
+
+    logger.debug(f"Verifying user {payload.username}")
+    return db.query(User).filter(User.username == payload.username).first()  # type: ignore

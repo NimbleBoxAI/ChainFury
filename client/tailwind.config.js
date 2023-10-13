@@ -33,25 +33,25 @@ export default {
           css: [
             {
               ".bold900,.bold850,.bold800,.bold750,.bold700,.bold650,.bold600,.bold550,.bold500,.bold450,.bold400,.bold350,.bold300,.bold250,.bold200,.bold150,.bold100,.bold50":
-                {
-                  fontFamily: "'Inter', sans-serif",
-                  fontWeight: "700!important",
-                },
+              {
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: "700!important",
+              },
               ".semiBold900,.semiBold850, .semiBold800,.semiBold750, .semiBold700 ,.semiBold650,.semiBold600,.semiBold550, .semiBold500,.semiBold450, .semiBold400,.semiBold350, .semiBold300,.semiBold250,.semiBold200,.semiBold150,.semiBold100":
-                {
-                  fontFamily: "'Inter', sans-serif",
-                  fontWeight: "600!important",
-                },
+              {
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: "600!important",
+              },
               ".medium900,.medium850, .medium800,.medium750, .medium700 ,.medium650,.medium600,.medium550, .medium500,.medium450, .medium400,.medium350, .medium300,.medium250 ,.medium200,.medium150 ,.medium100":
-                {
-                  fontFamily: "'Inter', sans-serif!important",
-                  fontWeight: "500!important",
-                },
+              {
+                fontFamily: "'Inter', sans-serif!important",
+                fontWeight: "500!important",
+              },
               ".regular900,.regular850 ,.regular800,.regular750, .regular700 ,.regular650,.regular600,.regular550, .regular500,.regular450, .regular400,.regular350, .regular300,.regular250,.regular200,.regular150,.regular100":
-                {
-                  fontFamily: "'Inter', sans-serif",
-                  fontWeight: "400!important",
-                },
+              {
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: "400!important",
+              },
               ".bold900": {
                 fontSize: "40px",
                 lineHeight: "48px",

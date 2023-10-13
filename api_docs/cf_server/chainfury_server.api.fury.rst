@@ -1,5 +1,5 @@
-fury module
-===========
+chainfury\_server.api.fury module
+=================================
 
 .. automodule:: chainfury_server.api.fury
    :members:

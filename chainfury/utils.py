@@ -1,10 +1,12 @@
 import os
+import json
 import time
 import time
 import logging
 from uuid import uuid4
 from urllib.parse import quote
-from typing import Any, Dict, List, Union, Tuple
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Union, Tuple, Optional
 
 from concurrent.futures import ThreadPoolExecutor, as_completed, Future
 
@@ -21,6 +23,7 @@ class CFEnv:
     * CF_BLOB_AWS_CLOUD_FRONT: blob storage cloud front url, if not provided defaults to primary S3 URL (only used for `s3` engine)
     """
 
+    CF_LOG_LEVEL = lambda: os.getenv("CF_LOG_LEVEL", "info")
     CF_FOLDER = lambda: os.path.expanduser(os.getenv("CF_FOLDER", "~/cf"))
     CF_BLOB_STORAGE = lambda: os.path.join(CFEnv.CF_FOLDER(), "blob")
     CF_BLOB_ENGINE = lambda: os.getenv("CF_BLOB_ENGINE", "local")
@@ -132,7 +135,7 @@ def terminal_top_with_text(msg: str = "") -> str:
 def get_logger() -> logging.Logger:
     """Returns a logger object"""
     logger = logging.getLogger("fury")
-    lvl = os.getenv("FURY_LOG_LEVEL", "info").upper()
+    lvl = CFEnv.CF_LOG_LEVEL().upper()
     logger.setLevel(getattr(logging, lvl))
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(
@@ -233,3 +236,82 @@ def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20
             except Exception as e:
                 raise e
     return results
+
+
+"""
+Ser/Deser
+"""
+
+
+def to_json(x: dict, fp: str = "", indent=2, tight: bool = False) -> Optional[str]:
+    """
+    Convert a dict to json string and write to file if ``fp`` is provided.
+
+    Args:
+        x (dict): The dict to convert
+        fp (str, optional): The file path to write to. Defaults to "".
+        indent (int, optional): The indentation level. Defaults to 2.
+        tight (bool, optional): If true, remove all the whitespaces, ignores ``indent``. Defaults to False.
+
+    Returns:
+        Optional[str]: The json string if ``fp`` is not provided
+    """
+    kwargs: Dict[str, Any] = {}
+    if tight:
+        kwargs["separators"] = (",", ":")  # type: ignore
+    else:
+        kwargs["indent"] = indent
+    if fp:
+        with open(fp, "w") as f:
+            f.write(json.dumps(x, **kwargs))
+    else:
+        return json.dumps(x, **kwargs)
+
+
+def from_json(fp: str = "") -> Dict[str, Any]:
+    """
+    Load a JSON string or filepath and return a dictionary.
+
+    Args:
+        fp (str): The filepath or JSON-ified string
+
+    Returns:
+
+    """
+    if os.path.exists(fp):
+        with open(fp, "r") as f:
+            return json.load(f)
+    else:
+        return json.loads(fp)
+
+
+class SimplerTimes:
+    """
+    A class that provides a simpler interface to datetime and time modules.
+    """
+
+    tz = timezone.utc
+
+    def get_now_datetime() -> datetime:  # type: ignore
+        """Get the current datetime in UTC timezone"""
+        return datetime.now(SimplerTimes.tz)
+
+    def get_now_float() -> float:  # type: ignore
+        """Get the current datetime in UTC timezone as a float"""
+        return SimplerTimes.get_now_datetime().timestamp()
+
+    def get_now_i64() -> int:  # type: ignore
+        """Get the current datetime in UTC timezone as a int"""
+        return int(SimplerTimes.get_now_datetime().timestamp())
+
+    def get_now_str() -> str:  # type: ignore
+        """Get the current datetime in UTC timezone as a string"""
+        return SimplerTimes.get_now_datetime().strftime("%Y-%m-%d %H:%M:%S.%f")
+
+    def i64_to_datetime(i64: int) -> datetime:  # type: ignore
+        """Convert an int to datetime in UTC timezone"""
+        return datetime.fromtimestamp(i64, SimplerTimes.tz)
+
+    def get_now_human() -> str:  # type: ignore
+        """Get the current datetime in UTC timezone as a human readable string"""
+        return SimplerTimes.get_now_datetime().strftime("%A %d %B, %Y at %I:%M %p")

@@ -6,23 +6,22 @@ chainfury\_server package
    :undoc-members:
    :show-inheritance:
 
+Subpackages
+-----------
+
 .. toctree::
    :maxdepth: 4
-   :caption: Subpackages
 
-   chainfury_server.api
-   chainfury_server.commons
-   chainfury_server.database_utils
    chainfury_server.engines
-   chainfury_server.plugins
-   chainfury_server.schemas
+
+Submodules
+----------
 
 .. toctree::
    :maxdepth: 4
 
    chainfury_server.app
    chainfury_server.database
-   chainfury_server.database_constants
    chainfury_server.server
+   chainfury_server.utils
    chainfury_server.version
-

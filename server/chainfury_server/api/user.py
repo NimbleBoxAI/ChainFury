@@ -1,46 +1,76 @@
-from typing import Annotated
-from fastapi.requests import Request
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
+import jwt
+from fastapi import HTTPException
 from passlib.hash import sha256_crypt
-from fastapi import APIRouter, Depends, Query, Header
-from pydantic import BaseModel
+from sqlalchemy.orm import Session
+from fastapi import Request, Response, Depends, Header
+from typing import Annotated
 
-from chainfury_server import database
-from chainfury_server.database import User
-from chainfury_server.commons.utils import get_user_from_jwt, verify_user
-
-user_router = APIRouter(prefix="/user", tags=["user"])
-
-
-class ChangePasswordModel(BaseModel):
-    username: str
-    old_password: str
-    new_password: str
+from chainfury_server.utils import logger, Env
+import chainfury_server.database as DB
+import chainfury.types as T
 
 
-@user_router.post("/change_password", status_code=200)
+def login(auth: T.ApiAuth, db: Session = Depends(DB.fastapi_db_session)):
+    user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
+    if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
+        token = jwt.encode(
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
+        )
+        response = {"msg": "success", "token": token}
+    else:
+        response = {"msg": "failed"}
+    return response
+
+
+def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
+    user_exists = False
+    email_exists = False
+    user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
+    if user is not None:
+        user_exists = True
+    user: DB.User = db.query(DB.User).filter(DB.User.email == auth.email).first()  # type: ignore
+    if user is not None:
+        email_exists = True
+    if user_exists and email_exists:
+        raise HTTPException(status_code=400, detail="Username and email already registered")
+    elif user_exists:
+        raise HTTPException(status_code=400, detail="Username is taken")
+    elif email_exists:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    if not user_exists and not email_exists:  # type: ignore
+        user: DB.User = DB.User(
+            username=auth.username,
+            email=auth.email,
+            password=sha256_crypt.hash(auth.password),
+        )  # type: ignore
+        db.add(user)
+        db.commit()
+        token = jwt.encode(
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
+        )
+        response = {"msg": "success", "token": token}
+    else:
+        response = {"msg": "failed"}
+    return response
+
+
 def change_password(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    inputs: ChangePasswordModel,
-    db: Session = Depends(database.fastapi_db_session),
-):
+    inputs: T.ApiChangePassword,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
-    if user is None:
-        resp.status_code = 404
-        return {"msg": "user not found"}
-
-    if sha256_crypt.verify(inputs.old_password, user.password):  # type: ignore
+    if sha256_crypt.verify(inputs.old_password, user.password):
         password = sha256_crypt.hash(inputs.new_password)
         user.password = password  # type: ignore
         db.commit()
-        response = {"msg": "success"}
-        return response
+        return T.ApiResponse(message="success")
     else:
         resp.status_code = 400
-        return {"msg": "old password is incorrect"}
+        return T.ApiResponse(message="password incorrect")

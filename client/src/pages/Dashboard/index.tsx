@@ -10,7 +10,6 @@ import { DummyMetricsData, DummyMetricsInfo } from '../../constants';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
 import {
-  useGetAllBotMetricsMutation,
   useGetMetricsMutation,
   useGetPromptsMutation
 } from '../../redux/services/auth';
@@ -21,7 +20,6 @@ import {
   setSelectedChatBot
 } from '../../redux/slices/authSlice';
 
-const metrics = ['latency', 'user_score', 'internal_review_score', 'gpt_review_score'];
 interface FeedbackInterface {
   bad_count: number;
   good_count: number;
@@ -43,7 +41,12 @@ const Dashboard = () => {
     }[]
   );
   const [searchParams] = useSearchParams();
-  const [getAllMetrics] = useGetAllBotMetricsMutation();
+  const [chainMetrics, setMetrics] = useState(
+    [] as {
+      name: string;
+      value: number;
+    }[]
+  )
 
   useEffect(() => {
     if (searchParams?.get('id') && auth?.chatBots?.[searchParams?.get('id') ?? '']) {
@@ -57,29 +60,7 @@ const Dashboard = () => {
   }, [auth.chatBots, searchParams]);
 
   useEffect(() => {
-    if (showDummyData) {
-      dispatch(setMetrics(DummyMetricsData));
-      setMetricsInfo(DummyMetricsInfo);
-    }
-  }, [showDummyData]);
-
-  const handleAllMetrics = () => {
-    getAllMetrics({
-      token: auth?.accessToken
-    })
-      ?.unwrap()
-      ?.then((res) => {
-        dispatch(
-          setMetrics({
-            data: res?.all_bot_metrics ?? []
-          })
-        );
-      });
-  };
-
-  useEffect(() => {
     if (auth?.selectedChatBot?.id) {
-      handleAllMetrics();
       getPrompts({ id: auth?.selectedChatBot?.id, token: auth?.accessToken })
         ?.unwrap()
         .then((res) => {
@@ -98,25 +79,21 @@ const Dashboard = () => {
   }, [auth?.selectedChatBot?.id]);
 
   const getMetricsDetails = async () => {
-    await metrics?.forEach(async (metric) => {
-      getMetrics({
-        id: auth?.selectedChatBot?.id,
-        token: auth?.accessToken,
-        metric_type: metric
-      })
-        ?.unwrap()
-        ?.then((res) => {
-          if (metric === 'latency') {
-            setLatencies(res.data);
-          } else
-            setMetricsInfo((prev) => {
-              return {
-                ...prev,
-                [metric]: res.data?.[0]
-              };
-            });
-        });
-    });
+    getMetrics({
+      chain_id: auth?.selectedChatBot?.id,
+      token: auth?.accessToken,
+    })
+      ?.unwrap()
+      ?.then((res) => {
+        // console.log(res);
+        setMetrics([
+          {
+            name: "total_conversations",
+            value: res?.metrics?.total_conversations
+          }
+        ]);
+        // console.log(chainMetrics);
+      });
   };
 
   const embeddedScript = `<script src="${window?.location?.origin}/script/embedBot.js?chatBotId=${auth?.selectedChatBot?.id}" type="text/javascript"></script>`;
@@ -140,13 +117,14 @@ const Dashboard = () => {
               </Button>
             </div>
             <div className="overflow-scroll h-full w-full">
-              {auth?.metrics?.[showDummyData ? '' : auth?.selectedChatBot?.id] ? (
+              {/* {chainMetrics ? (
                 <BotMetrics
-                  metricsInfo={auth?.metrics?.[showDummyData ? '' : auth?.selectedChatBot?.id]}
+                  metricsInfo={chainMetrics}
                 />
               ) : (
                 ''
-              )}
+              )} */}
+              Metrics will show up here
               <div className="flex gap-[8px] mt-[32px] flex-col">
                 <span className="medium300">
                   Try out the bot by clicking on <span className="semiBold300">The Bot</span> in the
@@ -337,63 +315,11 @@ const BotMetrics = ({ metricsInfo }: { metricsInfo: MetricsInterface }) => {
         <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
           <div className="flex gap-[8px] items-center">
             <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Total tokens processed
+              Total Usage
             </span>
           </div>
           <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['total_tokens_processed']}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by developers
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_developer']}/
             {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_developer_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by users
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_end_user']}/
-            {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_chatbot_user_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Conversation rated by gpt
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {metricsInfo?.['no_of_conversations_rated_by_openai']}/
-            {metricsInfo?.['total_conversations']}
-          </span>
-          <span className="regular150">
-            Average rating: {Math.round(metricsInfo?.average_openai_ratings * 100) / 100}
-          </span>
-        </div>
-        <div className="w-[190px] rounded-md cursor-pointer flex flex-col h-[130px] p-[16px] border-[1px] border-solid border-light-neutral-grey-200 dark:border-dark-neutral-grey-200">
-          <div className="flex gap-[8px] items-center">
-            <span className="medium250 text-light-neutral-grey-700 dark:text-dark-neutral-grey-700">
-              Average rating
-            </span>
-          </div>
-          <span className="medium800 mt-[8px] text-light-neutral-grey-900 dark:text-dark-neutral-grey-900">
-            {Math.round(metricsInfo?.['average_rating'] * 100) / 100}
           </span>
         </div>
       </div>
