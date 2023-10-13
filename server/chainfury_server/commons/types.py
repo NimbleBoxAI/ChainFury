@@ -94,3 +94,30 @@ class ActionUpdateRequest(BaseModel):
     fn: ActionRequest.FnModel = Field(default=None, description="The function details for the action.")
     outputs: list[ActionRequest.OutputModel] = Field([], description="The output details for the action.")
     update_fields: list[str] = Field(description="The fields to update.")
+
+
+class AuthModel(BaseModel):
+    username: str
+    password: str
+
+
+class SignUpModal(BaseModel):
+    username: str
+    email: str
+    password: str
+
+
+class ChangePasswordModel(BaseModel):
+    username: str
+    old_password: str
+    new_password: str
+
+
+class FeedbackModel(BaseModel):
+    score: DB.PromptRating
+
+
+class TemplateModel(BaseModel):
+    name: str
+    dag: dict
+    description: str = "No description provided"

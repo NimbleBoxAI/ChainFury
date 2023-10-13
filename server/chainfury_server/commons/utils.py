@@ -6,7 +6,7 @@ import logging
 
 def get_logger(name) -> logging.Logger:
     temp_logger = logging.getLogger(name)
-    temp_logger.setLevel(logging.DEBUG)
+    temp_logger.setLevel(logging.INFO)
     return temp_logger
 
 

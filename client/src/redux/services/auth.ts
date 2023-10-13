@@ -23,63 +23,7 @@ export const authApi = createApi({
   }),
   endpoints: (builder) => ({
 
-    // TODO: think about these later
-    login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
-      query: (credentials) => ({
-        url: `${BASE_URL}/api/v1/login`,
-        method: 'POST',
-        body: credentials
-      })
-    }),
-    signup: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        username: string;
-        email: string;
-        password: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: `${BASE_URL}/api/v1/signup`,
-        method: 'POST',
-        body: credentials
-      })
-    }),
-    changePassword: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        old_password: string;
-        new_password: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: `${BASE_URL}/api/v1/user/change_password`,
-        method: 'POST',
-        body: {
-          old_password: credentials.old_password,
-          new_password: credentials.new_password,
-          username: ''
-        }
-      })
-    }),
-
     // TODO: this is deprecated API, remove this
-    addInternalFeedBack: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        score: number;
-        prompt_id: string;
-        chatbot_id: string;
-      }
-    >({
-      query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `${BASE_URL}/api/v1/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}`,
-        method: 'PUT',
-        body: {
-          score
-        }
-      })
-    }),
     components: builder.mutation<DEFAULT_RESPONSE, void>({
       query: () => ({
         url: `${BASE_URL}/api/v1/flow/components`,
@@ -97,8 +41,6 @@ export const authApi = createApi({
         method: 'GET'
       })
     }),
-
-    // TODO: Migrate to newer APIs
     addUserFeedBack: builder.mutation<
       DEFAULT_RESPONSE,
       {
@@ -107,38 +49,13 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id }) => ({
-        url: `${BASE_URL}/api/v1/feedback?prompt_id=${prompt_id}`,
+        url: `${BASE_URL}/api/v1/prompts/${prompt_id}/feedback`,
         method: 'PUT',
         body: {
           score
         }
       })
     }),
-    getMetrics: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-        id: string;
-        metric_type: string;
-      }
-    >({
-      query: ({ id, metric_type }) => ({
-        url: `${BASE_URL}/api/v1/${id}/metrics?metric_type=${metric_type}`,
-        method: 'GET'
-      })
-    }),
-    getAllBotMetrics: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-      }
-    >({
-      query: () => ({
-        url: `${BASE_URL}/api/v1/metrics`,
-        method: 'GET'
-      })
-    }),
-
 
     // fury Action APIs
     furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
@@ -196,6 +113,77 @@ export const authApi = createApi({
     Migrated to newer APIs
 
     */
+
+    getMetrics: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        chain_id: string;
+      }
+    >({
+      query: ({ chain_id }) => ({
+        url: `${BASE_URL}/api/v2/chains/${chain_id}/metrics/`,
+        method: 'GET'
+      })
+    }),
+
+    addInternalFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+        chatbot_id: string;
+      }
+    >({
+      query: ({ score, prompt_id, chatbot_id }) => ({
+        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/feedback`,
+        method: 'PUT',
+        body: {
+          score
+        }
+      })
+    }),
+
+    login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/login/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+
+    signup: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        username: string;
+        email: string;
+        password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/signup/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+
+    changePassword: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        old_password: string;
+        new_password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/change_password/`,
+        method: 'POST',
+        body: {
+          old_password: credentials.old_password,
+          new_password: credentials.new_password,
+          username: ''
+        }
+      })
+    }),
 
     // get prompts
     getPrompts: builder.mutation<
@@ -362,7 +350,7 @@ export const {
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation,
+  // useGetAllBotMetricsMutation,
   useFuryComponentsMutation,
   useFuryComponentDetailsMutation,
   useNewActionMutation,

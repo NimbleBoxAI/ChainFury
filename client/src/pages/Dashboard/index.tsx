@@ -10,7 +10,6 @@ import { DummyMetricsData, DummyMetricsInfo } from '../../constants';
 import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
 import {
-  useGetAllBotMetricsMutation,
   useGetMetricsMutation,
   useGetPromptsMutation
 } from '../../redux/services/auth';
@@ -21,7 +20,6 @@ import {
   setSelectedChatBot
 } from '../../redux/slices/authSlice';
 
-const metrics = ['latency', 'user_score', 'internal_review_score', 'gpt_review_score'];
 interface FeedbackInterface {
   bad_count: number;
   good_count: number;
@@ -43,7 +41,12 @@ const Dashboard = () => {
     }[]
   );
   const [searchParams] = useSearchParams();
-  const [getAllMetrics] = useGetAllBotMetricsMutation();
+  const [chainMetrics, setMetrics] = useState(
+    [] as {
+      name: string;
+      value: number;
+    }[]
+  )
 
   useEffect(() => {
     if (searchParams?.get('id') && auth?.chatBots?.[searchParams?.get('id') ?? '']) {
@@ -57,29 +60,7 @@ const Dashboard = () => {
   }, [auth.chatBots, searchParams]);
 
   useEffect(() => {
-    if (showDummyData) {
-      dispatch(setMetrics(DummyMetricsData));
-      setMetricsInfo(DummyMetricsInfo);
-    }
-  }, [showDummyData]);
-
-  const handleAllMetrics = () => {
-    getAllMetrics({
-      token: auth?.accessToken
-    })
-      ?.unwrap()
-      ?.then((res) => {
-        dispatch(
-          setMetrics({
-            data: res?.all_bot_metrics ?? []
-          })
-        );
-      });
-  };
-
-  useEffect(() => {
     if (auth?.selectedChatBot?.id) {
-      handleAllMetrics();
       getPrompts({ id: auth?.selectedChatBot?.id, token: auth?.accessToken })
         ?.unwrap()
         .then((res) => {
@@ -98,25 +79,21 @@ const Dashboard = () => {
   }, [auth?.selectedChatBot?.id]);
 
   const getMetricsDetails = async () => {
-    await metrics?.forEach(async (metric) => {
-      getMetrics({
-        id: auth?.selectedChatBot?.id,
-        token: auth?.accessToken,
-        metric_type: metric
-      })
-        ?.unwrap()
-        ?.then((res) => {
-          if (metric === 'latency') {
-            setLatencies(res.data);
-          } else
-            setMetricsInfo((prev) => {
-              return {
-                ...prev,
-                [metric]: res.data?.[0]
-              };
-            });
-        });
-    });
+    getMetrics({
+      chain_id: auth?.selectedChatBot?.id,
+      token: auth?.accessToken,
+    })
+      ?.unwrap()
+      ?.then((res) => {
+        // console.log(res);
+        setMetrics([
+          {
+            name: "total_conversations",
+            value: res?.metrics?.total_conversations
+          }
+        ]);
+        // console.log(chainMetrics);
+      });
   };
 
   const embeddedScript = `<script src="${window?.location?.origin}/script/embedBot.js?chatBotId=${auth?.selectedChatBot?.id}" type="text/javascript"></script>`;
@@ -140,13 +117,14 @@ const Dashboard = () => {
               </Button>
             </div>
             <div className="overflow-scroll h-full w-full">
-              {auth?.metrics?.[showDummyData ? '' : auth?.selectedChatBot?.id] ? (
+              {/* {chainMetrics ? (
                 <BotMetrics
-                  metricsInfo={auth?.metrics?.[showDummyData ? '' : auth?.selectedChatBot?.id]}
+                  metricsInfo={chainMetrics}
                 />
               ) : (
                 ''
-              )}
+              )} */}
+              Metrics will show up here
               <div className="flex gap-[8px] mt-[32px] flex-col">
                 <span className="medium300">
                   Try out the bot by clicking on <span className="semiBold300">The Bot</span> in the

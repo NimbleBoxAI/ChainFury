@@ -1,14 +1,14 @@
 import json
 import time
 from datetime import datetime
-from typing import Annotated, List, Dict, Any, Optional, Union
+from typing import Annotated, List, Union
+
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
+
 from fastapi import Depends, Header
 from fastapi.requests import Request
 from fastapi.responses import Response, StreamingResponse
-from pydantic import BaseModel
-
-from chainfury.types import Dag
 
 from chainfury_server import database as DB
 from chainfury_server.commons import types as T
@@ -205,3 +205,19 @@ def run_chain(
         )
     else:
         return result.to_dict()  # type: ignore
+
+
+def get_chain_metrics(
+    req: Request,
+    resp: Response,
+    id: str,
+    token: Annotated[str, Header()],
+    db: Session = Depends(DB.fastapi_db_session),
+):
+    # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)
+
+    # get all chatbots for the user
+    # SELECT COUNT(*) FROM prompt p WHERE p.chabot_id = 'as123s'
+    results = db.query(func.count()).filter(DB.Prompt.chatbot_id == id).all()  # type: ignore
+    return {"total_conversations": results[0][0]}
