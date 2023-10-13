@@ -1,7 +1,8 @@
 import os
 import logging
 
-# from chainfury_server.database import db_session, User, Template
+# WARNING: do not import anything from anywhere here, this is the place where chainfury_server starts.
+#          importing anything can cause the --pre and --post flags to fail when starting server.
 
 
 def get_logger(name) -> logging.Logger:

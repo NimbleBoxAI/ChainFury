@@ -5,12 +5,12 @@ from sqlalchemy.orm import Session
 from fastapi import Request, Response, Depends, Header
 from typing import Annotated
 
-from chainfury_server.commons.utils import logger, Env
-from chainfury_server import database as DB
-from chainfury_server.commons import types as T
+from chainfury_server.utils import logger, Env
+import chainfury_server.database as DB
+import chainfury.types as T
 
 
-def login(auth: T.AuthModel, db: Session = Depends(DB.fastapi_db_session)):
+def login(auth: T.ApiAuth, db: Session = Depends(DB.fastapi_db_session)):
     user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
         token = jwt.encode(
@@ -23,7 +23,7 @@ def login(auth: T.AuthModel, db: Session = Depends(DB.fastapi_db_session)):
     return response
 
 
-def sign_up(auth: T.SignUpModal, db: Session = Depends(DB.fastapi_db_session)):
+def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
     user_exists = False
     email_exists = False
     user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
@@ -60,7 +60,7 @@ def change_password(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    inputs: T.ChangePasswordModel,
+    inputs: T.ApiChangePassword,
     db: Session = Depends(DB.fastapi_db_session),
 ) -> T.ApiResponse:
     # validate user

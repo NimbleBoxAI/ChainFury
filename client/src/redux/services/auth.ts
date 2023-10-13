@@ -122,7 +122,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ chain_id }) => ({
-        url: `${BASE_URL}/api/v2/chains/${chain_id}/metrics/`,
+        url: `${BASE_URL}/api/chains/${chain_id}/metrics/`,
         method: 'GET'
       })
     }),
@@ -136,7 +136,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/feedback`,
+        url: `${BASE_URL}/api/prompts/${prompt_id}/feedback`,
         method: 'PUT',
         body: {
           score
@@ -194,7 +194,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `${BASE_URL}/api/v2/prompts/?chatbot_id=${credentials?.id}&limit=50&offset=0`,
+        url: `${BASE_URL}/api/prompts/?chatbot_id=${credentials?.id}&limit=50&offset=0`,
         method: 'GET'
       })
     }),
@@ -209,7 +209,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ id, prompt_id }) => ({
-        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/`,
+        url: `${BASE_URL}/api/prompts/${prompt_id}/`,
         method: 'GET'
       })
     }),
@@ -223,7 +223,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ prompt_id }) => ({
-        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/`,
+        url: `${BASE_URL}/api/prompts/${prompt_id}/`,
         method: 'DELETE'
       })
     }),
@@ -236,7 +236,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `${BASE_URL}/api/v2/chains/`,
+        url: `${BASE_URL}/api/chains/`,
         method: 'GET'
       })
     }),
@@ -256,7 +256,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `${BASE_URL}/api/v2/chains/`,
+        url: `${BASE_URL}/api/chains/`,
         method: 'POST',
         body: {
           engine: credentials.engine,
@@ -288,7 +288,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `${BASE_URL}/api/v2/chains/${credentials?.id}`,
+        url: `${BASE_URL}/api/chains/${credentials?.id}`,
         method: 'PUT',
         body: {
           name: credentials.name,
@@ -328,7 +328,7 @@ export const authApi = createApi({
       }) => (
         console.log('chatbot_id', chatbot_id),
         {
-          url: `${BASE_URL}/api/v2/chains/${chatbot_id}/`,
+          url: `${BASE_URL}/api/chains/${chatbot_id}/`,
           method: 'POST',
           body: {
             chat_history,

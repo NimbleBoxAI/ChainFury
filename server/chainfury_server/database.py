@@ -3,19 +3,17 @@ import jwt
 import json
 import random, string
 from enum import Enum as EnumType
-from passlib.hash import sha256_crypt
 from fastapi import HTTPException
+from passlib.hash import sha256_crypt
 from dataclasses import dataclass, asdict
 
-
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Text, Float, DateTime, Enum, create_engine
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
 from sqlalchemy.pool import QueuePool
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Text, Float, DateTime, Enum, create_engine
 
-# from chainfury_server.commons.config import engine
-from chainfury_server.commons.utils import logger, Env, folder, joinp
+from chainfury_server.utils import logger, Env, folder, joinp
 
 ########
 #
@@ -96,13 +94,13 @@ def fastapi_db_session():
         db.close()
 
 
-def unique_string(Table, row_reference):
+def unique_string(table, row_reference):
     """
     Gets Random Unique String for Primary key and makes sure its unique for the table.
     """
     db = db_session()
     random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
-    while db.query(Table).filter(row_reference == random_string).limit(1).first() is not None:  # type: ignore
+    while db.query(table).filter(row_reference == random_string).limit(1).first() is not None:  # type: ignore
         random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
 
     return random_string
@@ -193,7 +191,11 @@ class ChatBotTypes:
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
-    id = Column(String(8), default=lambda: unique_string(ChatBot, ChatBot.id), primary_key=True)
+    id = Column(
+        String(8),
+        default=lambda: unique_string(ChatBot, ChatBot.id),
+        primary_key=True,
+    )
     name = Column(String(80), unique=False)
     description = Column(Text, nullable=True)
     created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
@@ -212,6 +214,10 @@ class ChatBot(Base):
             "created_by": self.created_by,
             "dag": self.dag,
             "meta": self.meta,
+            "engine": self.engine,
+            "tag_id": self.tag_id,
+            "created_at": self.created_at,
+            "deleted_at": self.deleted_at,
         }
 
     def __repr__(self):
@@ -221,22 +227,26 @@ class ChatBot(Base):
 class PromptRating(EnumType):
     """Enum to know how the conversation went with chat."""
 
+    UNRATED = 0
     SAD = 1
     NEUTRAL = 2
     HAPPY = 3
-    UNRATED = 0
 
 
 class Prompt(Base):
     __tablename__ = "prompt"
 
-    id = Column(Integer, default=lambda: unique_number(Prompt, Prompt.id), primary_key=True)
+    id = Column(
+        Integer,
+        default=lambda: unique_number(Prompt, Prompt.id),
+        primary_key=True,
+    )
     chatbot_id = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
     input_prompt = Column(Text, nullable=False)
     response = Column(Text, nullable=True)
     gpt_rating = Column(String(5), nullable=True)
-    user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
-    chatbot_user_rating = Column(Enum(PromptRating), nullable=True, default=PromptRating.UNRATED)
+    user_rating = Column(Enum(PromptRating), nullable=True)
+    chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
     time_taken = Column(Float, nullable=True)
     num_tokens = Column(Integer, nullable=True)
     created_at = Column(DateTime, nullable=False)
@@ -262,6 +272,7 @@ class Prompt(Base):
 
 class IntermediateStep(Base):
     __tablename__ = "intermediate_step"
+
     id = Column(
         String(8),
         default=lambda: unique_string(IntermediateStep, IntermediateStep.id),
@@ -291,7 +302,12 @@ class IntermediateStep(Base):
 
 class Template(Base):
     __tablename__ = "template"
-    id = Column(Integer, default=lambda: unique_number(Template, Template.id), primary_key=True)
+
+    id = Column(
+        Integer,
+        default=lambda: unique_number(Template, Template.id),
+        primary_key=True,
+    )
     name = Column(Text, nullable=False)
     dag = Column(JSON, nullable=False)
     description = Column(Text)
@@ -315,7 +331,11 @@ class Template(Base):
 
 class FuryActions(Base):
     __tablename__ = "fury_actions"
-    id: Column = Column(String(36), primary_key=True)
+
+    id: Column = Column(
+        String(36),
+        primary_key=True,
+    )
     created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
     type: str = Column(String(80), nullable=False)  # the AI Action type
     name: str = Column(String(80), unique=False)
@@ -370,7 +390,7 @@ def get_user_from_jwt(token, db: Session) -> User:
         payload = jwt.decode(token, key=Env.JWT_SECRET(), algorithms=["HS256"])
         payload = JWTPayload(
             username=payload.get("username", ""),
-            user_id=payload.get("user_id", "") or payload.get("userid", ""),
+            user_id=payload.get("user_id", "") or payload.get("userid", ""),  # grandfather 'userid'
         )
     except Exception as e:
         logger.error("Could not decode JWT token")

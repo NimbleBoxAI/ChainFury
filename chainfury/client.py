@@ -4,9 +4,6 @@ from functools import lru_cache
 from typing import Dict, Any, Tuple
 
 from chainfury.utils import logger
-from chainfury.base import Chain, Node, Edge
-from chainfury.agent import ai_actions_registry, programatic_actions_registry
-from chainfury.types import Dag, FENode, Edge as EdgeType
 
 
 class Subway:
@@ -64,9 +61,10 @@ class Subway:
         _session (requests.Session): The session to use for the client
     """
 
-    def __init__(self, _url, _session):
+    def __init__(self, _url, _session, _trailing=""):
         self._url = _url.rstrip("/")
         self._session = _session
+        self._trailing = _trailing
 
     def __repr__(self):
         return f"<Subway ({self._url})>"
@@ -115,7 +113,7 @@ class Subway:
             Tuple[Dict[str, Any], bool]: The response and whether there was an error or not
         """
         fn = getattr(self._session, method)
-        url = f"{self._url}{trailing}"
+        url = f"{self._url}{trailing or self._trailing}"
         if _verbose:
             logger.info(f"Calling {url}")
         items = {}
@@ -136,7 +134,7 @@ class Subway:
 
 
 @lru_cache(maxsize=1)
-def get_client(prefix: str = "api/v1", url="", token: str = "") -> Subway:
+def get_client(prefix: str = "api/v1", url="", token: str = "", trailing: str = "") -> Subway:
     """This function returns a Subway object that can be used to interact with the API.
 
     Example:
@@ -169,189 +167,7 @@ def get_client(prefix: str = "api/v1", url="", token: str = "") -> Subway:
 
     session = requests.Session()
     session.headers.update({"token": token})
-    sub = Subway(url, session)
+    sub = Subway(url, session, trailing)
     for p in prefix.split("/"):
         sub = getattr(sub, p)
     return sub
-
-
-def get_chain_from_dict(data: Dict[str, Any]) -> Chain:
-    stub = get_client()
-
-    # convert to dag and checks
-    nodes = []
-    edges = []
-
-    # convert to dag and checks
-    dag = Dag(**data)
-    if not dag.sample:
-        raise ValueError("Dag has no sample")
-    if not dag.main_in:
-        raise ValueError("Dag has no main_in")
-    if not dag.main_out:
-        raise ValueError("Dag has no main_out")
-
-    # get all the actions by querying the APIs
-    dag_nodes = dag.nodes
-    actions_map = {}  # this is the map between the cf_id and the node object
-    for node in dag_nodes:
-        if not node.cf_id and not node.cf_data:
-            raise ValueError(f"Action {node.id} has no cf_id or cf_data")
-        if node.cf_data:
-            # programmatic ones should always be picked from the registry also FE will always send this
-            # so server should always check for programatic ones via registry
-            if node.cf_data.type == Node.types.PROGRAMATIC:
-                try:
-                    cf_action = programatic_actions_registry.get(node.cf_id)
-                except ValueError:
-                    raise ValueError(f"Action {node.id} not found")
-            else:
-                cf_action = Node.from_dict(node.cf_data.node)
-        else:
-            cf_action = actions_map.get(node.cf_id, None)
-
-        # check if this action is in the registry
-        if not cf_action:
-            # check if present in the AI registry
-            try:
-                # print("ai_actions_registry")
-                cf_action = ai_actions_registry.get(node.cf_id)
-            except ValueError:
-                pass
-        if not cf_action:
-            # check if present in the programatic registry
-            try:
-                # print("programatic_actions_registry")
-                cf_action = programatic_actions_registry.get(node.cf_id)
-            except ValueError:
-                pass
-        if not cf_action:
-            # check available on the API
-            try:
-                # print("stub.fury.actions.u(node.cf_id)()")
-                action, err = stub.fury.actions.u(node.cf_id)()
-                if err:
-                    raise ValueError(f"Action {node.cf_id} not loaded: {action}")
-                cf_action = Node.from_dict(action)
-                actions_map[node.cf_id] = cf_action  # cache it
-            except:
-                raise ValueError(f"Action {node.cf_id} not found")
-
-        # standardsize everything to node
-        if not isinstance(cf_action, Node):
-            cf_action = Node.from_dict(cf_action)
-        cf_action.id = node.id  # override the id
-        nodes.append(cf_action)
-
-    # now create all the edges
-    dag_edges = dag.edges
-    for edge in dag_edges:
-        if not (edge.source and edge.target and edge.sourceHandle and edge.targetHandle):
-            raise ValueError(f"Invalid edge {edge}")
-        edges.append(Edge.from_dict(edge.dict()))
-
-    return Chain(
-        nodes=nodes,
-        edges=edges,
-        sample=dag.sample,
-        main_in=dag.main_in,
-        main_out=dag.main_out,
-    )
-
-
-def get_chain_from_id(id: str) -> Chain:
-    """Helper function to load a chain from the given chatbot ID. This assumed that everything was created correctly
-
-    Example:
-        >>> from chainfury.client import get_chain_from_id
-        >>> chain = get_chain_from_id("l6lnksln")
-        >>> chain
-
-    Args:
-        id (str): The id of the chain to load
-
-    Returns:
-        Chain: The chain object
-    """
-    # first we call the API to get the chains
-    stub = get_client()
-    chain, err = stub.chatbot.u(id)()
-    if err:
-        raise ValueError(f"Could not get chain with id {id}: {chain}")
-    out = get_chain_from_dict(chain["dag"])
-    return out
-
-
-def get_fe_chain_from_chain(chain: Chain) -> Dict[str, Any]:
-    chain_dict = chain.to_dict()
-    dag_nodes = []
-    for i, node in enumerate(chain.nodes.values()):
-        _node_data = FENode(
-            id=node.id,
-            position=FENode.Position(x=i * 100, y=i * 100),
-            type="FuryEngineNode",
-            width=100,
-            height=100,
-            selected=False,
-            position_absolute=FENode.Position(x=i * 100, y=i * 100),
-            dragging=False,
-        )
-
-        # in this case the entire action is stored with the DAG object
-        _node_data.cf_id = node.id
-        _node_data.cf_data = FENode.CFData(
-            id=node.id,
-            type=node.type,
-            node=node.to_dict(),
-            value=None,
-        )
-
-        # add the node to the list
-        dag_nodes.append(_node_data.dict())
-    chain_dict["nodes"] = dag_nodes
-
-    # update the chain_dict
-    edges = []
-    for e in chain.edges:
-        edges.append(
-            EdgeType(
-                id=f"{e.src_node_id}/{e.src_node_var}-{e.trg_node_id}/{e.trg_node_var}",
-                source=e.src_node_id,
-                sourceHandle=e.src_node_var,
-                target=e.trg_node_id,
-                targetHandle=e.trg_node_var,
-            ).dict()
-        )
-    chain_dict["edges"] = edges
-    return chain_dict
-
-
-def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
-    """
-    Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
-    on the API.
-
-    Example:
-        >>> from chainfury import Chain
-        >>> from chainfury.client import create_new_chain
-        >>> api_resp = create_new_chain("my chain", chain)
-        >>> chain_new = Chain.from_dict(api_resp)
-        >>> chain_new
-
-    Args:
-        name (str): The name of the chain
-        chain (Chain): The chain object
-        create_actions (bool, optional): Whether to create the actions or not. Defaults to False.
-
-    Returns:
-        Dict[str, Any]: The API response
-    """
-    stub = get_client()
-    chain_dict = get_fe_chain_from_chain(chain)
-
-    data = {"name": name, "dag": chain_dict, "engine": "fury"}
-    # return data
-    out, err = stub.chatbot("post", trailing="/", json=data)
-    if err:
-        raise ValueError(f"Could not create chain: {out}")
-    return out

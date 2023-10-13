@@ -2,26 +2,24 @@ import json
 import time
 from datetime import datetime
 from typing import Annotated, List, Union
-
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
-
-from fastapi import Depends, Header
-from fastapi.requests import Request
 from fastapi.responses import Response, StreamingResponse
+from fastapi import Depends, Header, Request, Response, HTTPException
 
-from chainfury_server import database as DB
-from chainfury_server.commons import types as T
-from chainfury_server.engines import call_engine
+import chainfury.types as T
+
+import chainfury_server.database as DB
+from chainfury_server.engines import engine_registry
 
 
-def create_chatbot(
+def create_chain(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    chatbot_data: T.CreateChatbotRequest,
+    chatbot_data: T.ApiCreateChainRequest,
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[T.ChatBotDetails, T.ApiResponse]:
+) -> Union[T.ApiChain, T.ApiResponse]:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -53,38 +51,47 @@ def create_chatbot(
     db.refresh(chatbot)
 
     # return
-    response = T.ChatBotDetails.from_db(chatbot)
+    response = T.ApiChain(**chatbot.to_dict())
     return response
 
 
-def get_chatbot(
+def get_chain(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
+    tag_id: str = "",
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[T.ChatBotDetails, T.ApiResponse]:
+) -> Union[T.ApiChain, T.ApiResponse]:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
     # DB call
-    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id, DB.ChatBot.deleted_at == None).first()  # type: ignore
+    filters = [
+        DB.ChatBot.id == id,
+        DB.ChatBot.created_by == user.id,
+        DB.ChatBot.deleted_at == None,
+    ]
+    if tag_id:
+        filters.append(DB.ChatBot.tag_id == tag_id)
+    chatbot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return T.ApiResponse(message="ChatBot not found")
 
     # return
-    return T.ChatBotDetails.from_db(chatbot)
+    return T.ApiChain(**chatbot.to_dict())
 
 
-def update_chatbot(
+def update_chain(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
-    chatbot_data: T.ChatBotDetails,
+    chatbot_data: T.ApiChain,
+    tag_id: str = "",
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[T.ChatBotDetails, T.ApiResponse]:
+) -> Union[T.ApiChain, T.ApiResponse]:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -100,7 +107,14 @@ def update_chatbot(
         return T.ApiResponse(message=f"Invalid keys {unq_keys.difference(valid_keys)}")
 
     # DB Call
-    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id, DB.ChatBot.deleted_at == None).first()  # type: ignore
+    filters = [
+        DB.ChatBot.id == id,
+        DB.ChatBot.created_by == user.id,
+        DB.ChatBot.deleted_at == None,
+    ]
+    if tag_id:
+        filters.append(DB.ChatBot.tag_id == tag_id)
+    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return T.ApiResponse(message="ChatBot not found")
@@ -116,21 +130,29 @@ def update_chatbot(
     db.refresh(chatbot)
 
     # return
-    return T.ChatBotDetails.from_db(chatbot)
+    return T.ApiChain(**chatbot.to_dict())
 
 
-def delete_chatbot(
+def delete_chain(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
     id: str,
+    tag_id: str = "",
     db: Session = Depends(DB.fastapi_db_session),
 ) -> T.ApiResponse:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
     # DB Call
-    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id, DB.ChatBot.deleted_at == None).first()  # type: ignore
+    filters = [
+        DB.ChatBot.id == id,
+        DB.ChatBot.created_by == user.id,
+        DB.ChatBot.deleted_at == None,
+    ]
+    if tag_id:
+        filters.append(DB.ChatBot.tag_id == tag_id)
+    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return T.ApiResponse(message="ChatBot not found")
@@ -141,23 +163,30 @@ def delete_chatbot(
     return T.ApiResponse(message=f"ChatBot: '{chatbot.name}' ({chatbot.id}) deleted")
 
 
-def list_chatbots(
+def list_chains(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
+    tag_id: str = "",
     db: Session = Depends(DB.fastapi_db_session),
-) -> T.ListChatbotsResponse:
+) -> T.ApiListChainsResponse:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
     # DB Call
-    chatbots: List[DB.ChatBot] = db.query(DB.ChatBot).filter(DB.ChatBot.deleted_at == None).filter(DB.ChatBot.created_by == user.id).offset(skip).limit(limit).all()  # type: ignore
+    filters = [
+        DB.ChatBot.created_by == user.id,
+        DB.ChatBot.deleted_at == None,
+    ]
+    if tag_id:
+        filters.append(DB.ChatBot.tag_id == tag_id)
+    chatbots: List[DB.ChatBot] = db.query(DB.ChatBot).filter(*filters).offset(skip).limit(limit).all()  # type: ignore
 
     # return
-    return T.ListChatbotsResponse(
-        chatbots=[T.ChatBotDetails.from_db(chatbot) for chatbot in chatbots],
+    return T.ApiListChainsResponse(
+        chatbots=[T.ApiChain(**chatbot.to_dict()) for chatbot in chatbots],
     )
 
 
@@ -166,11 +195,11 @@ def run_chain(
     resp: Response,
     id: str,
     token: Annotated[str, Header()],
-    prompt: T.PromptBody,
+    prompt: T.ApiPromptBody,
     stream: bool = False,
     as_task: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
-):
+) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
     """
     This is the master function to run any chain over the API. This can behave in a bunch of different formats like:
     - (default) this will wait for the entire chain to execute and return the response
@@ -180,31 +209,42 @@ def run_chain(
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
-    # query the db
-    chatbot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id, DB.ChatBot.deleted_at == None).first()  # type: ignore
+    # DB call
+    filters = [
+        DB.ChatBot.id == id,
+        DB.ChatBot.created_by == user.id,
+        DB.ChatBot.deleted_at == None,
+    ]
+    chatbot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
-        return {"message": "ChatBot not found"}
-    st = time.time()
-    result = call_engine(chatbot=chatbot, prompt=prompt, db=db, start=st, stream=stream, as_task=as_task)
+        return T.ApiResponse(message="ChatBot not found")
 
-    def _get_streaming_response(result):
-        for ir, done in result:
-            if done:
-                ir.pop("result")
-                result = {**ir, "done": done}
-            else:
-                if type(ir) == str:
-                    ir = {"main_out": ir}
-                result = {**ir, "done": done}
-            yield json.dumps(result) + "\n"
+    # call the engine
+    engine = engine_registry.get(chatbot.engine)
+    if engine is None:
+        raise HTTPException(status_code=400, detail=f"Invalid engine {chatbot.engine}")
+    if as_task:
+        result = engine.submit(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        return result
+    elif stream:
 
-    if stream:
-        return StreamingResponse(
-            content=_get_streaming_response(result),
-        )
+        def _get_streaming_response(result):
+            for ir, done in result:
+                if done:
+                    ir.pop("result")
+                    result = {**ir, "done": done}
+                else:
+                    if type(ir) == str:
+                        ir = {"main_out": ir}
+                    result = {**ir, "done": done}
+                yield json.dumps(result) + "\n"
+
+        streaming_result = engine.stream(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        return StreamingResponse(content=_get_streaming_response(streaming_result))
     else:
-        return result.to_dict()  # type: ignore
+        result = engine.run(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        return result
 
 
 def get_chain_metrics(
@@ -217,7 +257,6 @@ def get_chain_metrics(
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
-    # get all chatbots for the user
-    # SELECT COUNT(*) FROM prompt p WHERE p.chabot_id = 'as123s'
+    # DB call
     results = db.query(func.count()).filter(DB.Prompt.chatbot_id == id).all()  # type: ignore
     return {"total_conversations": results[0][0]}

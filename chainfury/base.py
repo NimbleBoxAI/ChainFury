@@ -6,13 +6,13 @@ import importlib
 import traceback
 from pprint import pformat
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable, Generator
-from collections import deque, defaultdict
+from collections import deque, defaultdict, Counter
 
-import jinja2schema
+import jinja2schema as j2s
 from jinja2schema import model as j2sm
 
 from chainfury.utils import logger, terminal_top_with_text
-from chainfury.types import FENode
+import chainfury.types as T
 
 
 class Secret(str):
@@ -413,7 +413,7 @@ def jtype_to_vars(prompt: str) -> List[Var]:
         List[Var]: The array of Var objects.
     """
     try:
-        s = jinja2schema.infer(prompt)
+        s = j2s.infer(prompt)
         fields = []
         for k, v in s.items():
             f = jinja_schema_to_vars(v)
@@ -677,10 +677,13 @@ class Node:
             description (str, optional): The description of the node. Defaults to "".
             tags (List[str], optional): The tags for the node. Defaults to [].
         """
-        # some bacic checks
+        # some basic checks
         _valid_types = [getattr(NodeType, x) for x in dir(NodeType) if not x.startswith("__")]
         if type not in _valid_types:
             raise ValueError(f"Invalid node type: {type}, {_valid_types}")
+        for name, cnt in Counter([x.name for x in outputs]).most_common():
+            if cnt > 1:
+                raise ValueError(f"Duplicate output name: {name} in node: {id}")
 
         # set the values
         self.id = id
@@ -872,7 +875,7 @@ class Edge:
         src_node_id: str,
         src_node_var: str,
         trg_node_id: str,
-        trg_node_var,
+        trg_node_var: str,
     ):
         self.src_node_id = src_node_id
         self.trg_node_id = trg_node_id
@@ -952,7 +955,22 @@ class Chain:
         self.sample = sample
         self.main_in = main_in
 
-        op_key = main_out.split("/")[-1]  # TODO: @yashbonde - make this useful
+        if "/" not in main_out:
+            if len(edges) > 0:
+                edges_with_main_out_key = list(filter(lambda edge: edge.trg_node_var == main_out, edges))
+                if len(edges_with_main_out_key) == 0:
+                    raise ValueError(f"c0: pass full main_out like xxx/yyy, could not find '{main_out}'")
+                elif len(edges_with_main_out_key) > 1:
+                    raise ValueError(f"c1: pass full main_out like xxx/yyy, found multiple '{main_out}'")
+                else:
+                    main_out = edges_with_main_out_key[0].target
+            else:
+                node = next(iter(self.nodes.values()))
+                outputs_with_op_name = list(filter(lambda output: output.name == main_out, node.outputs))
+                if len(outputs_with_op_name) == 0:
+                    raise ValueError(f"c2: Could not find output variable '{main_out}'")
+                else:
+                    main_out = f"{node.id}/{main_out}"
         self.main_out = main_out
 
         for node_id in self.topo_order:
@@ -962,7 +980,6 @@ class Chain:
         self.to_dict()
 
     def __repr__(self) -> str:
-        # return f"FuryDag(nodes: {len(self.nodes)}, edges: {len(self.edges)})"
         out = "FuryDag(\n  nodes: ["
         for n in self.nodes:
             out += f"\n    {n},"
@@ -1036,11 +1053,165 @@ class Chain:
         """
         return cls.from_dict(json.loads(data))
 
+    def to_dag(self) -> T.Dag:
+        """Converts the current chain to a DAG object"""
+        if not self.main_in:
+            raise ValueError("main_in is required for converting to DAG")
+        if not self.main_out:
+            raise ValueError("main_out is required for converting to DAG")
+        if not self.sample:
+            raise ValueError("sample is required for converting to DAG")
+
+        # create a list of nodes
+        nodes = []
+        for i, node in enumerate(self.nodes.values()):
+            nodes.append(
+                T.FENode(
+                    id=node.id,
+                    position=T.FENode.Position(
+                        x=i * 100,
+                        y=i * 100,
+                    ),
+                    type="FuryEngineNode",
+                    width=100,
+                    height=100,
+                    selected=False,
+                    position_absolute=T.FENode.Position(
+                        x=i * 100,
+                        y=i * 100,
+                    ),
+                    dragging=False,
+                    cf_id=node.id,
+                    cf_data=T.FENode.CFData(
+                        id=node.id,
+                        type=node.type,
+                        node=node.to_dict(),
+                        value=None,
+                    ),
+                    data={},
+                )
+            )
+
+        # create a list of edges
+        edges = []
+        for e in self.edges:
+            edges.append(
+                T.Edge(
+                    id=f"{e.src_node_id}/{e.src_node_var}-{e.trg_node_id}/{e.trg_node_var}",
+                    source=e.src_node_id,
+                    sourceHandle=e.src_node_var,
+                    target=e.trg_node_id,
+                    targetHandle=e.trg_node_var,
+                )
+            )
+
+        # return
+        out = T.Dag(
+            nodes=nodes,
+            edges=edges,
+            sample=self.sample,
+            main_in=self.main_in,
+            main_out=self.main_out,
+        )
+        return out
+
+    @classmethod
+    def from_dag(cls, dag: T.Dag, check_server: bool = True):
+        """Loads the chain from the DAG object.
+
+        Args:
+            dag (T.Dag): The dag object to load from
+        """
+        from chainfury.client import get_client
+        from chainfury.agent import programatic_actions_registry, ai_actions_registry
+
+        stub = get_client()
+
+        # convert to dag and checks
+        nodes = []
+        edges = []
+
+        # get all the actions by querying the APIs
+        dag_nodes = dag.nodes
+        actions_map = {}  # this is the map between the cf_id and the node object
+        for node in dag_nodes:
+            if not node.cf_id and not node.cf_data:
+                raise ValueError(f"Action {node.id} has no cf_id or cf_data, pass atleast one")
+            elif node.cf_id and node.cf_data:
+                ValueError(f"Action {node.id} has both cf_id and cf_data, pass only one")
+            if node.cf_data:
+                # programmatic ones should always be picked from the registry also FE will always send this
+                # so server should always check for programatic ones via registry
+                if node.cf_data.type == Node.types.PROGRAMATIC:
+                    try:
+                        cf_action = programatic_actions_registry.get(node.cf_id)
+                    except ValueError:
+                        raise ValueError(f"Action {node.id} not found")
+                else:
+                    cf_action = Node.from_dict(node.cf_data.node)
+            else:
+                cf_action = actions_map.get(node.cf_id, None)
+
+            # check if this action is in the registry
+            if not cf_action:
+                cf_action = ai_actions_registry.get(node.cf_id)  # check if present in the AI registry
+            if not cf_action:
+                cf_action = programatic_actions_registry.get(node.cf_id)  # check if present in the programatic registry
+            if check_server and not cf_action:
+                # check available on the API
+                action, err = stub.fury.actions.u(node.cf_id)()
+                if err:
+                    raise ValueError(f"Action {node.cf_id} not loaded: {action}")
+                cf_action = Node.from_dict(action)
+                actions_map[node.cf_id] = cf_action  # cache it
+            if not cf_action:
+                raise ValueError(f"Action {node.cf_id} not found")
+
+            # standardsize everything to node
+            if not isinstance(cf_action, Node):
+                cf_action = Node.from_dict(cf_action)
+            cf_action.id = node.id  # override the id
+            nodes.append(cf_action)
+
+        # now create all the edges
+        dag_edges = dag.edges
+        for edge in dag_edges:
+            if not (edge.source and edge.target and edge.sourceHandle and edge.targetHandle):
+                raise ValueError(f"Invalid edge {edge}")
+            edges.append(Edge.from_dict(edge.dict()))
+
+        return cls(
+            nodes=nodes,
+            edges=edges,
+            sample=dag.sample,
+            main_in=dag.main_in,
+            main_out=dag.main_out,
+        )
+
     @classmethod
     def from_id(cls, id: str):
-        from chainfury.client import get_chain_from_id
+        """Loads the chain from the server, and tries to recreate it locally. NOTE: this requires server connection.
 
-        return get_chain_from_id(id)
+        Example:
+            >>> chain = Chain.from_id("l6lnksln")
+            >>> chain
+
+        Args:
+            id (str): The id of the chain to load
+
+        Returns:
+            Chain: The chain object
+        """
+        from chainfury.client import get_client
+
+        stub = get_client()
+        chain, err = stub.chatbot.u(id)()
+        if err:
+            raise ValueError(f"Could not get chain with id {id}: {chain}")
+        chain = T.ApiChain(**chain)
+        if chain.dag is None:
+            raise ValueError(f"Chain {id} has no dag")
+        return cls.from_dag(chain.dag)
 
     def step(
         self,

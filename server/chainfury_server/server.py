@@ -6,7 +6,6 @@ import importlib
 def _main(
     host: str = "0.0.0.0",
     port: int = 8000,
-    config_plugins: List[str] = [],
     pre: List[str] = [],
     post: List[str] = [],
 ):
@@ -16,40 +15,27 @@ def _main(
     Args:
         host (str, optional): Host to run the server on. Defaults to "
         port (int, optional): Port to run the server on. Defaults to 8000.
-        config_plugins (List[str], optional): List of plugins to load. Defaults to [].
         pre (List[str], optional): List of modules to load before the server is imported. Defaults to [].
         post (List[str], optional): List of modules to load after the server is imported. Defaults to [].
-
-    Raises:
-        AssertionError: If config_plugins is not a list
     """
+    # WARNING: ensure that nothing is being imported in the utils from chainfury_server
+    from chainfury_server.utils import logger
 
-    assert type(config_plugins) == list, "config_plugins must be a list, try '[\"echo\"]'"
-    import chainfury_server.commons.config as c
-    from chainfury_server.commons.utils import logger
-
-    c.PluginsConfig.plugins_list = config_plugins
-    port = int(port)
-
+    # load all things you need to preload the modules
     for mod in pre:
         logger.info(f"Pre Loading {mod}")
         importlib.import_module(mod)
 
-    from chainfury_server.app import app  # load the server here
+    # server setup happens here
+    from chainfury_server.app import app
 
-    # for r in app.routes:
-    #     if r.path == "/help":
-    #         print(r)
-    #         print(r.endpoint)
-    #         print(r.endpoint())
-
+    # load anything after the server is loaded, this is cool for
     for mod in post:
         logger.info(f"Post Loading {mod}")
-        _module = importlib.import_module(mod)
-        # if hasattr(_module, "modify_app"):
-        #     app = _module.modify_app(app)
+        importlib.import_module(mod)
 
-    uvicorn.run(app, host=host, port=port)
+    # Here you go ...
+    uvicorn.run(app, host=host, port=int(port))
 
 
 def main():

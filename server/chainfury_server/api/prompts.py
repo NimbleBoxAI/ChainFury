@@ -1,25 +1,15 @@
-import time
-import json
-import logging
-
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import Depends, Header, HTTPException
 from fastapi.requests import Request
-from fastapi.responses import Response, StreamingResponse
-from typing import Annotated, Any, Tuple, Dict
-from pydantic import BaseModel
+from fastapi.responses import Response
+from typing import Annotated
 from sqlalchemy.orm import Session
-from dataclasses import dataclass, asdict
 
-from chainfury_server import database as DB
-
-# build router
-router = APIRouter(tags=["prompts"])
+import chainfury_server.database as DB
+from chainfury_server.utils import logger
+import chainfury.types as T
 
 
-@router.get("/{chatbot_id}/prompt")
-def get_prompt_list(
-    req: Request,
-    resp: Response,
+def list_prompts(
     token: Annotated[str, Header()],
     chatbot_id: str,
     limit: int = 100,
@@ -44,23 +34,70 @@ def get_prompt_list(
     return {"prompts": [p.to_dict() for p in prompts]}
 
 
-@router.get("/{chatbot_id}/prompt/{prompt_id}")
 def get_prompt(
-    req: Request,
-    resp: Response,
+    prompt_id: int,
     token: Annotated[str, Header()],
-    chatbot_id: str,
+    db: Session = Depends(DB.fastapi_db_session),
+):
+    # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)
+
+    # get prompt
+    prompt: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+
+    irsteps = db.query(DB.IntermediateStep).filter(DB.IntermediateStep.prompt_id == prompt.session_id).all()  # type: ignore
+    if not irsteps:
+        irsteps = []
+    return {"prompt": prompt.to_dict(), "irsteps": [ir.to_dict() for ir in irsteps]}
+
+
+def delete_prompt(
+    prompt_id: int,
+    token: Annotated[str, Header()],
+    db: Session = Depends(DB.fastapi_db_session),
+):
+    # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)
+
+    # hard delete
+    prompt: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    db.delete(prompt)
+
+    # now delete all the intermediate steps
+    ir_steps = db.query(DB.IntermediateStep).filter(DB.IntermediateStep.prompt_id == prompt.id).all()  # type: ignore
+    for ir in ir_steps:
+        db.delete(ir)
+
+    db.commit()
+    return {"msg": f"Prompt: '{prompt_id}' deleted"}
+
+
+def prompt_feedback(
+    token: Annotated[str, Header()],
+    inputs: T.ApiPromptFeedback,
     prompt_id: int,
     db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
-    prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
-    if not prompt:
-        raise HTTPException(status_code=404, detail="Prompt not found")
-
-    irsteps = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt.session_id).all()  # type: ignore
-    if not irsteps:
-        irsteps = []
-    return {"prompt": prompt.to_dict(), "irsteps": [ir.to_dict() for ir in irsteps]}
+    # store in the DB
+    prompt: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
+    if prompt is not None:
+        if prompt.chatbot_user_rating is not DB.PromptRating.UNRATED:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Chatbot user rating already exists",
+            )
+        prompt.chatbot_user_rating = inputs.score
+        db.commit()
+    else:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Unable to find the prompt",
+        )
+    return {"rating": prompt.chatbot_user_rating}
