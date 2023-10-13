@@ -6,10 +6,11 @@ chainfury\_server.engines package
    :undoc-members:
    :show-inheritance:
 
+Submodules
+----------
+
 .. toctree::
    :maxdepth: 4
 
    chainfury_server.engines.fury
-   chainfury_server.engines.langflow
    chainfury_server.engines.registry
-

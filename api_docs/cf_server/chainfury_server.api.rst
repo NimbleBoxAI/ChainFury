@@ -6,15 +6,13 @@ chainfury\_server.api package
    :undoc-members:
    :show-inheritance:
 
+Submodules
+----------
+
 .. toctree::
    :maxdepth: 4
 
-   chainfury_server.api.auth
-   chainfury_server.api.chatbot
-   chainfury_server.api.feedback
+   chainfury_server.api.chains
    chainfury_server.api.fury
-   chainfury_server.api.langflow
-   chainfury_server.api.metrics
    chainfury_server.api.prompts
-   chainfury_server.api.template
    chainfury_server.api.user

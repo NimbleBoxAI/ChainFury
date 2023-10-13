@@ -71,10 +71,7 @@ Read the latest blog posts:
    :caption: Server
 
    cf_server/chainfury_server.api
-   cf_server/chainfury_server.commons
-   cf_server/chainfury_server.database_utils
    cf_server/chainfury_server.engines
-   cf_server/chainfury_server.plugins
 
 Indices and tables
 ==================
