@@ -153,7 +153,7 @@ def list_chatbots(
     user = DB.get_user_from_jwt(token=token, db=db)
 
     # DB Call
-    chatbots: List[DB.ChatBot] = db.query(DB.ChatBot).filter(DB.DB.ChatBot.deleted_at == None).filter(DB.ChatBot.created_by == user.id).offset(skip).limit(limit).all()  # type: ignore
+    chatbots: List[DB.ChatBot] = db.query(DB.ChatBot).filter(DB.ChatBot.deleted_at == None).filter(DB.ChatBot.created_by == user.id).offset(skip).limit(limit).all()  # type: ignore
 
     # return
     return T.ListChatbotsResponse(
