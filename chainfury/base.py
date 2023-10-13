@@ -1159,7 +1159,7 @@ class Chain:
                 from chainfury.client import get_client
 
                 stub = get_client()
-                action, err = stub.fury.actions.u(node.cf_id)()
+                action, err = stub.fury.u(node.cf_id)()
                 if err:
                     raise ValueError(f"Action {node.cf_id} not loaded: {action}")
                 cf_action = Node.from_dict(action)
@@ -1205,9 +1205,9 @@ class Chain:
         from chainfury.client import get_client
 
         stub = get_client()
-        chain, err = stub.chatbot.u(id)()
+        chain, err = stub.chains.u(id)(_verbose=True)
         if err:
-            raise ValueError(f"Could not get chain with id {id}: {chain}")
+            raise ValueError(f"Could not get chain with id '{id}', error: {chain}")
         chain = T.ApiChain(**chain)
         if chain.dag is None:
             raise ValueError(f"Chain {id} has no dag")

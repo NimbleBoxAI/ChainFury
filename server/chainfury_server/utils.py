@@ -4,15 +4,7 @@ import logging
 # WARNING: do not import anything from anywhere here, this is the place where chainfury_server starts.
 #          importing anything can cause the --pre and --post flags to fail when starting server.
 
-
-def get_logger(name) -> logging.Logger:
-    temp_logger = logging.getLogger(name)
-    temp_logger.setLevel(logging.INFO)
-    return temp_logger
-
-
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = get_logger("cf_server")  # type: ignore
+from chainfury.utils import logger  # keep this here, rest of package imports from this file
 
 
 class Env:

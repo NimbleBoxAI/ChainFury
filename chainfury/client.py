@@ -71,7 +71,7 @@ class Subway:
 
     def __getattr__(self, attr: str):
         # https://stackoverflow.com/questions/3278077/difference-between-getattr-vs-getattribute
-        return Subway(f"{self._url}/{attr}", self._session)
+        return Subway(f"{self._url}/{attr}", self._session, self._trailing)
 
     def u(self, attr: str) -> "Subway":
         """In cases where the api might start with a number you cannot write in python, this method can be used to
@@ -134,7 +134,7 @@ class Subway:
 
 
 @lru_cache(maxsize=1)
-def get_client(prefix: str = "api/v1", url="", token: str = "", trailing: str = "") -> Subway:
+def get_client(prefix: str = "/api/", url="", token: str = "", trailing: str = "/") -> Subway:
     """This function returns a Subway object that can be used to interact with the API.
 
     Example:
