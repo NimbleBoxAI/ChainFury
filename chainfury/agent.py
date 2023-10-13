@@ -126,13 +126,33 @@ class ProgramaticActionsRegistry:
         self.counter: Dict[str, int] = {}
         self.tags_to_nodes: Dict[str, List[str]] = {}
 
+    def to_action(
+        self,
+        fn: object,
+        outputs: Dict[str, Tuple[int]],
+        node_id: str = "",
+        description: str = "",
+        tags: List[str] = [],
+    ) -> Node:
+        node_id = node_id or str(uuid4())
+        ops = func_to_return_vars(func=fn, returns=outputs)
+        node = Node(
+            id=node_id,
+            type=Node.types.PROGRAMATIC,
+            fn=fn,
+            description=description,
+            fields=func_to_vars(fn),
+            outputs=ops,
+            tags=tags,
+        )
+        return node
+
     def register(
         self,
         fn: object,
-        node_id: str,
-        description: str,
-        returns: List[str] = [],
-        outputs=None,
+        outputs: Dict[str, Tuple[int]],
+        node_id: str = "",
+        description: str = "",
         tags: List[str] = [],
     ) -> Node:
         """Register a programatic action in the registry
@@ -141,7 +161,6 @@ class ProgramaticActionsRegistry:
             fn (object): Function to register
             node_id (str): Id of the node
             description (str): Description of the node
-            returns (List[str], optional): List of returns. Defaults to [].
             outputs ([type], optional): [description]. Defaults to None.
             tags (List[str], optional): List of tags. Defaults to [].
 
@@ -154,19 +173,12 @@ class ProgramaticActionsRegistry:
         logger.debug(f"Registering p-node '{node_id}'")
         if node_id in self.nodes:
             raise Exception(f"Node '{node_id}' already registered")
-        if not outputs:
-            assert len(returns), "If outputs is not provided then returns must be provided"
-            outputs = {x: () for x in returns}
-        else:
-            assert len(outputs), "If returns is not provided then outputs must be provided"
-        ops = func_to_return_vars(func=fn, returns=outputs)
-        node = Node(
-            id=node_id,
-            type=Node.types.PROGRAMATIC,
+        assert len(outputs), "Function must return something, outputs must be provided"
+        node = self.to_action(
             fn=fn,
+            node_id=node_id,
             description=description,
-            fields=func_to_vars(fn),
-            outputs=ops,
+            outputs=outputs,
             tags=tags,
         )
         self.nodes[node_id] = node
@@ -409,7 +421,7 @@ class AIActionsRegistry:
             action_name=action_name,
         )
         if not outputs:
-            output_field = func_to_return_vars(func=ai_action.__call__, returns={"model_output": ()})
+            output_field = func_to_return_vars(func=ai_action.__call__, returns={"model_output": (0,)})
         else:
             output_field = [Var(type="string", name=k, loc=loc) for k, loc in outputs.items()]
         node = Node(
@@ -474,6 +486,15 @@ class AIActionsRegistry:
             self.nodes[node_id] = node
             for tag in tags:
                 self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+        return node
+
+    def register_node(self, node: Node) -> Node:
+        logger.debug(f"Registering ai-node '{node.id}'")
+        if node.id in self.nodes:
+            raise ValueError(f"ai-node '{node.id}' already exists")
+        self.nodes[node.id] = node
+        for tag in node.tags:
+            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node.id]
         return node
 
     def unregister(self, node_id: str):
@@ -607,7 +628,10 @@ class Memory:
             fn = memory_registry.get_read(data["node_id"])
         else:
             fn = memory_registry.get_write(data["node_id"])
-        return fn.fn
+
+        # here we do return Memory type but instead of creating one we use a previously existing Node and return
+        # the fn for the Node which is ultimately this precise Memory object
+        return fn.fn  # type: ignore
 
     def __call__(self, **data: Dict[str, Any]) -> Any:
         # the first thing we have to do is get the data for the model. This is actually a very hard problem because this

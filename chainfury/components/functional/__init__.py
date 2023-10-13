@@ -74,13 +74,13 @@ def call_api_requests(
 
 
 programatic_actions_registry.register(
-    call_api_requests,
-    "call_api_requests",
-    "Call an API using the requests library",
+    fn=call_api_requests,
     outputs={
         "text": (0,),
         "status_code": (1,),
     },
+    node_id="call_api_requests",
+    description="Call an API using the requests library",
 )
 
 
@@ -106,10 +106,12 @@ def regex_search(pattern: str, text: str) -> Tuple[List[str], Optional[Exception
 
 
 programatic_actions_registry.register(
-    regex_search,
-    "regex_search",
-    "Perform a regex search on the text and get items in an array",
-    returns=["items"],
+    fn=regex_search,
+    outputs={
+        "items": (0,),
+    },
+    node_id="regex_search",
+    description="Perform a regex search on the text and get items in an array",
 )
 
 
@@ -133,10 +135,12 @@ def regex_substitute(pattern: str, repl: str, text: str) -> Tuple[str, Optional[
 
 
 programatic_actions_registry.register(
-    regex_substitute,
-    "regex_substitute",
-    "Perform a regex substitution on the text and get the result",
-    returns=["text"],
+    fn=regex_substitute,
+    outputs={
+        "text": (0,),
+    },
+    node_id="regex_substitute",
+    description="Perform a regex substitution on the text and get the result",
 )
 
 
@@ -211,8 +215,10 @@ def json_translator(
 
 
 programatic_actions_registry.register(
-    json_translator,
-    "json_translator",
-    "Extract a value from a JSON object using a list of keys",
-    returns=["value"],
+    fn=json_translator,
+    outputs={
+        "value": (0,),
+    },
+    node_id="json_translator",
+    description="Extract a value from a JSON object using a list of keys",
 )

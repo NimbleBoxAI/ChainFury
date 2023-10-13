@@ -1,65 +1,35 @@
 import jwt
-from chainfury_server import database
-from chainfury_server.database import User
 from fastapi import HTTPException
-from typing import Annotated
 from passlib.hash import sha256_crypt
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, Header
-from pydantic import BaseModel
+from fastapi import Request, Response, Depends, Header
+from typing import Annotated
 
-from chainfury_server.commons import config as c
-from chainfury_server.commons.utils import get_user_from_jwt, get_user_id_from_jwt
-
-auth_router = APIRouter(tags=["authentication"])
-
-logger = c.get_logger(__name__)
+from chainfury_server.commons.utils import logger, Env
+from chainfury_server import database as DB
+from chainfury_server.commons import types as T
 
 
-class AuthModel(BaseModel):
-    username: str
-    password: str
-
-
-class SignUpModal(BaseModel):
-    username: str
-    email: str
-    password: str
-
-
-@auth_router.post("/login", status_code=200)
-def login(auth: AuthModel, db: Session = Depends(database.fastapi_db_session)):
-    user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
+def login(auth: T.AuthModel, db: Session = Depends(DB.fastapi_db_session)):
+    user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
-        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.Env.JWT_SECRET())
+        token = jwt.encode(
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
+        )
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}
     return response
 
 
-@auth_router.post("/get_user_info", status_code=200)
-def decode_token(token: Annotated[str, Header()]):
-    username = None
-    userid = None
-    try:
-        username = get_user_from_jwt(token)
-        userid = get_user_id_from_jwt(token)
-    except Exception as e:
-        logger.exception(e)
-        response = {"msg": "failed"}
-    response = {"msg": "success", "username": username, "user_id": userid}
-    return response
-
-
-@auth_router.post("/signup", status_code=200)
-def sign_up(auth: SignUpModal, db: Session = Depends(database.fastapi_db_session)):
+def sign_up(auth: T.SignUpModal, db: Session = Depends(DB.fastapi_db_session)):
     user_exists = False
     email_exists = False
-    user: User = db.query(User).filter(User.username == auth.username).first()  # type: ignore
+    user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
     if user is not None:
         user_exists = True
-    user: User = db.query(User).filter(User.email == auth.email).first()  # type: ignore
+    user: DB.User = db.query(DB.User).filter(DB.User.email == auth.email).first()  # type: ignore
     if user is not None:
         email_exists = True
     if user_exists and email_exists:
@@ -69,11 +39,38 @@ def sign_up(auth: SignUpModal, db: Session = Depends(database.fastapi_db_session
     elif email_exists:
         raise HTTPException(status_code=400, detail="Email already registered")
     if not user_exists and not email_exists:  # type: ignore
-        user: User = User(username=auth.username, email=auth.email, password=sha256_crypt.hash(auth.password))  # type: ignore
+        user: DB.User = DB.User(
+            username=auth.username,
+            email=auth.email,
+            password=sha256_crypt.hash(auth.password),
+        )  # type: ignore
         db.add(user)
         db.commit()
-        token = jwt.encode(payload={"username": auth.username, "userid": user.id}, key=c.Env.JWT_SECRET())
+        token = jwt.encode(
+            payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
+            key=Env.JWT_SECRET(),
+        )
         response = {"msg": "success", "token": token}
     else:
         response = {"msg": "failed"}
     return response
+
+
+def change_password(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    inputs: T.ChangePasswordModel,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
+    # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)
+
+    if sha256_crypt.verify(inputs.old_password, user.password):
+        password = sha256_crypt.hash(inputs.new_password)
+        user.password = password  # type: ignore
+        db.commit()
+        return T.ApiResponse(message="success")
+    else:
+        resp.status_code = 400
+        return T.ApiResponse(message="password incorrect")

@@ -282,29 +282,8 @@ def get_chain_from_id(id: str) -> Chain:
     return out
 
 
-def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
-    """
-    Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
-    on the API.
-
-    Example:
-        >>> from chainfury import Chain
-        >>> from chainfury.client import create_new_chain
-        >>> api_resp = create_new_chain("my chain", chain)
-        >>> chain_new = Chain.from_dict(api_resp)
-        >>> chain_new
-
-    Args:
-        name (str): The name of the chain
-        chain (Chain): The chain object
-        create_actions (bool, optional): Whether to create the actions or not. Defaults to False.
-
-    Returns:
-        Dict[str, Any]: The API response
-    """
-    stub = get_client()
+def get_fe_chain_from_chain(chain: Chain) -> Dict[str, Any]:
     chain_dict = chain.to_dict()
-    nodes = chain_dict["nodes"]
     dag_nodes = []
     for i, node in enumerate(chain.nodes.values()):
         _node_data = FENode(
@@ -317,25 +296,6 @@ def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
             position_absolute=FENode.Position(x=i * 100, y=i * 100),
             dragging=False,
         )
-
-        # out, err = stub.fury.actions(
-        #     "post",
-        #     trailing="/",
-        #     json={
-        #         "name": node["name"],
-        #         "description": "",
-        #         "fn": {
-        #             "model_id": node["fn"]["model"]["id"],
-        #             "model_params": node["fn"]["model_params"],
-        #             "fn": node["fn"]["fn"],
-        #         },
-        #         "outputs": node["outputs"],
-        #     },
-        # )
-        # if err:
-        #     raise ValueError(f"Could not create node: {out}")
-        # logger.info(f"Created new action with ID: {out['id']}")
-        # _node_data.cf_id = out["id"]
 
         # in this case the entire action is stored with the DAG object
         _node_data.cf_id = node.id
@@ -363,7 +323,34 @@ def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
             ).dict()
         )
     chain_dict["edges"] = edges
+    return chain_dict
+
+
+def create_new_chain(name: str, chain: Chain) -> Dict[str, Any]:
+    """
+    Creates a new chain with the given name and chain. If create_actions is True, it will also create the actions
+    on the API.
+
+    Example:
+        >>> from chainfury import Chain
+        >>> from chainfury.client import create_new_chain
+        >>> api_resp = create_new_chain("my chain", chain)
+        >>> chain_new = Chain.from_dict(api_resp)
+        >>> chain_new
+
+    Args:
+        name (str): The name of the chain
+        chain (Chain): The chain object
+        create_actions (bool, optional): Whether to create the actions or not. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: The API response
+    """
+    stub = get_client()
+    chain_dict = get_fe_chain_from_chain(chain)
+
     data = {"name": name, "dag": chain_dict, "engine": "fury"}
+    # return data
     out, err = stub.chatbot("post", trailing="/", json=data)
     if err:
         raise ValueError(f"Could not create chain: {out}")

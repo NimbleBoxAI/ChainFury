@@ -1,10 +1,8 @@
-import logging
 import traceback
 from uuid import uuid4
 from functools import lru_cache
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, Field
-from typing import Annotated, Dict, Any, Union
+from typing import Annotated, Union
 from sqlalchemy.exc import IntegrityError
 from fastapi import APIRouter, Depends, Header, Request, Response, Query
 
@@ -12,21 +10,20 @@ from chainfury.agent import model_registry, programatic_actions_registry, ai_act
 from chainfury.base import Node
 
 from chainfury_server import database as DB
+from chainfury_server.commons import types as T
 from chainfury_server.commons.utils import logger
 
 # build router
 fury_router = APIRouter(tags=["fury"])
 
 
-_MODEL = "models"
-_PROGRAMATIC = "programatic_actions"
-_ACTION_AI = "ai_actions"
-_BUILTIN_AI = "builtin_ai"
-_MEMORY = "memory"
-
-
 @lru_cache(1)
 def _components(to_dict: bool = False):
+    _MODEL = "models"
+    _PROGRAMATIC = "programatic_actions"
+    _BUILTIN_AI = "builtin_ai"
+    _MEMORY = "memory"
+
     return {
         _MODEL: model_registry.get_models(),
         _PROGRAMATIC: programatic_actions_registry.get_nodes(),
@@ -35,7 +32,6 @@ def _components(to_dict: bool = False):
     }
 
 
-@fury_router.get("/")
 def list_components_types(
     req: Request,
     resp: Response,
@@ -43,6 +39,8 @@ def list_components_types(
     db: Session = Depends(DB.fastapi_db_session),
 ):
     user = DB.get_user_from_jwt(token=token, db=db)
+
+    _ACTION_AI = "ai_actions"
 
     return {"components": list(_components().keys()), "actions": [_ACTION_AI]}
 
@@ -52,8 +50,6 @@ def list_components_types(
 #
 
 
-# L
-@fury_router.get("/components/{component_type}")
 def list_components(
     req: Request,
     resp: Response,
@@ -69,8 +65,6 @@ def list_components(
     return _components()[component_type]
 
 
-# R
-@fury_router.get("/components/{component_type}/{component_id}")
 def get_component(
     req: Request,
     resp: Response,
@@ -98,41 +92,12 @@ def get_component(
 #
 
 
-# Pydantic model for creating a FuryAction
-class ActionRequest(BaseModel):
-    class FnModel(BaseModel):
-        model_id: str = Field(description="The model ID taken from the /components/models API.")
-        model_params: dict = Field(description="The model parameters JSON.")
-        fn: dict = Field(description="The function JSON.")
-
-    class OutputModel(BaseModel):
-        type: str = Field(description="The type of the output.")
-        name: str = Field(description="The name of the output.")
-        loc: list[str] = Field(description="The location of the output in the JSON.")
-
-    name: str = Field(description="The name of the action.")
-    description: str = Field(description="The description of the action.")
-    tags: list[str] = Field(default=[], description="The tags for the action.")
-    fn: FnModel = Field(description="The function details for the action.")
-    outputs: list[OutputModel] = Field(description="The output details for the action.")
-
-
-class ActionUpdateRequest(BaseModel):
-    name: str = Field(default="", description="The name of the action.")
-    description: str = Field(default="", description="The description of the action.")
-    tags: list[str] = Field(default=[], description="The tags for the action.")
-    fn: ActionRequest.FnModel = Field(default=None, description="The function details for the action.")
-    outputs: list[ActionRequest.OutputModel] = Field([], description="The output details for the action.")
-    update_fields: list[str] = Field(description="The fields to update.")
-
-
 # C - Create a new FuryAction
-@fury_router.post("/actions/")
-def create_fury_action(
+def create_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    fury_action: ActionRequest,
+    fury_action: T.ActionRequest,
     db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
@@ -164,8 +129,7 @@ def create_fury_action(
 
 
 # R - Retrieve a FuryAction by ID
-@fury_router.get("/actions/{fury_action_id}")
-def get_fury_action(
+def get_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -184,13 +148,12 @@ def get_fury_action(
 
 
 # U - Update an existing FuryAction
-@fury_router.put("/actions/{fury_action_id}")
-def update_fury_action(
+def update_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
     fury_action_id: str,
-    fury_action: ActionUpdateRequest,
+    fury_action: T.ActionUpdateRequest,
     db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
@@ -249,8 +212,7 @@ def update_fury_action(
 
 
 # D - Delete a FuryAction by ID
-@fury_router.delete("/actions/{fury_action_id}")
-def delete_fury_action(
+def delete_action(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -271,8 +233,7 @@ def delete_fury_action(
 
 
 # L - List all DB.FuryActions
-@fury_router.get("/actions/")
-def list_fury_actions(
+def list_actions(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
@@ -293,7 +254,7 @@ def list_fury_actions(
 #
 
 
-def validate_action(fury_action: Union[ActionRequest, ActionUpdateRequest], resp: Response) -> tuple[Node, Response]:
+def validate_action(fury_action: Union[T.ActionRequest, T.ActionUpdateRequest], resp: Response) -> tuple[Node, Response]:
     # if the function is to be updated then perform the full validation same as when creating a new action
     if len(fury_action.outputs) != 1:
         resp.status_code = 400

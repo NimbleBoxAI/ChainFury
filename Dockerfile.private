@@ -11,12 +11,18 @@ ENV NODE_ENV production
 FROM python:3.9
 RUN mkdir /app
 
-# # this is copying over the chainfury engine and install it
+# this is copying over the chainfury engine and install it
 COPY ./chainfury /app/chainfury
 COPY pyproject.toml /app
 COPY README.md /app
 WORKDIR /app
 RUN python3 -m pip install .\[all\]
+WORKDIR /
+
+# this is copying over the chainfury-internal and installing it
+COPY ./cf_internal /app/cf_internal
+WORKDIR /app
+RUN python3 -m pip install ./cf_internal
 WORKDIR /
 
 # copy over the server files including the server installer, since chainfury is already installed
@@ -37,4 +43,4 @@ COPY --from=builder /app/dist/. /app/chainfury_server/static/.
 
 WORKDIR /app/chainfury_server
 EXPOSE 8000
-CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8000", "--pre", "['cf_internal']"]

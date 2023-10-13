@@ -6,13 +6,9 @@ from fastapi.requests import Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from chainfury_server import database
-from chainfury_server.database import ChatBot, User, ChatBotTypes
-from chainfury_server.commons.utils import get_user_from_jwt, verify_user
-from chainfury_server.commons.types import Dag
-from chainfury_server.commons import config as c
+from chainfury.types import Dag
 
-logger = c.get_logger(__name__)
+from chainfury_server import database as DB
 
 chatbot_router = APIRouter(tags=["chatbot"])
 
@@ -35,11 +31,10 @@ def create_chatbot(
     resp: Response,
     token: Annotated[str, Header()],
     chatbot_data: ChatBotDetails,
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate chatbot
     if not chatbot_data.name:
@@ -50,20 +45,25 @@ def create_chatbot(
         resp.status_code = 400
         return {"message": "Engine not specified"}
 
-    if chatbot_data.engine not in ChatBotTypes.all():
+    if chatbot_data.engine not in DB.ChatBotTypes.all():
         resp.status_code = 400
-        return {"message": f"Invalid engine should be one of {ChatBotTypes.all()}"}
+        return {"message": f"Invalid engine should be one of {DB.ChatBotTypes.all()}"}
+
+    if len(chatbot_data.description) > 1024:
+        resp.status_code = 400
+        return {"message": "Description too long"}
 
     # actually create
     dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
-    chatbot = ChatBot(
+    chatbot = DB.ChatBot(
         name=chatbot_data.name,
         created_by=user.id,
         dag=dag,
         engine=chatbot_data.engine,
         created_at=datetime.now(),
         tag_id=chatbot_data.tag_id,
-    )
+        description=chatbot_data.description,
+    )  # type: ignore
     db.add(chatbot)
     db.commit()
     db.refresh(chatbot)
@@ -78,17 +78,16 @@ def get_chatbot(
     token: Annotated[str, Header()],
     id: str,
     tag_id: str = "",
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # query the db
     if tag_id:
-        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
+        chatbot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id,DB.ChatBot.created_by == user.id, DB.ChatBot.deleted_at == None, DB.ChatBot.tag_id == tag_id).first() # type: ignore
     else:
-        chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
+        chatbot = db.query(DB.ChatBot).filter(DB.ChatBot.id == id,DB.ChatBot.created_by == user.id, DB.ChatBot.deleted_at == None).first() # type: ignore
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -104,11 +103,10 @@ def update_chatbot(
     id: str,
     chatbot_data: ChatBotDetails,
     tag_id: Annotated[str, Query()] = "",
-    db: Session = Depends(database.fastapi_db_session),
+    db: Session = Depends(DB.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
 
     # validate chatbot update
     if not len(chatbot_data.update_keys):
@@ -154,13 +152,14 @@ def delete_chatbot(
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
+
     # find and delete
     if tag_id:
         chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None, ChatBot.tag_id == tag_id).first()
     else:
         chatbot = db.query(ChatBot).filter(ChatBot.id == id,ChatBot.created_by == user.id, ChatBot.deleted_at == None).first()
+
     if not chatbot:
         resp.status_code = 404
         return {"message": "ChatBot not found"}
@@ -181,9 +180,10 @@ def list_chatbots(
     db: Session = Depends(database.fastapi_db_session),
 ):
     # validate user
-    username = get_user_from_jwt(token)
-    user = verify_user(db, username)
+    user = DB.get_user_from_jwt(token=token, db=db)
+
     # query the db
+
     if tag_id:
         chatbots = (
             db.query(ChatBot)
@@ -196,5 +196,23 @@ def list_chatbots(
         )
     else:
         chatbots = db.query(ChatBot).filter(ChatBot.deleted_at == None).filter(ChatBot.created_by == user.id).offset(skip).limit(limit).all()
-
     return {"chatbots": [chatbot.to_dict() for chatbot in chatbots]}
+
+
+# L: GET /chatbot/prompt/prompt_id
+@chatbot_router.get("/prompt/{prompt_id}", status_code=200)
+def get_intermediate_steps(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    prompt_id: int,
+    db: Session = Depends(DB.fastapi_db_session),
+):
+    user = DB.get_user_from_jwt(token=token, db=db)  # validate user
+
+    # get intermediate steps
+    intermediate_steps = db.query(IntermediateStep).filter(IntermediateStep.prompt_id == prompt_id).all()  # type: ignore
+    if intermediate_steps is None:
+        resp.status_code = 404
+        return {"msg": "prompt not found"}
+    return {"data": intermediate_steps}

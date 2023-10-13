@@ -2,6 +2,7 @@ import copy
 import json
 import inspect
 import datetime
+import importlib
 import traceback
 from pprint import pformat
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable, Generator
@@ -17,7 +18,7 @@ from chainfury.types import FENode
 class Secret(str):
     """This class just means that in Var it will be taken as a password field"""
 
-    def __init__(self, value):
+    def __init__(self, value=""):
         self.value = value
 
 
@@ -167,6 +168,7 @@ def pyannotation_to_json_schema(
     allow_none: bool,
     *,
     trace: bool = False,
+    is_return: bool = False,
 ) -> Var:
     """Function to convert the given annotation from python to a Var which can then be JSON serialised and sent to the
     clients.
@@ -208,7 +210,10 @@ def pyannotation_to_json_schema(
         elif x == type(None) and allow_none:
             return Var(type="null", required=False, show=False)
         else:
-            raise ValueError(f"i0: Unsupported type: {x}")
+            if is_return:
+                raise ValueError(f"i0: Unsupported type: {x}. Is your output annotated? Write like ... foo() -> Dict[str, str]")
+            else:
+                raise ValueError(f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)")
     elif isinstance(x, str):
         if trace:
             logger.debug("t1")
@@ -306,7 +311,7 @@ def func_to_vars(func: object) -> List[Var]:
     return fields
 
 
-def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
+def func_to_return_vars(func, returns: Dict[str, Tuple[int]]) -> List[Var]:
     """
     Analyses the return annotation type of the signature of a function and converts it to an array of named Var objects.
 
@@ -315,10 +320,16 @@ def func_to_return_vars(func, returns: Dict[str, Tuple]) -> List[Var]:
         returns (Dict[str, Tuple]): The dictionary of return types.
 
     Returns:
-        List[Var]: The array of Var objects.
+        Dict[str, Tuple[int]]: A dictionary with the name of the return type and the location of the return type.
     """
     signature = inspect.signature(func)
-    schema = pyannotation_to_json_schema(signature.return_annotation, allow_any=False, allow_exc=True, allow_none=True)
+    schema = pyannotation_to_json_schema(
+        signature.return_annotation,
+        allow_any=False,
+        allow_exc=True,
+        allow_none=True,
+        is_return=True,
+    )
     if not (
         schema.type == "array"
         and len(schema.items) == 2
@@ -517,7 +528,8 @@ def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
         key = int(key)
         if isinstance(key, int) and 0 <= key < len(obj):
             return get_value_by_keys(obj[key], keys[1:], _first_sentinal=True)
-
+    elif type(obj) in [str, int, float, bool, type(None)]:
+        return obj
     return None
 
 
@@ -652,6 +664,7 @@ class Node:
         outputs: List[Var],
         description: str = "",
         tags: List[str] = [],
+        allow_callback: bool = False,
     ):
         """Node is a single unit of computation in a Dag. All the actions are considered as nodes.
 
@@ -673,10 +686,11 @@ class Node:
         self.id = id
         self.type = type
         self.description = description
-        self.fields = fields
-        self.outputs = outputs
+        self.fields: List[Var] = fields
+        self.outputs: List[Var] = outputs
         self.fn = fn
         self.tags = tags
+        self.allow_callback = allow_callback
 
     def __repr__(self) -> str:
         out = f"FuryNode{{ ('{self.id}', '{self.type}') ["
@@ -715,6 +729,11 @@ class Node:
             name = fn.pop("action_name")
         elif isinstance(self.fn, Memory):
             fn = self.fn.to_dict()
+        elif callable(self.fn):
+            fn = {
+                "fn_name": self.fn.__name__,  # type: ignore
+                "fn_module": self.fn.__module__,
+            }
 
         return {
             "id": self.id,
@@ -724,6 +743,7 @@ class Node:
             "description": self.description,
             "fields": [field.to_dict() for field in self.fields],
             "outputs": [o.to_dict() for o in self.outputs],
+            "allow_callback": self.allow_callback,
         }
 
     @classmethod
@@ -752,6 +772,8 @@ class Node:
             fn = AIAction.from_dict(fn)
         elif node_type == NodeType.MEMORY:
             fn = Memory.from_dict(fn)
+        elif node_type == NodeType.PROGRAMATIC and isinstance(fn, dict):
+            fn = getattr(importlib.import_module(fn["fn_module"]), fn["fn_name"])
 
         return cls(
             id=data["id"],
@@ -760,6 +782,7 @@ class Node:
             description=data["description"],
             fields=fields,
             outputs=outputs,
+            allow_callback=data.get("allow_callback", False),
         )
 
     def to_json(self, indent=None) -> str:
@@ -801,7 +824,7 @@ class Node:
             if not data_keys.issubset(template_keys):
                 raise ValueError(f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}")
             if print_thoughts:
-                print(terminal_top_with_text(f"Node: {self.id}"))
+                print(f"Node: {self.id}")
                 print("Inputs:\n------")
                 print(pformat(data))
 
@@ -815,8 +838,9 @@ class Node:
             logger.debug(f"> fn_out: {out}")
             logger.debug(f"> OUTPUTS: {self.outputs}")
             for o in self.outputs:
-                # logger.debug("  OP:", o.name, o._loc)
-                o.set_value(get_value_by_keys(out, o.loc))
+                _value = get_value_by_keys(out, o.loc)
+                logger.debug(f"  OP: {o.name}, {o.loc}, {_value}")
+                o.set_value(_value)
 
             fout = {o.name: o.value for o in self.outputs}
             if print_thoughts:
@@ -826,11 +850,6 @@ class Node:
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
-
-    def forward(self, *args, **kwargs):
-        """This is a convinience method so users can subclass this and implement their own forward method while the
-        underlying processing implemented within __call__ method remain intact."""
-        return self(*args, **kwargs)
 
 
 #
@@ -859,6 +878,8 @@ class Edge:
         self.trg_node_id = trg_node_id
         self.src_node_var = src_node_var
         self.trg_node_var = trg_node_var
+        self.source = f"{self.src_node_id}/{self.src_node_var}"
+        self.target = f"{self.trg_node_id}/{self.trg_node_var}"
 
     def __repr__(self) -> str:
         out = f"FuryEdge('{self.src_node_id}/{self.src_node_var}' => '{self.trg_node_id}/{self.trg_node_var}')"
@@ -930,6 +951,8 @@ class Chain:
             self.topo_order = topological_sort(self.edges)
         self.sample = sample
         self.main_in = main_in
+
+        op_key = main_out.split("/")[-1]  # TODO: @yashbonde - make this useful
         self.main_out = main_out
 
         for node_id in self.topo_order:
@@ -964,7 +987,7 @@ class Chain:
         main_out = main_out or self.main_out
         sample = sample or self.sample
         if main_in not in sample:
-            logger.error(f"Key should be present in 'sample': {main_in}")
+            logger.warning(f"Key should be present in 'sample': {main_in}")
         # assert main_in in sample, f"Invalid key: {main_in}"
 
         if not (main_in or main_out or sample):
@@ -993,13 +1016,13 @@ class Chain:
         edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
         return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
 
-    def to_json(self) -> str:
+    def to_json(self, indent=None) -> str:
         """Serializes the chain to a JSON string.
 
         Returns:
             str: The JSON string representation of the chain.
         """
-        return json.dumps(self.to_dict())
+        return json.dumps(self.to_dict(), indent=indent)
 
     @classmethod
     def from_json(cls, data: str):
@@ -1043,7 +1066,7 @@ class Chain:
         incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
 
         # clear out all the nodes that this thing needs into a separate rep
-        logger.debug(f"Processing node: {node_id}")
+        logger.debug(f">>> Processing node: {node_id}")
         logger.debug(f"Current full_ir: {set(full_ir.keys())}")
         _data = {}
 
@@ -1067,11 +1090,12 @@ class Chain:
             _data[edge.trg_node_var] = ir_value
 
         # then run the node
-        out, err = node.forward(_data, print_thoughts=print_thoughts)
+        out, err = node(_data, print_thoughts=print_thoughts)
         if err:
             logger.error(f"TRACE: {out}")
             raise err
 
+        # create the thoughts buffer
         yield_dict = {}
         for k, v in out.items():
             key = f"{node_id}/{k}"
@@ -1082,7 +1106,9 @@ class Chain:
             full_ir[key] = value
             thought = {"key": key, **value}
             yield_dict[key] = value
-            if thoughts_callback is not None:
+
+            # if node has disabled the callback then do not run it
+            if thoughts_callback is not None and node.allow_callback:
                 thoughts_callback(thought)
                 if print_thoughts:
                     print(thought)
@@ -1103,18 +1129,18 @@ class Chain:
             >>> chain = Chain(...)
             >>> out, thoughts = chain("Hello world")
             >>> print(out)
-            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
             >>> print(thoughts)
-            ... {
-                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
-                        'timestamp': '2023-06-27T16:50:04.178833',
-                        'value': '...'
-                    }
-                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
-                        'timestamp': '2023-06-27T16:50:07.818709',
-                        'value': '...'
-                    }
+            {
+                '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                    'timestamp': '2023-06-27T16:50:04.178833',
+                    'value': '...'
                 }
+                '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                    'timestamp': '2023-06-27T16:50:07.818709',
+                    'value': '...'
+                }
+            }
 
         You can also stream the intermediate responses by setting using `stream_call` method. You can get the exact same
         result as above by iterating over the response and getting the last response.
@@ -1130,7 +1156,7 @@ class Chain:
         """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            assert self.main_in, "main_in not defined, pass dictionary input"
             data = {self.main_in: data}
         _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
         _data.update(data)
@@ -1183,18 +1209,18 @@ class Chain:
             ...     else:
             ...         thoughts.update(ir)
             >>> print(out)
-            ... The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
+            The first man chuckled and shook his head, "You always have the weirdest explanations for everything."
             >>> print(thoughts)
-            ... {
-                    '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
-                        'timestamp': '2023-06-27T16:50:04.178833',
-                        'value': '...'
-                    }
-                    '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
-                        'timestamp': '2023-06-27T16:50:07.818709',
-                        'value': '...'
-                    }
+            {
+                '38c813a2-850c-448b-8cfb-bd5775cc4b61/answer': {
+                    'timestamp': '2023-06-27T16:50:04.178833',
+                    'value': '...'
                 }
+                '1378538b-a15e-475b-9a9d-a31a261165c0/out': {
+                    'timestamp': '2023-06-27T16:50:07.818709',
+                    'value': '...'
+                }
+            }
 
         Args:
             data (Union[str, Dict[str, Any]]): The data to run the chain on.
@@ -1207,7 +1233,7 @@ class Chain:
         """
         if not isinstance(data, dict):
             assert isinstance(data, str), f"Invalid data type: {type(data)}"
-            assert self.sample and self.main_in, "Cannot run a chain without a sample and main_in for string input, please use a dict input"
+            assert self.main_in, "main_in not defined, pass dictionary input"
             data = {self.main_in: data}
         _data = copy.deepcopy(self.sample)  # don't corrupt yourself over multiple calls
         _data.update(data)

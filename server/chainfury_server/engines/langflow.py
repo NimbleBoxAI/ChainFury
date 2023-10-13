@@ -16,13 +16,12 @@ def langflow_is_available() -> bool:
     return _AVAILABLE
 
 
-from chainfury_server.commons import config as c
-from chainfury_server.database_utils.intermediate_step import insert_intermediate_steps
-from chainfury_server.database_utils.prompt import create_prompt
-from chainfury_server.commons.gpt_rating import ask_for_rating
-from chainfury_server.engines.registry import EngineInterface, ChatBot, PromptBody, Session, CFPromptResult, engine_registry
+from chainfury_server.commons.utils import logger
+from chainfury_server.database import IntermediateStep
+from chainfury_server.engines.registry import EngineInterface, ChatBot, Session, CFPromptResult, engine_registry, create_prompt
+from chainfury_server.commons.types import PromptBody
 
-logger = c.get_logger(__name__)
+from chainfury_server.engines.fury import create_intermediate_steps
 
 # main
 
@@ -41,7 +40,8 @@ class LangflowEngine(EngineInterface):
             insert_intermediate_steps(db, prompt_row.id, result.thought)  # type: ignore
 
             message = f"User: {prompt.new_message}\nBot: {result.result}"
-            prompt_row.gpt_rating = ask_for_rating(message)  #  type: ignore
+            # prompt_row.gpt_rating = ask_for_rating(message)  #  type: ignore
+            prompt_row.gpt_rating = 0
             prompt_row.num_tokens = result.num_tokens  # type: ignore
             db.commit()
 
@@ -144,3 +144,17 @@ def process_graph(message: str, chat_history: List[str], data_graph):
     logger.debug("Saved langchain object to cache")
     # return {"result": str(result), "thought": thought, "num_tokens": num_tokens}
     return str(result), thought, num_tokens
+
+
+def insert_intermediate_steps(db: Session, prompt_id: int, steps: List[Dict]) -> List[IntermediateStep]:
+    db_intermediate_steps = []
+    for step in steps:
+        db_intermediate_step = create_intermediate_steps(
+            db=db,
+            prompt_id=prompt_id,
+            intermediate_prompt=f"I need to use {step['action']}({step['action_input']})",
+            intermediate_response=f"Observation: {step['observation']}",
+        )
+        db_intermediate_steps.append(db_intermediate_step)
+
+    return db_intermediate_steps

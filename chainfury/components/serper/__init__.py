@@ -25,7 +25,7 @@ def serper_api(
     num_per_page: int = 10,
     retry_count: int = 3,
     retry_delay: int = 1,
-) -> Tuple[Tuple[str, int], Optional[Exception]]:
+) -> Tuple[Tuple[Dict[str, str], int], Optional[Exception]]:
     """
     Search the web with Serper.
 
@@ -191,11 +191,11 @@ def serper_api(
         elif r.status_code != 200:
             raise Exception(f"Serper API returned status code {r.status_code}: {r.text}")
 
-        return r.text, r.status_code
+        return r.json(), r.status_code
 
     try:
-        text, status_code = exponential_backoff(foo=_fn, max_retries=retry_count, retry_delay=retry_delay)
-        return (text, status_code), None  # type: ignore
+        api_resp, status_code = exponential_backoff(foo=_fn, max_retries=retry_count, retry_delay=retry_delay)
+        return (api_resp, status_code), None  # type: ignore
     except Exception as e:
         return (None, None), e  # type: ignore
 

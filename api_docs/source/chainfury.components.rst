@@ -22,6 +22,7 @@ You can get all the environment variables in
    chainfury.components.openai
    chainfury.components.stability
    chainfury.components.nbx
+   chainfury.components.tune
 
 .. toctree::
    :maxdepth: 2
@@ -41,5 +42,4 @@ You can get all the environment variables in
    :caption: Databases
 
    chainfury.components.qdrant
-   chainfury.components.redis
 

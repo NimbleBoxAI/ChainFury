@@ -154,6 +154,11 @@ class TestGetValueByKeys(unittest.TestCase):
         ]
         self.assertEqual(get_value_by_keys(data, keys), expected_result)
 
+    def test_12_return(self):
+        data = "hello world!"
+        keys = (0,)
+        self.assertEqual(get_value_by_keys(data, keys), data)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -33,10 +33,10 @@ def stability_text_to_image(
     text_prompts: Union[str, List[str], List[Dict[str, Union[str, float]]]],
     stability_api_key: Secret = Secret(""),
     stability_host: str = "grpc.stability.ai:443",
-    height: int = 512,
-    width: int = 512,
+    height: int = 768,
+    width: int = 768,
     cfg_scale: float = 7,
-    engine: str = "stable-diffusion-v1-5",  # stable-diffusion-xl-1024-v0-9
+    engine: str = "stable-diffusion-768-v2-1",  # stable-diffusion-xl-1024-v0-9
     start_schedule: float = 1.0,
     end_schedule: float = 0.01,
     sampler: str = "",

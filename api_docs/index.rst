@@ -32,16 +32,23 @@ Read the latest blog posts:
    :maxdepth: 2
    :caption: Contents
 
-   install
-   usage
+   examples/usage-hardcore
 
 .. toctree::
    :maxdepth: 4
    :caption: Examples
 
    examples/vector-db-use
+   examples/qa-rag
    examples/stability-apis
-   examples/functional-chains
+
+.. toctree::
+   :maxdepth: 4
+   :caption: Self Hosted
+
+   examples/install
+   examples/storing-private-data
+   examples/use-chainfury-privately
 
 .. toctree::
    :maxdepth: 2
@@ -57,7 +64,6 @@ Read the latest blog posts:
    :maxdepth: 2
    :caption: Integrations
 
-   source/chainfury.components.const
    source/chainfury.components
 
 .. toctree::

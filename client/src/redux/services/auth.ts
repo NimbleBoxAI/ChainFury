@@ -10,7 +10,6 @@ interface LoginRequest {
 let token: string | null = null;
 export const authApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl: `${BASE_URL}/`,
     prepareHeaders: (headers, { getState }) => {
       // By default, if we have a token in the store, let's use that for authenticated requests
       token = (getState() as RootState)?.auth?.accessToken;
@@ -23,160 +22,11 @@ export const authApi = createApi({
     credentials: 'omit'
   }),
   endpoints: (builder) => ({
-    login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
-      query: (credentials) => ({
-        url: '/login',
-        method: 'POST',
-        body: credentials
-      })
-    }),
-    signup: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        username: string;
-        email: string;
-        password: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: '/signup',
-        method: 'POST',
-        body: credentials
-      })
-    }),
-    changePassword: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        old_password: string;
-        new_password: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: '/user/change_password',
-        method: 'POST',
-        body: {
-          old_password: credentials.old_password,
-          new_password: credentials.new_password,
-          username: ''
-        }
-      })
-    }),
-    addUserFeedBack: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        score: number;
-        prompt_id: string;
-      }
-    >({
-      query: ({ score, prompt_id }) => ({
-        url: '/feedback?prompt_id=' + prompt_id,
-        method: 'PUT',
-        body: {
-          score
-        }
-      })
-    }),
-    addInternalFeedBack: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        score: number;
-        prompt_id: string;
-        chatbot_id: string;
-      }
-    >({
-      query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `/chatbot/${chatbot_id}/prompt?prompt_id=${prompt_id}`,
-        method: 'PUT',
-        body: {
-          score
-        }
-      })
-    }),
-    processPrompt: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        chatbot_id: string;
-        chat_history: string[];
-        session_id: string;
-        new_message: string;
-      }
-    >({
-      query: ({
-        chatbot_id,
-        chat_history,
-        session_id,
-        new_message
-      }: {
-        chatbot_id: string;
-        chat_history: string[];
-        session_id: string;
-        new_message: string;
-      }) => ({
-        url: `/chatbot/${chatbot_id}/prompt`,
-        method: 'POST',
-        body: {
-          chat_history,
-          session_id,
-          new_message
-        }
-      })
-    }),
+
+    // TODO: this is deprecated API, remove this
     components: builder.mutation<DEFAULT_RESPONSE, void>({
       query: () => ({
-        url: '/flow/components',
-        method: 'GET'
-      })
-    }),
-    furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
-      query: () => ({
-        url: '/fury/',
-        method: 'GET'
-      })
-    }),
-    furyComponentDetails: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        component_type: string;
-      }
-    >({
-      query: ({ component_type }) => ({
-        url: `/fury/components/${component_type}`,
-        method: 'GET'
-      })
-    }),
-    getPrompts: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-        id: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}/prompt?limit=100&offset=0`,
-        method: 'GET'
-      })
-    }),
-    getBots: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: '/chatbot/',
-        method: 'GET'
-      })
-    }),
-    getSteps: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-        id: string;
-        prompt_id: string;
-      }
-    >({
-      query: ({ id, prompt_id }) => ({
-        url: `/chatbot/${id}/prompt/${prompt_id}/intermediate_steps`,
+        url: `${BASE_URL}/api/v1/flow/components`,
         method: 'GET'
       })
     }),
@@ -187,92 +37,42 @@ export const authApi = createApi({
       }
     >({
       query: () => ({
-        url: `/template/`,
+        url: `${BASE_URL}/api/v1/template/`,
         method: 'GET'
       })
     }),
-    getMetrics: builder.mutation<
+    addUserFeedBack: builder.mutation<
       DEFAULT_RESPONSE,
       {
-        token: string;
-        id: string;
-        metric_type: string;
+        score: number;
+        prompt_id: string;
       }
     >({
-      query: ({ id, metric_type }) => ({
-        url: `/chatbot/${id}/metrics?metric_type=${metric_type}`,
-        method: 'GET'
-      })
-    }),
-    getAllBotMetrics: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        token: string;
-      }
-    >({
-      query: () => ({
-        url: `/chatbot/metrics`,
-        method: 'GET'
-      })
-    }),
-    createBot: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        name: string;
-        nodes: any;
-        edges: any;
-        token: string;
-        engine: string;
-        sample?: Record<string, any>;
-        main_in?: string;
-        main_out?: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: '/chatbot/',
-        method: 'POST',
-        body: {
-          engine: credentials.engine,
-          name: credentials.name,
-          dag: {
-            nodes: credentials.nodes ?? [],
-            edges: credentials.edges ?? [],
-            sample: credentials.sample ?? undefined,
-            main_in: credentials.main_in ?? undefined,
-            main_out: credentials.main_out ?? undefined
-          }
-        }
-      })
-    }),
-    editBot: builder.mutation<
-      DEFAULT_RESPONSE,
-      {
-        name: string;
-        nodes: any;
-        edges: any;
-        token: string;
-        id: string;
-        engine: string;
-        sample?: Record<string, any>;
-        main_in?: string;
-        main_out?: string;
-      }
-    >({
-      query: (credentials) => ({
-        url: `/chatbot/${credentials?.id}`,
+      query: ({ score, prompt_id }) => ({
+        url: `${BASE_URL}/api/v1/prompts/${prompt_id}/feedback`,
         method: 'PUT',
         body: {
-          name: credentials.name,
-          dag: {
-            nodes: credentials.nodes ?? [],
-            edges: credentials.edges ?? [],
-            sample: credentials.sample ?? undefined,
-            main_in: credentials.main_in ?? undefined,
-            main_out: credentials.main_out ?? undefined
-          },
-          engine: credentials.engine,
-          update_keys: ['dag']
+          score
         }
+      })
+    }),
+
+    // fury Action APIs
+    furyComponents: builder.mutation<DEFAULT_RESPONSE, void>({
+      query: () => ({
+        url: `${BASE_URL}/api/v1/fury/`,
+        method: 'GET'
+      })
+    }),
+    furyComponentDetails: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        component_type: string;
+      }
+    >({
+      query: ({ component_type }) => ({
+        url: `${BASE_URL}/api/v1/fury/components/${component_type}`,
+        method: 'GET'
       })
     }),
     newAction: builder.mutation<
@@ -296,17 +96,248 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `/fury/actions/`,
+        url: `${BASE_URL}/api/v1/fury/actions/`,
         method: 'POST',
         body: credentials
       })
     }),
     getActions: builder.mutation<DEFAULT_RESPONSE, {}>({
       query: () => ({
-        url: `/fury/actions/`,
+        url: `${BASE_URL}/api/v1/fury/actions/`,
         method: 'GET'
       })
-    })
+    }),
+
+    /*
+
+    Migrated to newer APIs
+
+    */
+
+    getMetrics: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        chain_id: string;
+      }
+    >({
+      query: ({ chain_id }) => ({
+        url: `${BASE_URL}/api/v2/chains/${chain_id}/metrics/`,
+        method: 'GET'
+      })
+    }),
+
+    addInternalFeedBack: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        score: number;
+        prompt_id: string;
+        chatbot_id: string;
+      }
+    >({
+      query: ({ score, prompt_id, chatbot_id }) => ({
+        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/feedback`,
+        method: 'PUT',
+        body: {
+          score
+        }
+      })
+    }),
+
+    login: builder.mutation<DEFAULT_RESPONSE, LoginRequest>({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/login/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+
+    signup: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        username: string;
+        email: string;
+        password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/signup/`,
+        method: 'POST',
+        body: credentials
+      })
+    }),
+
+    changePassword: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        old_password: string;
+        new_password: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/user/change_password/`,
+        method: 'POST',
+        body: {
+          old_password: credentials.old_password,
+          new_password: credentials.new_password,
+          username: ''
+        }
+      })
+    }),
+
+    // get prompts
+    getPrompts: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/api/v2/prompts/?chatbot_id=${credentials?.id}&limit=50&offset=0`,
+        method: 'GET'
+      })
+    }),
+
+    // get specific prompt
+    getSteps: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        id: string;
+        prompt_id: string;
+      }
+    >({
+      query: ({ id, prompt_id }) => ({
+        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/`,
+        method: 'GET'
+      })
+    }),
+
+    // delete prompt
+    deletePrompt: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+        prompt_id: string;
+      }
+    >({
+      query: ({ prompt_id }) => ({
+        url: `${BASE_URL}/api/v2/prompts/${prompt_id}/`,
+        method: 'DELETE'
+      })
+    }),
+
+    // list chains API
+    getBots: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        token: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/api/v2/chains/`,
+        method: 'GET'
+      })
+    }),
+
+    // create chain API
+    createBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+        engine: string;
+        sample?: Record<string, any>;
+        main_in?: string;
+        main_out?: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/api/v2/chains/`,
+        method: 'POST',
+        body: {
+          engine: credentials.engine,
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes ?? [],
+            edges: credentials.edges ?? [],
+            sample: credentials.sample ?? undefined,
+            main_in: credentials.main_in ?? undefined,
+            main_out: credentials.main_out ?? undefined
+          }
+        }
+      })
+    }),
+
+    // edit chain API
+    editBot: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        name: string;
+        nodes: any;
+        edges: any;
+        token: string;
+        id: string;
+        engine: string;
+        sample?: Record<string, any>;
+        main_in?: string;
+        main_out?: string;
+      }
+    >({
+      query: (credentials) => ({
+        url: `${BASE_URL}/api/v2/chains/${credentials?.id}`,
+        method: 'PUT',
+        body: {
+          name: credentials.name,
+          dag: {
+            nodes: credentials.nodes ?? [],
+            edges: credentials.edges ?? [],
+            sample: credentials.sample ?? undefined,
+            main_in: credentials.main_in ?? undefined,
+            main_out: credentials.main_out ?? undefined
+          },
+          engine: credentials.engine,
+          update_keys: ['dag']
+        }
+      })
+    }),
+
+    // run chain
+    processPrompt: builder.mutation<
+      DEFAULT_RESPONSE,
+      {
+        chatbot_id: string;
+        chat_history: string[];
+        session_id: string;
+        new_message: string;
+      }
+    >({
+      query: ({
+        chatbot_id,
+        chat_history,
+        session_id,
+        new_message
+      }: {
+        chatbot_id: string;
+        chat_history: string[];
+        session_id: string;
+        new_message: string;
+      }) => (
+        console.log('chatbot_id', chatbot_id),
+        {
+          url: `${BASE_URL}/api/v2/chains/${chatbot_id}/`,
+          method: 'POST',
+          body: {
+            chat_history,
+            session_id,
+            new_message
+          }
+        })
+    }),
+
   })
 });
 
@@ -314,20 +345,24 @@ export const {
   useLoginMutation,
   useSignupMutation,
   useComponentsMutation,
-  useCreateBotMutation,
-  useGetBotsMutation,
-  useEditBotMutation,
-  useGetPromptsMutation,
-  useGetStepsMutation,
-  useProcessPromptMutation,
   useGetMetricsMutation,
   useAddUserFeedBackMutation,
   useAddInternalFeedBackMutation,
   useGetTemplatesMutation,
   useChangePasswordMutation,
-  useGetAllBotMetricsMutation,
+  // useGetAllBotMetricsMutation,
   useFuryComponentsMutation,
   useFuryComponentDetailsMutation,
   useNewActionMutation,
-  useGetActionsMutation
+  useGetActionsMutation,
+
+
+
+  useGetPromptsMutation,
+  useGetStepsMutation,
+  useDeletePromptMutation,
+  useGetBotsMutation,
+  useCreateBotMutation,
+  useEditBotMutation,
+  useProcessPromptMutation,
 } = authApi;
