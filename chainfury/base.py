@@ -1122,10 +1122,7 @@ class Chain:
         Args:
             dag (T.Dag): The dag object to load from
         """
-        from chainfury.client import get_client
         from chainfury.agent import programatic_actions_registry, ai_actions_registry
-
-        stub = get_client()
 
         # convert to dag and checks
         nodes = []
@@ -1159,6 +1156,9 @@ class Chain:
                 cf_action = programatic_actions_registry.get(node.cf_id)  # check if present in the programatic registry
             if check_server and not cf_action:
                 # check available on the API
+                from chainfury.client import get_client
+
+                stub = get_client()
                 action, err = stub.fury.actions.u(node.cf_id)()
                 if err:
                     raise ValueError(f"Action {node.cf_id} not loaded: {action}")

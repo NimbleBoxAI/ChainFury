@@ -224,6 +224,8 @@ def run_chain(
     engine = engine_registry.get(chatbot.engine)
     if engine is None:
         raise HTTPException(status_code=400, detail=f"Invalid engine {chatbot.engine}")
+
+    #
     if as_task:
         result = engine.submit(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
         return result
