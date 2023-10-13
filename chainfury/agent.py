@@ -170,6 +170,9 @@ class ProgramaticActionsRegistry:
         Returns:
             Node: Node
         """
+        if len(node_id) > 80:
+            raise ValueError(f"Node id '{node_id}' is too long, max length is 80")
+
         logger.debug(f"Registering p-node '{node_id}'")
         if node_id in self.nodes:
             raise Exception(f"Node '{node_id}' already registered")

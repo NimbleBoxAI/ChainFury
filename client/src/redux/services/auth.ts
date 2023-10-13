@@ -194,7 +194,7 @@ export const authApi = createApi({
       }
     >({
       query: (credentials) => ({
-        url: `${BASE_URL}/api/prompts/?chatbot_id=${credentials?.id}&limit=50&offset=0`,
+        url: `${BASE_URL}/api/prompts/?chain_id=${credentials?.id}&limit=50&offset=0`,
         method: 'GET'
       })
     }),
@@ -242,7 +242,7 @@ export const authApi = createApi({
     }),
 
     // create chain API
-    createBot: builder.mutation<
+    createChain: builder.mutation<
       DEFAULT_RESPONSE,
       {
         name: string;
@@ -250,23 +250,25 @@ export const authApi = createApi({
         edges: any;
         token: string;
         engine: string;
+        description?: string;
         sample?: Record<string, any>;
         main_in?: string;
         main_out?: string;
       }
     >({
-      query: (credentials) => ({
+      query: (request) => ({
         url: `${BASE_URL}/api/chains/`,
-        method: 'POST',
+        method: 'PUT',
         body: {
-          engine: credentials.engine,
-          name: credentials.name,
+          engine: request.engine,
+          name: request.name,
+          description: request.description ?? '',
           dag: {
-            nodes: credentials.nodes ?? [],
-            edges: credentials.edges ?? [],
-            sample: credentials.sample ?? undefined,
-            main_in: credentials.main_in ?? undefined,
-            main_out: credentials.main_out ?? undefined
+            nodes: request.nodes ?? [],
+            edges: request.edges ?? [],
+            sample: request.sample ?? undefined,
+            main_in: request.main_in ?? undefined,
+            main_out: request.main_out ?? undefined
           }
         }
       })
@@ -353,16 +355,16 @@ export const {
   // useGetAllBotMetricsMutation,
   useFuryComponentsMutation,
   useFuryComponentDetailsMutation,
-  useNewActionMutation,
   useGetActionsMutation,
 
 
 
+  useNewActionMutation,
   useGetPromptsMutation,
   useGetStepsMutation,
   useDeletePromptMutation,
   useGetBotsMutation,
-  useCreateBotMutation,
+  useCreateChainMutation,
   useEditBotMutation,
   useProcessPromptMutation,
 } = authApi;

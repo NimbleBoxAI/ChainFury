@@ -157,28 +157,28 @@ class FuryThoughts:
             intermediate_response = ""
         if type(intermediate_response) != str:
             intermediate_response = str(intermediate_response)
-        create_intermediate_steps(self.db, prompt_id=self.prompt_id, intermediate_response=intermediate_response)
+        # create_intermediate_steps(self.db, prompt_id=self.prompt_id, intermediate_response=intermediate_response)
         self.count += 1
 
 
-def create_intermediate_steps(
-    db: Session,
-    prompt_id: int,
-    intermediate_prompt: str = "",
-    intermediate_response: str = "",
-    response_json: Dict = {},
-) -> DB.IntermediateStep:
-    db_prompt = DB.IntermediateStep(
-        prompt_id=prompt_id,
-        intermediate_prompt=intermediate_prompt,
-        intermediate_response=intermediate_response,
-        response_json=response_json,
-        created_at=SimplerTimes.get_now_datetime(),
-    )  # type: ignore
-    db.add(db_prompt)
-    db.commit()
-    db.refresh(db_prompt)
-    return db_prompt
+# def create_intermediate_steps(
+#     db: Session,
+#     prompt_id: int,
+#     intermediate_prompt: str = "",
+#     intermediate_response: str = "",
+#     response_json: Dict = {},
+# ) -> DB.IntermediateStep:
+#     db_prompt = DB.IntermediateStep(
+#         prompt_id=prompt_id,
+#         intermediate_prompt=intermediate_prompt,
+#         intermediate_response=intermediate_response,
+#         response_json=response_json,
+#         created_at=SimplerTimes.get_now_datetime(),
+#     )  # type: ignore
+#     db.add(db_prompt)
+#     db.commit()
+#     db.refresh(db_prompt)
+#     return db_prompt
 
 
 def create_prompt(db: Session, chatbot_id: str, input_prompt: str, session_id: str) -> DB.Prompt:

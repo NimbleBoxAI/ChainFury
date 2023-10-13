@@ -18,6 +18,8 @@ class Env:
     # when you want to use chainfury as a client you need to set the following vars
     CFS_DATABASE = lambda x: os.getenv("CFS_DATABASE", x)
     JWT_SECRET = lambda: os.getenv("JWT_SECRET", "hajime-shimamoto")
+    CFS_MAX_NODE_ID_LEN = lambda: int(os.getenv("CFS_MAX_NODE_ID_LEN", 80))
+    CF_MAX_WORKER_ID_LEN = lambda: int(os.getenv("CF_MAX_WORKER_ID_LEN", 16))
 
 
 def folder(x: str) -> str:

@@ -101,20 +101,17 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
 
   return (
     <div
-      className={`absolute z-[100000] right-0 bottom-0 pt-[8px] px-[4px] ${
-        chat_id ? 'w-screen' : ''
-      } overflow-hidden`}
+      className={`absolute z-[100000] right-0 bottom-0 pt-[8px] px-[4px] ${chat_id ? 'w-screen' : ''
+        } overflow-hidden`}
     >
       <div
-        className={`flex flex-col ${
-          isChatOpen && !chatId ? (chat_id ? 'w-[98vw]' : 'w-[350px]') : ''
-        } ${chatId ? 'max-h-[450px]' : 'max-h-screen'} ${
-          isChatOpen ? 'border shadow-md overflow-hidden mr-[4px]' : ''
-        } border-light-neutral-grey-200 rounded-md  regular250 `}
+        className={`flex flex-col ${isChatOpen && !chatId ? (chat_id ? 'w-[98vw]' : 'w-[1000px]') : ''
+          } ${chatId ? 'max-h-[800px]' : 'max-h-screen'} ${isChatOpen ? 'border shadow-md overflow-hidden mr-[4px]' : ''
+          } border-light-neutral-grey-200 rounded-md  regular250 `}
       >
         {isChatOpen ? (
           <>
-            <div className="overflow-scroll  bg-light-system-bg-primary h-[420px] min-w-[350px] p-[16px] pb-[40px] chatContainer">
+            <div className="overflow-scroll  bg-light-system-bg-primary h-[800px] min-w-[1000px] p-[16px] pb-[40px] chatContainer">
               <div className="chat nbx-chat-start">
                 <div className={`flex flex-col `}>
                   <div className={`chat-bubble`}>Hi there! How can I help?</div>
@@ -126,16 +123,14 @@ const ChatComp = ({ chatId }: { chatId?: string }) => {
                   className={`chat ${chatVal.isSender ? 'nbx-chat-end' : 'nbx-chat-start'}`}
                 >
                   <div
-                    className={`flex flex-col ${
-                      !chatVal?.isSender && enableFeedback
-                        ? 'rounded-b-[8px!important] overflow-hidden'
-                        : ''
-                    }`}
+                    className={`flex flex-col ${!chatVal?.isSender && enableFeedback
+                      ? 'rounded-b-[8px!important] overflow-hidden'
+                      : ''
+                      }`}
                   >
                     <div
-                      className={`chat-bubble ${
-                        !chatVal?.isSender && enableFeedback ? 'rounded-br-[0px!important]' : ''
-                      }`}
+                      className={`chat-bubble ${!chatVal?.isSender && enableFeedback ? 'rounded-br-[0px!important]' : ''
+                        }`}
                     >
                       {chatVal.message}
                     </div>

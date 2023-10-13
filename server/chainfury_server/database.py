@@ -94,26 +94,26 @@ def fastapi_db_session():
         db.close()
 
 
-def unique_string(table, row_reference):
+def unique_string(table, row_reference, length=ID_LENGTH):
     """
     Gets Random Unique String for Primary key and makes sure its unique for the table.
     """
     db = db_session()
-    random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
+    random_string = get_random_alphanumeric_string(length).lower()
     while db.query(table).filter(row_reference == random_string).limit(1).first() is not None:  # type: ignore
-        random_string = get_random_alphanumeric_string(ID_LENGTH).lower()
+        random_string = get_random_alphanumeric_string(length).lower()
 
     return random_string
 
 
-def unique_number(Table, row_reference):
+def unique_number(Table, row_reference, length=ID_LENGTH):
     """
     Gets Random Unique Number for Primary key and makes sure its unique for the table.
     """
     db = db_session()
-    random_number = get_random_number(ID_LENGTH)
+    random_number = get_random_number(length)
     while db.query(Table).filter(row_reference == random_number).limit(1).first() is not None:  # type: ignore
-        random_number = get_random_number(ID_LENGTH)
+        random_number = get_random_number(length)
 
     return random_number
 
@@ -270,34 +270,20 @@ class Prompt(Base):
         }
 
 
-class IntermediateStep(Base):
-    __tablename__ = "intermediate_step"
+class ChainLog(Base):
+    __tablename__ = "chain_logs"
 
     id = Column(
-        String(8),
-        default=lambda: unique_string(IntermediateStep, IntermediateStep.id),
+        String(16),
+        default=lambda: unique_string(ChainLog, ChainLog.id, 16),
         primary_key=True,
     )
-    prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
-    intermediate_prompt = Column(Text, nullable=False)
-    intermediate_response = Column(Text, nullable=False)
-    response_json = Column(JSON, nullable=True)
-    meta = Column(JSON)
     created_at = Column(DateTime, nullable=False)
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "prompt_id": self.prompt_id,
-            "intermediate_prompt": self.intermediate_prompt,
-            "intermediate_response": self.intermediate_response,
-            "response_json": self.response_json,
-            "meta": self.meta,
-            "created_at": self.created_at,
-        }
-
-    def __repr__(self):
-        return f"IntermediateStep(id={self.id}, prompt_id={self.prompt_id}, intermediate_prompt={self.intermediate_prompt}, intermediate_response={self.intermediate_response}, response_json={self.response_json}, meta={self.meta}, created_at={self.created_at})"
+    prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
+    node_id = Column(String(Env.CFS_MAX_NODE_ID_LEN()), nullable=False)
+    worker_id = Column(String(Env.CF_MAX_WORKER_ID_LEN()), nullable=False)
+    message = Column(Text, nullable=False)
+    data = Column(JSON, nullable=True)
 
 
 class Template(Base):
@@ -321,50 +307,6 @@ class Template(Base):
             "description": self.description,
             "meta": self.meta,
         }
-
-    def __repr__(self):
-        return f"Template(id={self.id}, name={self.name}, description={self.description}, dag={self.dag}, meta={self.meta})"
-
-
-# A fury action is an AI powered node that can be used in a fury chain it is the DB equivalent of fury.Node
-
-
-class FuryActions(Base):
-    __tablename__ = "fury_actions"
-
-    id: Column = Column(
-        String(36),
-        primary_key=True,
-    )
-    created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
-    type: str = Column(String(80), nullable=False)  # the AI Action type
-    name: str = Column(String(80), unique=False)
-    description: str = Column(String(80))
-    fields: list[dict] = Column(JSON)
-    fn: dict = Column(JSON)
-    outputs: list[dict] = Column(JSON)
-    tags: list[str] = Column(JSON)
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "created_by": self.created_by,
-            "type": self.type,
-            "name": self.name,
-            "description": self.description,
-            "fields": self.fields,
-            "fn": self.fn,
-            "outputs": self.outputs,
-            "tags": self.tags,
-        }
-
-    def update_from_dict(self, data: dict):
-        self.name = data.get("name", self.name)
-        self.description = data.get("description", self.description)
-        self.fields = data.get("fields", self.fields)
-        self.fn = data.get("fn", self.fn)
-        self.outputs = data.get("outputs", self.outputs)
-        self.tags = data.get("tags", self.tags)
 
 
 Base.metadata.create_all(bind=engine)  # type: ignore

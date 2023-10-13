@@ -11,7 +11,7 @@ import chainfury.types as T
 
 def list_prompts(
     token: Annotated[str, Header()],
-    chatbot_id: str,
+    chain_id: str,
     limit: int = 100,
     offset: int = 0,
     db: Session = Depends(DB.fastapi_db_session),
@@ -25,7 +25,7 @@ def list_prompts(
     offset = offset if offset > 0 else 0
     prompts = (
         db.query(DB.Prompt)  # type: ignore
-        .filter(DB.Prompt.chatbot_id == chatbot_id)
+        .filter(DB.Prompt.chatbot_id == chain_id)
         .order_by(DB.Prompt.created_at.desc())
         .limit(limit)
         .offset(offset)
@@ -47,10 +47,7 @@ def get_prompt(
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
-    irsteps = db.query(DB.IntermediateStep).filter(DB.IntermediateStep.prompt_id == prompt.session_id).all()  # type: ignore
-    if not irsteps:
-        irsteps = []
-    return {"prompt": prompt.to_dict(), "irsteps": [ir.to_dict() for ir in irsteps]}
+    return {"prompt": prompt.to_dict()}
 
 
 def delete_prompt(
@@ -66,11 +63,6 @@ def delete_prompt(
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     db.delete(prompt)
-
-    # now delete all the intermediate steps
-    ir_steps = db.query(DB.IntermediateStep).filter(DB.IntermediateStep.prompt_id == prompt.id).all()  # type: ignore
-    for ir in ir_steps:
-        db.delete(ir)
 
     db.commit()
     return {"msg": f"Prompt: '{prompt_id}' deleted"}

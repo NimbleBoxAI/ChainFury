@@ -19,7 +19,7 @@ import { useAuthStates } from '../../redux/hooks/dispatchHooks';
 import { useAppDispatch } from '../../redux/hooks/store';
 import {
   useComponentsMutation,
-  useCreateBotMutation,
+  useCreateChainMutation,
   useEditBotMutation,
   useFuryComponentDetailsMutation,
   useFuryComponentsMutation
@@ -48,7 +48,7 @@ const FlowViewer = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const [templateId, setTemplateId] = useState('' as string);
-  const [createBot] = useCreateBotMutation();
+  const [createBot] = useCreateChainMutation();
   const [editBot] = useEditBotMutation();
   const [furyCompDetails] = useFuryComponentDetailsMutation();
   const { auth } = useAuthStates();
@@ -198,11 +198,11 @@ const FlowViewer = () => {
       engine === 'langchain'
         ? { name: botName, nodes, edges, token: auth?.accessToken, engine: 'langflow' }
         : {
-            name: botName,
-            engine: engine,
-            token: auth?.accessToken,
-            ...TranslateNodes({ nodes, edges })
-          }
+          name: botName,
+          engine: engine,
+          token: auth?.accessToken,
+          ...TranslateNodes({ nodes, edges })
+        }
     )
       .unwrap()
       ?.then((res) => {
@@ -315,20 +315,20 @@ const FlowViewer = () => {
     editBot(
       engine === 'langchain'
         ? {
-            id: flow_id,
-            name: auth?.chatBots?.[flow_id]?.name,
-            nodes,
-            edges,
-            token: auth?.accessToken,
-            engine: 'langflow'
-          }
+          id: flow_id,
+          name: auth?.chatBots?.[flow_id]?.name,
+          nodes,
+          edges,
+          token: auth?.accessToken,
+          engine: 'langflow'
+        }
         : {
-            id: flow_id,
-            name: auth?.chatBots?.[flow_id]?.name,
-            engine: engine,
-            token: auth?.accessToken,
-            ...TranslateNodes({ nodes, edges })
-          }
+          id: flow_id,
+          name: auth?.chatBots?.[flow_id]?.name,
+          engine: engine,
+          token: auth?.accessToken,
+          ...TranslateNodes({ nodes, edges })
+        }
     )
       .unwrap()
       ?.then((res) => {

@@ -10,19 +10,6 @@ class EngineInterface(object):
     def engine_name(self) -> str:
         raise NotImplementedError("Subclass this and implement engine_name")
 
-    def __call__(
-        self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float, stream: bool = False, as_task: bool = False
-    ):
-        """
-        This is the main entry point for the engine. It should return a CFPromptResult.
-        """
-        if as_task:
-            return self.submit(chatbot=chatbot, prompt=prompt, db=db, start=start)
-        elif stream:
-            return self.stream(chatbot=chatbot, prompt=prompt, db=db, start=start)
-        else:
-            return self.run(chatbot=chatbot, prompt=prompt, db=db, start=start)
-
     def run(self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float) -> T.CFPromptResult:
         """
         This is the main entry point for the engine. It should return a CFPromptResult.

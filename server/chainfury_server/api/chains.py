@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated, List, Union
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
@@ -261,4 +261,21 @@ def get_chain_metrics(
 
     # DB call
     results = db.query(func.count()).filter(DB.Prompt.chatbot_id == id).all()  # type: ignore
-    return {"total_conversations": results[0][0]}
+    metrics = {"total_conversations": results[0][0]}
+
+    hourly_average_latency = (
+        db.query(DB.Prompt)
+        .filter(DB.Prompt.chatbot_id == id)  # type: ignore
+        .filter(DB.Prompt.created_at >= datetime.now() - timedelta(hours=24))
+        .with_entities(
+            (func.substr(DB.Prompt.created_at, 1, 14)).label("hour"),
+            func.avg(DB.Prompt.time_taken).label("avg_time_taken"),
+        )
+        .group_by((func.substr(DB.Prompt.created_at, 1, 14)))
+        .all()
+    )
+    latency_per_hour = []
+    for item in hourly_average_latency:
+        created_datetime = item[0] + "00:00"
+        latency_per_hour.append({"created_at": created_datetime, "time": item[1]})
+    return {"metrics": metrics, "latencies": latency_per_hour}

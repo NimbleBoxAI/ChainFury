@@ -6,7 +6,6 @@ import { useAppDispatch } from '../redux/hooks/store';
 import {
   useGetActionsMutation,
   useGetBotsMutation,
-  useGetTemplatesMutation
 } from '../redux/services/auth';
 import {
   FuryComponentInterface,
@@ -31,7 +30,6 @@ const Sidebar = () => {
   const { auth } = useAuthStates();
   const [getBots] = useGetBotsMutation();
   const dispatch = useAppDispatch();
-  const [getTemplates] = useGetTemplatesMutation();
   const [changePassword, setChangePassword] = useState(false);
   const [searchParams] = useSearchParams();
   const { engine, setEngine } = useContext(ChainFuryContext);
@@ -54,7 +52,7 @@ const Sidebar = () => {
   }, []);
 
   useEffect(() => {
-    if (!Object.values(auth.furyComponents?.['actions'] ?? {})?.length) getActions();
+    // if (!Object.values(auth.furyComponents?.['actions'] ?? {})?.length) getActions();
   }, [auth.furyComponents]);
 
   const getBotList = () => {
@@ -76,17 +74,7 @@ const Sidebar = () => {
       .catch((err) => {
         console.log(err);
       });
-    getTemplates({
-      token: localStorage.getItem('accessToken') ?? ''
-    })
-      .unwrap()
-      .then((res) => {
-        dispatch(
-          setTemplates({
-            templates: res?.templates?.length ? res?.templates : []
-          })
-        );
-      });
+
   };
 
   const onDragStart = (
@@ -146,15 +134,16 @@ const Sidebar = () => {
           )}
         </div>
       ) : (
-        <Button
-          onClick={() => setNewBotModel(true)}
-          variant="contained"
-          className="my-[8px!important]"
-          color="primary"
-          fullWidth
-        >
-          New Bot
-        </Button>
+        // <Button
+        //   onClick={() => setNewBotModel(true)}
+        //   variant="contained"
+        //   className="my-[8px!important]"
+        //   color="primary"
+        //   fullWidth
+        // >
+        "New Bot"
+        // </Button>
+        // ''
       )}
       {newAction ? <NewActionModel refresh={getActions} onClose={() => setNewAction(false)} /> : ''}
 
@@ -162,7 +151,8 @@ const Sidebar = () => {
         {!flow_id ? (
           <>
             <div className="flex flex-col gap-[8px]">
-              <span className="semiBold250 text-light-neutral-grey-900">Bots</span>
+              <div className='border-b border-light-neutral-grey-200 pb-[10px]'></div>
+              <span className="semiBold700 text-light-neutral-grey-900">🦋 Chains</span>
               {Object.values(auth?.chatBots ?? [])?.map((bot, key) => {
                 return (
                   <div
@@ -210,6 +200,27 @@ const Sidebar = () => {
         )}
       </div>
       <div className="h-[78x] absolute bottom-0 flex flex-col gap-[4px]">
+        <a
+          href={
+            window?.location?.host?.includes(':5173')
+              ? 'http://127.0.0.1:8000/docs'
+              : '/docs'
+          }
+          target='_blank'
+          className="medium400 cursor-pointer"
+        >
+          Swagger
+        </a>
+        <span
+          className="medium400 cursor-pointer"
+        >
+          <button
+            onClick={() => {
+              // copy JWT token to clipboard
+              navigator.clipboard.writeText(localStorage.getItem('accessToken') ?? '');
+            }}
+          >Copy Token</button>
+        </span>
         <a
           href="https://nimbleboxai.github.io/ChainFury/"
           target='_blank'

@@ -42,10 +42,7 @@ const Dashboard = () => {
   );
   const [searchParams] = useSearchParams();
   const [chainMetrics, setMetrics] = useState(
-    [] as {
-      name: string;
-      value: number;
-    }[]
+    {} as MetricsInterface
   )
 
   useEffect(() => {
@@ -85,14 +82,9 @@ const Dashboard = () => {
     })
       ?.unwrap()
       ?.then((res) => {
-        // console.log(res);
-        setMetrics([
-          {
-            name: "total_conversations",
-            value: res?.metrics?.total_conversations
-          }
-        ]);
-        // console.log(chainMetrics);
+        setMetrics(res?.metrics);
+        setLatencies(res?.latencies);
+        console.log(res);
       });
   };
 
@@ -105,7 +97,7 @@ const Dashboard = () => {
           <>
             <div className="flex justify-between items-center w-full">
               <span className="semiBold600">{auth?.selectedChatBot?.name ?? 'Nimblebox Bot'}</span>
-              <Button
+              {/* <Button
                 variant="outlined"
                 className="h-[24px]"
                 color="primary"
@@ -114,22 +106,20 @@ const Dashboard = () => {
                 }}
               >
                 Edit
-              </Button>
+              </Button> */}
             </div>
             <div className="overflow-scroll h-full w-full">
-              {/* {chainMetrics ? (
+              {chainMetrics ? (
                 <BotMetrics
                   metricsInfo={chainMetrics}
                 />
               ) : (
                 ''
-              )} */}
-              Metrics will show up here
+              )}
               <div className="flex gap-[8px] mt-[32px] flex-col">
                 <span className="medium300">
-                  Try out the bot by clicking on <span className="semiBold300">The Bot</span> in the
-                  bottom right corner of your screen. Or embed the bot on your website by adding the
-                  following code to your HTML
+                  Clicking on bottom chat icon to run <span className="semiBold300">{auth?.selectedChatBot?.name} </span>
+                  Or embed the bot on your website by adding the following code to your HTML
                 </span>
                 <div className="relative">
                   <SvgCopy
@@ -251,29 +241,17 @@ const Dashboard = () => {
                   label="Prompts"
                   values={auth?.prompts?.[auth?.selectedChatBot?.id]?.map((prompt) => [
                     prompt?.id,
-                    new Date(prompt?.created_at).toLocaleString('en-US', {
-                      timeZone: 'utc',
-                      hour: 'numeric',
-                      minute: 'numeric',
-                      second: 'numeric',
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric'
-                    }),
+                    new Date(prompt?.created_at).toLocaleString() + " UTC",
+                    Math.round(prompt?.time_taken) + 's',
                     prompt?.input_prompt,
                     prompt?.response,
-                    prompt?.user_rating ?? '',
-                    prompt?.num_tokens ?? '',
-                    Math.round(prompt?.time_taken) + 's',
                   ])}
                   headings={[
                     'ID',
                     'Timestamp',
+                    'Response Time',
                     'Input Prompt',
                     'Final Prompt',
-                    'User Rating',
-                    '# of Tokens',
-                    'Response Time',
                   ]}
                 />
               ) : (
