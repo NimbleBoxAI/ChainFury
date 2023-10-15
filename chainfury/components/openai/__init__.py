@@ -1,10 +1,9 @@
 import requests
 from pydantic import BaseModel
 from typing import Any, List, Union, Dict, Optional
-
+from litellm import completion, text_completion, AuthenticationError, 
 from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
 from chainfury.components.const import Env
-
 
 def openai_completion(
     model: str,
@@ -69,13 +68,7 @@ def openai_completion(
         raise Exception("OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function")
 
     def _fn():
-        r = requests.post(
-            "https://api.openai.com/v1/completions",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {openai_api_key}",
-            },
-            json={
+        data = {
                 "model": model,
                 "prompt": prompt,
                 "max_tokens": max_tokens,
@@ -90,13 +83,14 @@ def openai_completion(
                 "best_of": best_of,
                 "logit_bias": logit_bias,
                 "user": user,
-            },
-        )
-        if r.status_code == 401:
-            raise UnAuthException(r.text)
-        if r.status_code != 200:
-            raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
-        return r.json()
+            }
+        try:
+            return text_completion(**data)
+        except Exception as e: 
+            if isinstance(e, AuthenticationError):
+                raise UnAuthException(e.text)
+            else:
+                raise Exception(f"API returned status code {e.status_code}: {e.message}")
 
     return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
 
@@ -195,13 +189,7 @@ def openai_chat(
         messages = [x.dict(skip_defaults=True) for x in messages]  # type: ignore
 
     def _fn():
-        r = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": f"Bearer {openai_api_key}",
-            },
-            json={
+        data = {
                 "model": model,
                 "messages": messages,
                 "max_tokens": max_tokens,
@@ -213,13 +201,14 @@ def openai_chat(
                 "frequency_penalty": frequency_penalty,
                 "logit_bias": logit_bias,
                 "user": user,
-            },
-        )
-        if r.status_code == 401:
-            raise UnAuthException(r.text)
-        if r.status_code != 200:
-            raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
-        return r.json()
+            }
+        try:
+            return completion(**data)
+        except Exception as e: 
+            if isinstance(e, AuthenticationError):
+                raise UnAuthException(e.text)
+            else:
+                raise Exception(f"API returned status code {e.status_code}: {e.message}")
 
     return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
 
