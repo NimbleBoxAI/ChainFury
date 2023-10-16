@@ -33,7 +33,7 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
             logger.debug("Adding prompt to database")
-            prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
+            prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
 
             # Create a Fury chain then run the chain while logging all the intermediate steps
             dag = T.Dag(**chatbot.dag)  # type: ignore
@@ -54,7 +54,8 @@ class FuryEngine(EngineInterface):
             )
 
             # commit the prompt to DB
-            prompt_row.response = result.result  # type: ignore
+            if store_io:
+                prompt_row.response = result.result  # type: ignore
             prompt_row.time_taken = float(time.time() - start)  # type: ignore
             db.commit()
 
@@ -79,7 +80,7 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
             logger.debug("Adding prompt to database")
-            prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
+            prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
 
             # Create a Fury chain then run the chain while logging all the intermediate steps
             dag = T.Dag(**chatbot.dag)  # type: ignore
@@ -110,7 +111,8 @@ class FuryEngine(EngineInterface):
             )
 
             # commit the prompt to DB
-            prompt_row.response = result.result  # type: ignore
+            if store_io:
+                prompt_row.response = result.result  # type: ignore
             prompt_row.time_taken = float(time.time() - start)  # type: ignore
             db.commit()
 
@@ -135,7 +137,7 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
             logger.debug("Adding prompt to database")
-            prompt_row = create_prompt(db, chatbot.id, prompt.new_message, prompt.session_id)  # type: ignore
+            prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
 
             # Create a Fury chain then run the chain while logging all the intermediate steps
             dag = T.Dag(**chatbot.dag)  # type: ignore
@@ -150,7 +152,8 @@ class FuryEngine(EngineInterface):
                 prompt_id=prompt_row.id,
                 task_id=task_id,
             )
-            prompt_row.response = result.result  # type: ignore
+            if store_io:
+                prompt_row.response = result.result  # type: ignore
             prompt_row.time_taken = float(time.time() - start)  # type: ignore
             db.commit()
 
