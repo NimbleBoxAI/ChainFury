@@ -12,6 +12,7 @@ from chainfury_server.database import add_default_templates, add_default_user
 import chainfury_server.api.user as api_user
 import chainfury_server.api.chains as api_chains
 import chainfury_server.api.prompts as api_prompts
+from chainfury_server.landing import landing_page
 
 app = FastAPI(
     title="ChainFury",
@@ -33,6 +34,8 @@ add_default_templates()
 
 # TODO: deprecate this
 app.add_api_route("/api/v1/chatbot/{id}/prompt", api_chains.run_chain, methods=["POST"], tags=["deprecated"], response_model=None)  # type: ignore
+
+app.add_api_route("/", landing_page, methods=["GET"], tags=["deprecated"], response_class=HTMLResponse)  # type: ignore
 
 # user
 app.add_api_route("/user/login/", api_user.login, methods=["POST"], tags=["user"])  # type: ignore
@@ -57,14 +60,6 @@ app.add_api_route("/api/prompts/{prompt_id}/feedback", api_prompts.prompt_feedba
 
 # Static files
 # ------------
-
-
-@app.get("/")
-async def serve_framer():
-    """Serves the landing page for ChainFury"""
-    r = requests.get("https://chainfury.framer.website/")
-    return HTMLResponse(content=r.text, status_code=r.status_code)
-
 
 # add static files
 _static_fp = joinp(folder(__file__), "static")

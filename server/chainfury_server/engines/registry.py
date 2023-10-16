@@ -10,21 +10,43 @@ class EngineInterface(object):
     def engine_name(self) -> str:
         raise NotImplementedError("Subclass this and implement engine_name")
 
-    def run(self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float) -> T.CFPromptResult:
+    def run(
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
+    ) -> T.CFPromptResult:
         """
         This is the main entry point for the engine. It should return a CFPromptResult.
         """
         raise NotImplementedError("Subclass this and implement run()")
 
     def stream(
-        self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
     ) -> Generator[Tuple[Union[T.CFPromptResult, Dict[str, Any]], bool], None, None]:
         """
         This is the main entry point for the engine. It should return a CFPromptResult.
         """
         raise NotImplementedError("Subclass this and implement stream()")
 
-    def submit(self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float) -> T.CFPromptResult:
+    def submit(
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
+    ) -> T.CFPromptResult:
         """
         This is the main entry point for the engine. It should return a CFPromptResult.
         """
