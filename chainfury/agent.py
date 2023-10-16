@@ -695,7 +695,7 @@ class Memory:
 
 class MemoryRegistry:
     def __init__(self) -> None:
-        self._memories = {}
+        self._memories: Dict[str, Node] = {}
 
     def register_write(
         self,
