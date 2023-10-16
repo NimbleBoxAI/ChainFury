@@ -20,7 +20,15 @@ class FuryEngine(EngineInterface):
     def engine_name(self) -> str:
         return "fury"
 
-    def run(self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float) -> T.CFPromptResult:
+    def run(
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
+    ) -> T.CFPromptResult:
         if prompt.new_message and prompt.data:
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:
@@ -59,7 +67,13 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=500, detail=str(e)) from e
 
     def stream(
-        self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
     ) -> Generator[Tuple[Union[T.CFPromptResult, Dict[str, Any]], bool], None, None]:
         if prompt.new_message and prompt.data:
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
@@ -108,7 +122,15 @@ class FuryEngine(EngineInterface):
             logger.exception(e)
             raise HTTPException(status_code=500, detail=str(e)) from e
 
-    def submit(self, chatbot: DB.ChatBot, prompt: T.ApiPromptBody, db: Session, start: float) -> T.CFPromptResult:
+    def submit(
+        self,
+        chatbot: DB.ChatBot,
+        prompt: T.ApiPromptBody,
+        db: Session,
+        start: float,
+        store_ir: bool,
+        store_io: bool,
+    ) -> T.CFPromptResult:
         if prompt.new_message and prompt.data:
             raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
         try:

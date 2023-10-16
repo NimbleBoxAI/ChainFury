@@ -198,6 +198,8 @@ def run_chain(
     prompt: T.ApiPromptBody,
     stream: bool = False,
     as_task: bool = False,
+    store_ir: bool = False,
+    store_io: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
 ) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
     """
@@ -227,7 +229,14 @@ def run_chain(
 
     #
     if as_task:
-        result = engine.submit(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        result = engine.submit(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return result
     elif stream:
 
@@ -242,10 +251,24 @@ def run_chain(
                     result = {**ir, "done": done}
                 yield json.dumps(result) + "\n"
 
-        streaming_result = engine.stream(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        streaming_result = engine.stream(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return StreamingResponse(content=_get_streaming_response(streaming_result))
     else:
-        result = engine.run(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        result = engine.run(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return result
 
 
