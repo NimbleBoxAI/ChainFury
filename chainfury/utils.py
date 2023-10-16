@@ -21,6 +21,8 @@ class CFEnv:
     * CF_BLOB_BUCKET: blob storage bucket name (only used for `s3` engine)
     * CF_BLOB_PREFIX: blob storage prefix (only used for `s3` engine)
     * CF_BLOB_AWS_CLOUD_FRONT: blob storage cloud front url, if not provided defaults to primary S3 URL (only used for `s3` engine)
+    * CF_URL: the URL of the chainfury server
+    * CF_TOKEN: the token to use to authenticate with the chainfury server
     """
 
     CF_LOG_LEVEL = lambda: os.getenv("CF_LOG_LEVEL", "info")
@@ -30,6 +32,8 @@ class CFEnv:
     CF_BLOB_BUCKET = lambda: os.getenv("CF_BLOB_BUCKET", "")
     CF_BLOB_PREFIX = lambda: os.getenv("CF_BLOB_PREFIX", "")
     CF_BLOB_AWS_CLOUD_FRONT = lambda: os.getenv("CF_BLOB_AWS_CLOUD_FRONT", "")
+    CF_URL = lambda: os.getenv("CF_URL", "")
+    CF_TOKEN = lambda: os.getenv("CF_TOKEN", "")
 
 
 def store_blob(key: str, value: bytes, engine: str = "", bucket: str = "") -> str:

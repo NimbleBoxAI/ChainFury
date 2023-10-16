@@ -3,13 +3,15 @@ import requests
 from functools import lru_cache
 from typing import Dict, Any, Tuple
 
-from chainfury.utils import logger
+from chainfury.utils import logger, CFEnv
 
 
 class Subway:
     """
     Simple code that allows writing APIs by `.attr.ing` them. This is inspired from gRPC style functional calls which
     hides the complexity of underlying networking. This is useful when you are trying to debug live server directly.
+
+    **If you want to setup a client, use the ``get_client`` function, this is not what you are looking for.**
 
     Note:
         User is solely responsible for checking if the certain API endpoint exists or not. This simply wraps the API
@@ -140,8 +142,8 @@ def get_client(prefix: str = "/api/", url="", token: str = "", trailing: str = "
     Example:
         >>> from chainfury import get_client
         >>> client = get_client()
-        >>> cf_actions = client.api.v1.fury.actions.list()
-        >>> cf_actions
+        >>> chains = client.api.chains() # GET /api/chains
+        >>> chains
 
     Note:
         The `get_client` function is a convenience function that can be used to get a client object. It is not required
@@ -158,10 +160,10 @@ def get_client(prefix: str = "/api/", url="", token: str = "", trailing: str = "
     Returns:
         Subway: A Subway object that can be used to interact with the API.
     """
-    url = url or os.environ.get("CF_URL", "")
+    url = url or CFEnv.CF_URL()
     if not url:
         raise ValueError("No url provided, please set CF_URL environment variable or pass url as argument")
-    token = token or os.environ.get("CF_TOKEN", "")
+    token = token or CFEnv.CF_TOKEN()
     if not token:
         raise ValueError("No token provided, please set CF_TOKEN environment variable or pass token as argument")
 
