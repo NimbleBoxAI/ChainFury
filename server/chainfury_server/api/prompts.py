@@ -26,7 +26,7 @@ def list_prompts(
     prompts = (
         db.query(DB.Prompt)  # type: ignore
         .filter(DB.Prompt.chatbot_id == chain_id)
-        .order_by(DB.Prompt.created_at.desc())
+        .order_by(DB.Prompt.created_at.desc())  # type: ignore
         .limit(limit)
         .offset(offset)
         .all()
@@ -80,16 +80,16 @@ def prompt_feedback(
     # store in the DB
     prompt: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
     if prompt is not None:
-        if prompt.chatbot_user_rating is not DB.PromptRating.UNRATED:
+        if prompt.user_rating is not None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Chatbot user rating already exists",
             )
-        prompt.chatbot_user_rating = inputs.score
+        prompt.user_rating = DB.PromptRating(inputs.score)
         db.commit()
     else:
         raise HTTPException(
             status_code=404,
             detail=f"Unable to find the prompt",
         )
-    return {"rating": prompt.chatbot_user_rating}
+    return {"rating": prompt.user_rating}

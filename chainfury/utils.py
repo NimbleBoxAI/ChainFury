@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import time
 import time
@@ -198,6 +199,42 @@ def exponential_backoff(foo, *args, max_retries=2, retry_delay=1, **kwargs) -> D
                 logger.info(f"Retrying in {delay} seconds...")
                 time.sleep(delay)  # Wait for the calculated delay
     raise Exception("This should never happen")
+
+
+"""
+File System
+"""
+
+
+def get_files_in_folder(
+    folder,
+    ext=["*"],
+    ig_pat: str = "",
+    abs_path: bool = True,
+    followlinks: bool = False,
+) -> List[str]:
+    """Get files with `ext` in `folder`"""
+    # this method is faster than glob
+    all_paths = []
+    _all = "*" in ext  # wildcard means everything so speed up
+    ignore_pat = re.compile(ig_pat)
+
+    folder_abs = os.path.abspath(folder) if abs_path else folder
+    for root, _, files in os.walk(folder_abs, followlinks=followlinks):
+        if _all:
+            for f in files:
+                _fp = joinp(root, f)
+                if not ignore_pat.search(_fp):
+                    all_paths.append(_fp)
+            continue
+
+        for f in files:
+            for e in ext:
+                if f.endswith(e):
+                    _fp = joinp(root, f)
+                    if not ignore_pat.search(_fp):
+                        all_paths.append(_fp)
+    return all_paths
 
 
 def folder(x: str) -> str:

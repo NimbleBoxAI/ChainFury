@@ -2,10 +2,12 @@ import os
 import jwt
 import json
 import random, string
+from datetime import datetime
 from enum import Enum as EnumType
 from fastapi import HTTPException
 from passlib.hash import sha256_crypt
 from dataclasses import dataclass, asdict
+from typing import Dict, Any
 
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError
@@ -170,11 +172,11 @@ def add_default_templates():
 class User(Base):
     __tablename__ = "user"
 
-    id = Column(String(8), default=lambda: unique_string(User, User.id), primary_key=True)
-    email = Column(String(80), unique=True, nullable=False)
-    username = Column(String(80), unique=True, nullable=False)
-    password = Column(String(80), nullable=False)
-    meta = Column(JSON)
+    id: str = Column(String(8), default=lambda: unique_string(User, User.id), primary_key=True)
+    email: str = Column(String(80), unique=True, nullable=False)
+    username: str = Column(String(80), unique=True, nullable=False)
+    password: str = Column(String(80), nullable=False)
+    meta: Dict[str, Any] = Column(JSON)
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, meta={self.meta})"
@@ -191,20 +193,20 @@ class ChatBotTypes:
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
-    id = Column(
+    id: str = Column(
         String(8),
         default=lambda: unique_string(ChatBot, ChatBot.id),
         primary_key=True,
     )
-    name = Column(String(80), unique=False)
-    description = Column(Text, nullable=True)
-    created_by = Column(String(8), ForeignKey("user.id"), nullable=False)
-    dag = Column(JSON)
-    meta = Column(JSON)
-    engine = Column(String(80), nullable=False)
-    tag_id = Column(String(80), nullable=True)
-    created_at = Column(DateTime, nullable=False)
-    deleted_at = Column(DateTime, nullable=True)
+    name: str = Column(String(80), unique=False)
+    description: str = Column(Text, nullable=True)
+    created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
+    dag: Dict[str, Any] = Column(JSON)
+    meta: Dict[str, Any] = Column(JSON)
+    engine: str = Column(String(80), nullable=False)
+    tag_id: str = Column(String(80), nullable=True)
+    created_at: datetime = Column(DateTime, nullable=False)
+    deleted_at: datetime = Column(DateTime, nullable=True)
 
     def to_dict(self):
         return {
@@ -236,22 +238,21 @@ class PromptRating(EnumType):
 class Prompt(Base):
     __tablename__ = "prompt"
 
-    id = Column(
+    id: int = Column(
         Integer,
         default=lambda: unique_number(Prompt, Prompt.id),
         primary_key=True,
     )
-    chatbot_id = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
-    input_prompt = Column(Text, nullable=False)
-    response = Column(Text, nullable=True)
-    gpt_rating = Column(String(5), nullable=True)
-    user_rating = Column(Enum(PromptRating), nullable=True)
-    chatbot_user_rating = Column(Enum(PromptRating), nullable=True)
-    time_taken = Column(Float, nullable=True)
-    num_tokens = Column(Integer, nullable=True)
-    created_at = Column(DateTime, nullable=False)
-    session_id = Column(String(80), nullable=False)
-    meta = Column(JSON)
+    chatbot_id: str = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
+    input_prompt: str = Column(Text, nullable=False)
+    response: str = Column(Text, nullable=True)
+    gpt_rating: str = Column(String(5), nullable=True)
+    user_rating: int = Column(Enum(PromptRating), nullable=True)
+    time_taken: float = Column(Float, nullable=True)
+    num_tokens: int = Column(Integer, nullable=True)
+    created_at: datetime = Column(DateTime, nullable=False)
+    session_id: Dict[str, Any] = Column(String(80), nullable=False)
+    meta: Dict[str, Any] = Column(JSON)
 
     def to_dict(self):
         return {
@@ -261,7 +262,6 @@ class Prompt(Base):
             "response": self.response,
             "gpt_rating": self.gpt_rating,
             "user_rating": self.user_rating,
-            "chatbot_user_rating": self.chatbot_user_rating,
             "time_taken": self.time_taken,
             "num_tokens": self.num_tokens,
             "created_at": self.created_at,
@@ -273,31 +273,31 @@ class Prompt(Base):
 class ChainLog(Base):
     __tablename__ = "chain_logs"
 
-    id = Column(
+    id: str = Column(
         String(16),
         default=lambda: unique_string(ChainLog, ChainLog.id, 16),
         primary_key=True,
     )
-    created_at = Column(DateTime, nullable=False)
-    prompt_id = Column(Integer, ForeignKey("prompt.id"), nullable=False)
-    node_id = Column(String(Env.CFS_MAX_NODE_ID_LEN()), nullable=False)
-    worker_id = Column(String(Env.CF_MAX_WORKER_ID_LEN()), nullable=False)
-    message = Column(Text, nullable=False)
-    data = Column(JSON, nullable=True)
+    created_at: datetime = Column(DateTime, nullable=False)
+    prompt_id: int = Column(Integer, ForeignKey("prompt.id"), nullable=False)
+    node_id: str = Column(String(Env.CFS_MAX_NODE_ID_LEN()), nullable=False)
+    worker_id: str = Column(String(Env.CF_MAX_WORKER_ID_LEN()), nullable=False)
+    message: str = Column(Text, nullable=False)
+    data: Dict[str, Any] = Column(JSON, nullable=True)
 
 
 class Template(Base):
     __tablename__ = "template"
 
-    id = Column(
+    id: int = Column(
         Integer,
         default=lambda: unique_number(Template, Template.id),
         primary_key=True,
     )
-    name = Column(Text, nullable=False)
-    dag = Column(JSON, nullable=False)
-    description = Column(Text)
-    meta = Column(JSON)
+    name: str = Column(Text, nullable=False)
+    dag: Dict[str, Any] = Column(JSON, nullable=False)
+    description: str = Column(Text)
+    meta: Dict[str, Any] = Column(JSON)
 
     def to_dict(self):
         return {
@@ -321,7 +321,7 @@ Base.metadata.create_all(bind=engine)  # type: ignore
 @dataclass
 class JWTPayload:
     username: str
-    user_id: int
+    user_id: str
 
     def to_dict(self):
         return asdict(self)

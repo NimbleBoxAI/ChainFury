@@ -108,6 +108,7 @@ const Dashboard = () => {
                 Edit
               </Button> */}
             </div>
+            <span className="medium300">{auth?.selectedChatBot?.description ?? 'Description comes here'}</span>
             <div className="overflow-scroll h-full w-full">
               {chainMetrics ? (
                 <BotMetrics
@@ -119,7 +120,7 @@ const Dashboard = () => {
               <div className="flex gap-[8px] mt-[32px] flex-col">
                 <span className="medium300">
                   Clicking on bottom chat icon to run <span className="semiBold300">{auth?.selectedChatBot?.name} </span>
-                  Or embed the bot on your website by adding the following code to your HTML
+                  or embed the bot on your website by adding the following code to your HTML.
                 </span>
                 <div className="relative">
                   <SvgCopy

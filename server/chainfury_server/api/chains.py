@@ -211,6 +211,16 @@ def run_chain(
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
+    # validate input
+    if not prompt.session_id:
+        raise HTTPException(status_code=400, detail="Session ID not specified")
+    if prompt.chat_history:
+        raise HTTPException(status_code=400, detail="chat history is not supported yet")
+    if prompt.new_message and prompt.data:
+        raise HTTPException(status_code=400, detail="new_message and data cannot be passed together")
+    elif not prompt.new_message and not prompt.data:
+        raise HTTPException(status_code=400, detail="new_message or data must be passed")
+
     # DB call
     filters = [
         DB.ChatBot.id == id,
@@ -227,8 +237,8 @@ def run_chain(
     if engine is None:
         raise HTTPException(status_code=400, detail=f"Invalid engine {chatbot.engine}")
 
-    #
     if as_task:
+        # when run as a task this will return a task ID that will be submitted
         result = engine.submit(
             chatbot=chatbot,
             prompt=prompt,

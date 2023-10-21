@@ -149,4 +149,4 @@ class ApiChangePassword(BaseModel):
 
 
 class ApiPromptFeedback(BaseModel):
-    score: str
+    score: int
