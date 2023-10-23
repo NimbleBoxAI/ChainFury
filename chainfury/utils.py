@@ -144,7 +144,10 @@ def get_logger() -> logging.Logger:
     logger.setLevel(getattr(logging, lvl))
     log_handler = logging.StreamHandler()
     log_handler.setFormatter(
-        logging.Formatter("[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z")
+        logging.Formatter(
+            "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S%z",
+        )
     )
     logger.addHandler(log_handler)
     return logger
@@ -208,7 +211,7 @@ File System
 
 def get_files_in_folder(
     folder,
-    ext=["*"],
+    ext="*",
     ig_pat: str = "",
     abs_path: bool = True,
     followlinks: bool = False,
@@ -216,6 +219,7 @@ def get_files_in_folder(
     """Get files with `ext` in `folder`"""
     # this method is faster than glob
     all_paths = []
+    ext = [ext] if isinstance(ext, str) else ext
     _all = "*" in ext  # wildcard means everything so speed up
     ignore_pat = re.compile(ig_pat)
 
@@ -252,7 +256,9 @@ Parallel processing
 """
 
 
-def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20, _name: str = "") -> Union[Dict[Future, int], List[Any]]:
+def threaded_map(
+    fn, inputs: List[Tuple], wait: bool = True, max_threads=20, post_fn=None, _name: str = ""
+) -> Union[Dict[Future, int], List[Any]]:
     """
     inputs is a list of tuples, each tuple is the input for single invocation of fn. order is preserved.
 
@@ -261,6 +267,7 @@ def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20
         inputs (List[Tuple[Any]]): All the inputs to the function, can be a generator
         wait (bool, optional): If true, wait for all the threads to finish, otherwise return a dict of futures. Defaults to True.
         max_threads (int, optional): The maximum number of threads to use. Defaults to 20.
+        post_fn (function, optional): A function to call with the result. Defaults to None.
         _name (str, optional): The name of the thread pool. Defaults to "".
     """
     _name = _name or str(uuid4())
@@ -273,10 +280,46 @@ def threaded_map(fn, inputs: List[Tuple[Any]], wait: bool = True, max_threads=20
         for future in as_completed(futures):
             try:
                 i, res = future.result()
+                if post_fn:
+                    res = post_fn(res)
                 results[i] = res
             except Exception as e:
                 raise e
     return results
+
+
+def batched(iterable, n):
+    """Convert any ``iterable`` to a generator of batches of size ``n``, last one may be smaller.
+    Python 3.12 has ``itertools.batched`` which does the same thing.
+
+    Example:
+        >>> for x in batched(range(10), 3):
+        ...    print(x)
+        [0, 1, 2]
+        [3, 4, 5]
+        [6, 7, 8]
+        [9]
+
+    Args:
+        iterable (Iterable): The iterable to convert to batches
+        n (int): The batch size
+
+    Yields:
+        Iterator: The batched iterator
+    """
+    done = False
+    buffer = []
+    _iter = iter(iterable)
+    while not done:
+        try:
+            buffer.append(next(_iter))
+            if len(buffer) == n:
+                yield buffer
+                buffer = []
+        except StopIteration:
+            done = True
+    if buffer:
+        yield buffer
 
 
 """
@@ -324,6 +367,11 @@ def from_json(fp: str = "") -> Dict[str, Any]:
             return json.load(f)
     else:
         return json.loads(fp)
+
+
+"""
+Time management should be dead easy.
+"""
 
 
 class SimplerTimes:

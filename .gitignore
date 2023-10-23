@@ -149,6 +149,5 @@ private.sh
 api_docs/_build/
 api_docs/_static/
 cf
-locust_file.py
 demo/
 logs.py

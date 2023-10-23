@@ -21,6 +21,7 @@ from chainfury.base import (
     Node,
     Model,
     Var,
+    Chain,
 )
 
 # Models

@@ -68,6 +68,12 @@ Read the latest blog posts:
 
 .. toctree::
    :maxdepth: 2
+   :caption: Research
+
+   examples/agent-theory
+
+.. toctree::
+   :maxdepth: 2
    :caption: Server
 
    cf_server/chainfury_server.api

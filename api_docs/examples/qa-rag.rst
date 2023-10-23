@@ -1,5 +1,5 @@
-Question Answering using ChainFury
-==================================
+(RAG) Q/A with ChainFury
+========================
 
 One of the first use cases of LLM powered apps is question answering. This is how you should think about this problem:
 
