@@ -143,6 +143,7 @@ memory_registry.register_write(
     fn=qdrant_write,
     outputs={"status": 0},
     vector_key="embeddings",
+    description="Write to the Qdrant DB using the Qdrant client",
 )
 
 
@@ -251,6 +252,7 @@ memory_registry.register_read(
     fn=qdrant_read,
     outputs={"items": 0},
     vector_key="embeddings",
+    description="Function to read from the Qdrant DB using the Qdrant client",
 )
 
 

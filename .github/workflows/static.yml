@@ -46,6 +46,8 @@ jobs:
           python -m pip install sphinx-rtd-theme==1.2.2
           cd server
           python3 -m pip install .
+          cd ..
+          python3 scripts/list_builtins.py ./api_docs/templates/components-list.rst ./api_docs/examples/components-list.rst
 
       - name: Build docs
         run: |

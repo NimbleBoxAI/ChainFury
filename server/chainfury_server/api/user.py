@@ -39,7 +39,7 @@ def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
     elif email_exists:
         raise HTTPException(status_code=400, detail="Email already registered")
     if not user_exists and not email_exists:  # type: ignore
-        user: DB.User = DB.User(
+        user = DB.User(
             username=auth.username,
             email=auth.email,
             password=sha256_crypt.hash(auth.password),

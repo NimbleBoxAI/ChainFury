@@ -577,7 +577,7 @@ class Model:
         collection_name: str,
         id: str,
         fn: object,
-        description,
+        description: str = "",
         usage: List[Union[str, int]] = [],
         tags=[],
     ):

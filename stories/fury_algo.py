@@ -1,37 +1,10 @@
 # what are some interesting algorithms that we can build using fury?
 
-import os
-import json
+import re
 import fire
 from pprint import pformat
-from requests import Session
-from typing import Dict, Any
 
-from chainfury import (
-    Chain,
-    programatic_actions_registry,
-    model_registry,
-    Node,
-    ai_actions_registry,
-    Edge,
-)
-
-
-def _get_openai_token() -> str:
-    openai_token = os.environ.get("OPENAI_TOKEN", "")
-    if not openai_token:
-        raise ValueError("OpenAI token not found")
-    return openai_token
-
-
-def _get_nbx_token() -> Dict[str, str]:
-    nbx_token = os.environ.get("NBX_DEPLOY_KEY", "")
-    if not nbx_token:
-        raise ValueError("NBX token not found")
-    nbx_url = os.environ.get("NBX_DEPLOY_URL", "")
-    if not nbx_url:
-        raise ValueError("NBX url not found")
-    return {"nbx_deploy_url": nbx_url, "nbx_header_token": nbx_token}
+from chainfury import Chain, ai_actions_registry, Edge
 
 
 class Actions:
@@ -203,21 +176,21 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
 class Chains:
     story = Chain(
         [Actions.sensational_story],
-        sample={"openai_api_key": _get_openai_token(), "scene": ""},
+        sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story.id}/story",
     )  # type: ignore
 
     story_nbx = Chain(
         [Actions.sensational_story_nbx],
-        sample={"scene": "", **_get_nbx_token()},
+        sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story_nbx.id}/story",
     )  # type: ignore
 
     feedback = Chain(
         [Actions.people_feedback],
-        sample={"openai_api_key": _get_openai_token(), "story": ""},
+        sample={"story": ""},
         main_in="story",
         main_out=f"{Actions.people_feedback.id}/story_accepted",
     )  # type: ignore
@@ -227,7 +200,7 @@ class Chains:
         [
             Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
-        sample={"openai_api_key": _get_openai_token(), "scene": ""},
+        sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.catchy_headline.id}/headline",
     )
@@ -238,7 +211,7 @@ class Chains:
             Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story.id, "scene"),
             Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
-        sample={"openai_api_key": _get_openai_token(), "topics": ""},
+        sample={"topics": ""},
         main_in="topics",
         main_out=f"{Actions.catchy_headline.id}/headline",
     )
@@ -256,7 +229,7 @@ class Chains:
             Edge(Actions.catchy_headline.id, "headline", Actions.sensational_story_generator.id, "headline"),
             Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story_generator.id, "sub_headline"),
         ],
-        sample={"openai_api_key": _get_openai_token(), "topics": ""},
+        sample={"topics": ""},
         main_in="topics",
         main_out=f"{Actions.catchy_headline.id}/headline",
     )
@@ -264,7 +237,7 @@ class Chains:
     good_story = Chain(
         [Actions.sensational_story, Actions.corrupt_editor_check],
         [Edge(Actions.sensational_story.id, "story", Actions.corrupt_editor_check.id, "story")],  # type: ignore
-        sample={"openai_api_key": _get_openai_token(), "scene": ""},
+        sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.corrupt_editor_check.id}/story_accepted",
     )  # type: ignore
@@ -283,16 +256,6 @@ def io_prompting(scene: str, v: bool = False):
 # https://arxiv.org/pdf/2201.11903.pdf
 def chain_of_thought(scene: str, v: bool = False):
     out, thoughts = Chains.news(scene)  # type: ignore
-    if v:
-        print("BUFF:", pformat(thoughts))
-        print(" OUT:", out)
-    return out
-
-
-def chain_of_thought_topic(topics: str, v: bool = False):
-    if isinstance(topics, tuple):
-        topics = ", ".join(topics)
-    out, thoughts = Chains.topic_to_story(topics)  # type: ignore
     if v:
         print("BUFF:", pformat(thoughts))
         print(" OUT:", out)
@@ -334,8 +297,6 @@ class TreeOfThought:
         self.value_fn = Chains.feedback
 
     def __call__(self, topics: str, v: bool = False):
-        import re
-
         done = False
         total_searches = 0
         result = None
@@ -387,14 +348,8 @@ if __name__ == "__main__":
             "algo": {
                 "io": io_prompting,
                 "cot": chain_of_thought,
-                "cot_t": chain_of_thought_topic,
                 "cot-sc": cot_consistency,
                 "tot": tree_of_thought,
-            },
-            "chains": Chains,
-            "print": {
-                "action": lambda x: print(getattr(Actions, x).to_json()),
-                "chain": lambda x: print(getattr(Chains, x).to_json()),
             },
         }
     )

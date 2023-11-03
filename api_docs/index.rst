@@ -48,7 +48,6 @@ Read the latest blog posts:
 
    examples/install
    examples/storing-private-data
-   examples/use-chainfury-privately
 
 .. toctree::
    :maxdepth: 2
@@ -65,6 +64,13 @@ Read the latest blog posts:
    :caption: Integrations
 
    source/chainfury.components
+   examples/components-list
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Research
+
+   examples/agent-theory
 
 .. toctree::
    :maxdepth: 2

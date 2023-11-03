@@ -1,6 +1,6 @@
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Annotated, List, Union
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
@@ -198,6 +198,8 @@ def run_chain(
     prompt: T.ApiPromptBody,
     stream: bool = False,
     as_task: bool = False,
+    store_ir: bool = False,
+    store_io: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
 ) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
     """
@@ -208,6 +210,16 @@ def run_chain(
     """
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
+
+    # validate input
+    if not prompt.session_id:
+        raise HTTPException(status_code=400, detail="Session ID not specified")
+    if prompt.chat_history:
+        raise HTTPException(status_code=400, detail="chat history is not supported yet")
+    if prompt.new_message and prompt.data:
+        raise HTTPException(status_code=400, detail="new_message and data cannot be passed together")
+    elif not prompt.new_message and not prompt.data:
+        raise HTTPException(status_code=400, detail="new_message or data must be passed")
 
     # DB call
     filters = [
@@ -225,9 +237,16 @@ def run_chain(
     if engine is None:
         raise HTTPException(status_code=400, detail=f"Invalid engine {chatbot.engine}")
 
-    #
     if as_task:
-        result = engine.submit(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        # when run as a task this will return a task ID that will be submitted
+        result = engine.submit(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return result
     elif stream:
 
@@ -242,10 +261,24 @@ def run_chain(
                     result = {**ir, "done": done}
                 yield json.dumps(result) + "\n"
 
-        streaming_result = engine.stream(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        streaming_result = engine.stream(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return StreamingResponse(content=_get_streaming_response(streaming_result))
     else:
-        result = engine.run(chatbot=chatbot, prompt=prompt, db=db, start=time.time())
+        result = engine.run(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
         return result
 
 
@@ -261,4 +294,21 @@ def get_chain_metrics(
 
     # DB call
     results = db.query(func.count()).filter(DB.Prompt.chatbot_id == id).all()  # type: ignore
-    return {"total_conversations": results[0][0]}
+    metrics = {"total_conversations": results[0][0]}
+
+    hourly_average_latency = (
+        db.query(DB.Prompt)
+        .filter(DB.Prompt.chatbot_id == id)  # type: ignore
+        .filter(DB.Prompt.created_at >= datetime.now() - timedelta(hours=24))
+        .with_entities(
+            (func.substr(DB.Prompt.created_at, 1, 14)).label("hour"),
+            func.avg(DB.Prompt.time_taken).label("avg_time_taken"),
+        )
+        .group_by((func.substr(DB.Prompt.created_at, 1, 14)))
+        .all()
+    )
+    latency_per_hour = []
+    for item in hourly_average_latency:
+        created_datetime = item[0] + "00:00"
+        latency_per_hour.append({"created_at": created_datetime, "time": item[1]})
+    return {"metrics": metrics, "latencies": latency_per_hour}

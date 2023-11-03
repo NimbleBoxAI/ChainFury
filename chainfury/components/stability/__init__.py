@@ -5,7 +5,7 @@ Engineering Notes
 You need to have `stability_sdk` installed to use this component. You can install it with:
 
 .. code-block:: bash
-    
+
     pip install chainfury[stability]
     # or to install all the components, note this will keep on growing
     pip install chainfury[all]

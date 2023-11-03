@@ -6,13 +6,17 @@ import { useAuthStates } from '../redux/hooks/dispatchHooks';
 import SvgClose from './SvgComps/Close';
 import { ChainFuryContext } from '../App';
 
+import {
+  useCreateChainMutation,
+} from '../redux/services/auth';
+
 const NewBotModel = ({ onClose }: { onClose: () => void }) => {
   const navigate = useNavigate();
-  const [botName, setBotName] = useState('');
-  const [selectedFlow, setSelectedFlow] = useState('scratch');
-  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [chainName, setChainName] = useState('');
+  const [chainDescription, setChainDescription] = useState('');
   const { auth } = useAuthStates();
   const { engine, setEngine } = useContext(ChainFuryContext);
+  const [createBot] = useCreateChainMutation();
 
   return (
     <Dialog open={true} onClose={onClose}>
@@ -25,103 +29,47 @@ const NewBotModel = ({ onClose }: { onClose: () => void }) => {
         />
         <input
           onChange={(e) => {
-            setBotName(e.target.value?.replace(' ', '_'));
+            setChainName(e.target.value?.replace(' ', '-'));
           }}
-          value={botName}
+          value={chainName}
           type="text"
           placeholder="Name"
           className="h-[40px] w-full mt-[16px]"
         />
-        {selectedFlow === 'scratch' ? (
-          <div className="flex justify-between gap-[8px] w-full">
-            <div
-              onClick={() => {
-                setEngine('fury');
-              }}
-              className={`${
-                engine === 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
-              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
-            >
-              Fury
-            </div>
-            <div
-              onClick={() => {
-                setEngine('langchain');
-              }}
-              className={`${
-                engine !== 'fury' ? 'border-light-primary-blue-400 bg-light-primary-blue-50' : ''
-              } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
-            >
-              Langchain
-            </div>
-          </div>
-        ) : (
-          ''
-        )}
-        <div className="flex justify-between gap-[8px] w-full">
-          <div
-            onClick={() => {
-              setSelectedFlow('scratch');
-            }}
-            className={`${
-              selectedFlow === 'scratch'
-                ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
-                : ''
-            } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
-          >
-            Start from scratch
-          </div>
-          <div
-            onClick={() => {
-              setSelectedFlow('template');
-            }}
-            className={`${
-              selectedFlow !== 'scratch'
-                ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
-                : ''
-            } p-[16px] w-[50%] border-light-neutral-grey-200 rounded-md border cursor-pointer`}
-          >
-            Create from template
-          </div>
-        </div>
-        {selectedFlow === 'template' ? (
-          <div className="bg-light-system-bg-secondary p-[8px] flex flex-col gap-[4px] overflow-scroll">
-            {Object.values(auth?.templates)?.map((template, key) => (
-              <div
-                key={key}
-                onClick={() => {
-                  setSelectedTemplate(template?.id);
-                  if (template?.dag?.main_out) {
-                    setEngine('fury');
-                  } else {
-                    setEngine('langchain');
-                  }
-                }}
-                className={`${
-                  selectedTemplate === template?.id
-                    ? 'border-light-primary-blue-400 bg-light-primary-blue-50'
-                    : ''
-                } cursor-pointer flex flex-col gap-[4px]
-                           p-[8px] border rounded-md border-light-neutral-grey-200
-                           bg-light-system-bg-primary`}
-              >
-                <span className="semiBold300">{template?.name}</span>
-                <span className="regular250">{template?.description}</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          ''
-        )}
+        <input
+          onChange={(e) => {
+            setChainDescription(e.target.value ?? '');
+          }}
+          value={chainDescription}
+          type="text"
+          placeholder="Description"
+          className="h-[100px] w-full mt-[16px]"
+        />
+
         <Button
-          disabled={selectedFlow === 'scratch' ? !botName : !botName || !selectedTemplate}
+          disabled={chainName.length === 0}
           onClick={() => {
-            if (selectedFlow === 'template') {
-              navigate(
-                `/ui/dashboard/template?bot=${botName}&id=${selectedTemplate}&engine=${engine}`
-              );
-            } else navigate(`/ui/dashboard/new?bot=${botName}&engine=${engine}`);
-            onClose();
+            createBot({
+              name: chainName,
+              description: chainDescription,
+              engine: "fury",
+              token: auth?.accessToken ?? "",
+              nodes: null,
+              edges: null,
+            })
+              .unwrap()
+              ?.then((res) => {
+                if (res?.id) {
+                  navigate(`/ui/dashboard/?id=${res.id}`);
+                }
+                else {
+                  alert('Error creating bot');
+                }
+              })
+              .catch((err) => {
+                console.log(err);
+                alert('Error creating bot');
+              });
           }}
           variant="contained"
           className="w-full"
