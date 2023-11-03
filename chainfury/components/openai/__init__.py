@@ -2,7 +2,13 @@ import requests
 from pydantic import BaseModel
 from typing import Any, List, Union, Dict, Optional
 
-from chainfury import Secret, model_registry, exponential_backoff, Model, UnAuthException
+from chainfury import (
+    Secret,
+    model_registry,
+    exponential_backoff,
+    Model,
+    UnAuthException,
+)
 from chainfury.components.const import Env
 
 
@@ -66,7 +72,9 @@ def openai_completion(
     if not openai_api_key:
         openai_api_key = Secret(Env.OPENAI_TOKEN("")).value  # type: ignore
     if not openai_api_key:
-        raise Exception("OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function")
+        raise Exception(
+            "OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function"
+        )
 
     def _fn():
         r = requests.post(
@@ -95,7 +103,9 @@ def openai_completion(
         if r.status_code == 401:
             raise UnAuthException(r.text)
         if r.status_code != 200:
-            raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
+            raise Exception(
+                f"OpenAI API returned status code {r.status_code}: {r.text}"
+            )
         return r.json()
 
     return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
@@ -187,7 +197,9 @@ def openai_chat(
     if not openai_api_key:
         openai_api_key = Secret(Env.OPENAI_TOKEN("")).value  # type: ignore
     if not openai_api_key:
-        raise Exception("OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function")
+        raise Exception(
+            "OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function"
+        )
 
     if not len(messages):
         raise Exception("Messages cannot be empty")
@@ -214,11 +226,14 @@ def openai_chat(
                 "logit_bias": logit_bias,
                 "user": user,
             },
+            timeout=(5, 30),
         )
         if r.status_code == 401:
             raise UnAuthException(r.text)
         if r.status_code != 200:
-            raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
+            raise Exception(
+                f"OpenAI API returned status code {r.status_code}: {r.text}"
+            )
         return r.json()
 
     return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
@@ -262,7 +277,9 @@ def openai_embedding(
     if not openai_api_key:
         openai_api_key = Secret(Env.OPENAI_TOKEN("")).value  # type: ignore
     if not openai_api_key:
-        raise Exception("OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function")
+        raise Exception(
+            "OpenAI API key not found. Please set OPENAI_TOKEN environment variable or pass through function"
+        )
 
     def _fn():
         r = requests.post(
@@ -280,7 +297,9 @@ def openai_embedding(
         if r.status_code == 401:
             raise UnAuthException(r.text)
         if r.status_code != 200:
-            raise Exception(f"OpenAI API returned status code {r.status_code}: {r.text}")
+            raise Exception(
+                f"OpenAI API returned status code {r.status_code}: {r.text}"
+            )
         return r.json()
 
     return exponential_backoff(_fn, max_retries=retry_count, retry_delay=retry_delay)
