@@ -12,7 +12,7 @@ python = "^3.9,<3.12"
 fire = "0.5.0"
 Jinja2 = "3.1.2"
 jinja2schema = "0.1.4"
-pydantic = "^1.10.7"
+pydantic = ">=1.10.7,<3.0.0"
 requests = "^2.31.0"
 python-dotenv = "1.0.0"
 stability-sdk = { version = "0.8.3", optional = true }
