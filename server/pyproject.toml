@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chainfury_server"
-version = "2.0.0"
+version = "2.0.1"
 description = "ChainFury Server is the open source server for running ChainFury Engine!"
 authors = ["NimbleBox Engineering <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
@@ -20,6 +20,7 @@ requests = "^2.31.0"
 SQLAlchemy = "1.4.47"
 uvicorn = "0.20.0"
 PyMySQL = "1.0.3"
+urllib3 = ">=1.26.18"
 
 [tool.poetry.scripts]
 chainfury_server = "chainfury_server.server:main"
