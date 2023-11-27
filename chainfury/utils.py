@@ -278,6 +278,7 @@ def threaded_map(
     max_threads=20,
     post_fn=None,
     _name: str = "",
+    safe: bool = False,
 ) -> Union[Dict[Future, int], List[Any]]:
     """
     inputs is a list of tuples, each tuple is the input for single invocation of fn. order is preserved.
@@ -289,6 +290,7 @@ def threaded_map(
         max_threads (int, optional): The maximum number of threads to use. Defaults to 20.
         post_fn (function, optional): A function to call with the result. Defaults to None.
         _name (str, optional): The name of the thread pool. Defaults to "".
+        safe (bool, optional): If true, all caughts exceptions are in the results. Defaults to False.
     """
     _name = _name or str(uuid4())
     results = [None for _ in range(len(inputs))]
@@ -304,7 +306,10 @@ def threaded_map(
                     res = post_fn(res)
                 results[i] = res
             except Exception as e:
-                raise e
+                if safe:
+                    results[i] = e
+                else:
+                    raise e
     return results
 
 
