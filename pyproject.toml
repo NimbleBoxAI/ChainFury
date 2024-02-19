@@ -14,7 +14,7 @@ Jinja2 = "3.1.2"
 jinja2schema = "0.1.4"
 pydantic = "^1.10.7"
 requests = "^2.31.0"
-python-dotenv = "1.0.0"
+python-dotenv = "1.0.1"
 urllib3 = ">=1.26.18"
 "cryptography" = ">=41.0.6"
 stability-sdk = { version = "0.8.3", optional = true }
