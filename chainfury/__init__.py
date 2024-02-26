@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import dotenv
 
@@ -13,7 +15,7 @@ from chainfury.utils import (
     CFEnv,
 )
 from chainfury.base import Var, Node, Secret, Chain, Model, Edge
-from chainfury.agent import (
+from chainfury.core import (
     model_registry,
     programatic_actions_registry,
     ai_actions_registry,
@@ -22,4 +24,14 @@ from chainfury.agent import (
     Memory,
 )
 from chainfury.client import get_client
+from chainfury.chat import (
+    Message,
+    Chat,
+    TuneChats,
+    TuneDataset,
+    human,
+    system,
+    assistant,
+)
+
 from chainfury import components

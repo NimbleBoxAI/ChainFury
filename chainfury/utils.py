@@ -1,8 +1,12 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import re
 import json
 import time
 import time
+import random
+import string
 import logging
 from uuid import uuid4
 from urllib.parse import quote
@@ -429,3 +433,9 @@ class SimplerTimes:
     def get_now_human() -> str:  # type: ignore
         """Get the current datetime in UTC timezone as a human readable string"""
         return SimplerTimes.get_now_datetime().strftime("%A %d %B, %Y at %I:%M %p")
+
+
+def get_random_string(length: int) -> str:
+    return "".join(
+        (random.choice(string.ascii_letters + string.digits) for _ in range(length))
+    )

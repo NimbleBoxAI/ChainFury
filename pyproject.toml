@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chainfury"
-version = "1.6.4"
+version = "1.7.0a0"
 description = "ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs."
 authors = ["NimbleBox Engineering <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
@@ -12,7 +12,7 @@ python = "^3.9,<3.12"
 fire = "0.5.0"
 Jinja2 = "3.1.2"
 jinja2schema = "0.1.4"
-pydantic = "2.5.3"
+pydantic = "2.6.1"
 requests = "^2.31.0"
 python-dotenv = "1.0.0"
 urllib3 = ">=1.26.18"

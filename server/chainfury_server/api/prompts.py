@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 from fastapi import Depends, Header, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import Response

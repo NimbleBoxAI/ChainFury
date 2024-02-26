@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import importlib
 
@@ -17,4 +19,3 @@ all_items = list(all_items)
 
 # do this after the above components are loaded
 from chainfury.components.functional import *
-from chainfury.components.ai_actions import *

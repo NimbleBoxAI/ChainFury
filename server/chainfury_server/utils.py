@@ -1,10 +1,14 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import logging
 
 # WARNING: do not import anything from anywhere here, this is the place where chainfury_server starts.
 #          importing anything can cause the --pre and --post flags to fail when starting server.
 
-from chainfury.utils import logger  # keep this here, rest of package imports from this file
+from chainfury.utils import (
+    logger,
+)  # keep this here, rest of package imports from this file
 
 
 class Env:
@@ -15,11 +19,24 @@ class Env:
     * JWT_SECRET: secret for JWT tokens
     """
 
-    # when you want to use chainfury as a client you need to set the following vars
-    CFS_DATABASE = lambda x: os.getenv("CFS_DATABASE", x)
+    # once a lifetime secret
     JWT_SECRET = lambda: os.getenv("JWT_SECRET", "hajime-shimamoto")
-    CFS_MAX_NODE_ID_LEN = lambda: int(os.getenv("CFS_MAX_NODE_ID_LEN", 80))
-    CF_MAX_WORKER_ID_LEN = lambda: int(os.getenv("CF_MAX_WORKER_ID_LEN", 16))
+
+    # when you want to use chainfury as a client you need to set the following vars
+    CFS_DATABASE = lambda: os.getenv("CFS_DATABASE", None)
+    CFS_MAXLEN_CF_NDOE = lambda: int(os.getenv("CFS_MAXLEN_CF_NDOE", 80))
+    CFS_MAXLEN_WORKER = lambda: int(os.getenv("CFS_MAXLEN_WORKER", 16))
+    CFS_ALLOW_CORS_ORIGINS = lambda: [
+        x.strip() for x in os.getenv("CFS_ALLOW_CORS_ORIGINS", "*").split(",")
+    ]
+    CFS_ALLOW_METHODS = lambda: [
+        x.strip() for x in os.getenv("CFS_ALLOW_METHODS", "*").split(",")
+    ]
+    CFS_ALLOW_HEADERS = lambda: [
+        x.strip() for x in os.getenv("CFS_ALLOW_HEADERS", "*").split(",")
+    ]
+    CFS_DISABLE_UI = lambda: os.getenv("CFS_DISABLE_UI", "0") == "1"
+    CFS_DISABLE_DOCS = lambda: os.getenv("CFS_DISABLE_DOCS", "0") == "1"
 
 
 def folder(x: str) -> str:

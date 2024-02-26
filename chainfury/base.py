@@ -1,5 +1,8 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import copy
 import json
+import jinja2
 import inspect
 import datetime
 import importlib
@@ -13,6 +16,7 @@ from jinja2schema import model as j2sm
 
 from chainfury.utils import logger, terminal_top_with_text
 import chainfury.types as T
+from chainfury import chat
 
 
 class Secret(str):
@@ -72,7 +76,13 @@ class Var:
         self.loc = loc  # this is the location from which this value is extracted
 
     def __repr__(self) -> str:
-        return f"Var({'*' if self.required else ''}name='{self.name}', type='{self.type}', items={self.items}, additionalProperties={self.additionalProperties})"
+        x = f"Var('{'*' if self.required else ''}{self.name}', type='{self.type}'"
+        if self.items:
+            x += f", items={self.items}"
+        if self.additionalProperties:
+            x += f", additionalProperties={self.additionalProperties}"
+        x += ")"
+        return x
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialise this Var to a dictionary that can be JSON serialised and sent to the client.
@@ -129,13 +139,17 @@ class Var:
         loc_val = d.get("loc", ())
 
         if isinstance(type_val, list):
-            type_val = [Var.from_dict(x) if isinstance(x, dict) else x for x in type_val]
+            type_val = [
+                Var.from_dict(x) if isinstance(x, dict) else x for x in type_val
+            ]
         elif isinstance(type_val, dict):
             type_val = Var.from_dict(type_val)
 
         items_val = [Var.from_dict(x) if isinstance(x, dict) else x for x in items_val]
         additional_properties_val = (
-            Var.from_dict(additional_properties_val) if isinstance(additional_properties_val, dict) else additional_properties_val
+            Var.from_dict(additional_properties_val)
+            if isinstance(additional_properties_val, dict)
+            else additional_properties_val
         )
 
         var = cls(
@@ -185,9 +199,11 @@ def pyannotation_to_json_schema(
     """
     if isinstance(x, type):
         if trace:
-            logger.debug("t0")
+            logger.info("t0")
 
-        if x == str:
+        if x == Any:
+            return Var(type="any")
+        elif x == str:
             return Var(type="string")
         elif x == int or x == float:
             return Var(type="number")
@@ -211,42 +227,64 @@ def pyannotation_to_json_schema(
             return Var(type="null", required=False, show=False)
         else:
             if is_return:
-                raise ValueError(f"i0: Unsupported type: {x}. Is your output annotated? Write like ... foo() -> Dict[str, str]")
+                raise ValueError(
+                    f"i0-r: Unsupported type: {x}. Is your output annotated? Write like ... foo() -> Dict[str, str]"
+                )
             else:
-                raise ValueError(f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)")
+                raise ValueError(
+                    f"i0: Unsupported type: {x}. Some of your inputs are not annotated. Write like ... foo(x: str)"
+                )
     elif isinstance(x, str):
         if trace:
-            logger.debug("t1")
+            logger.info("t1")
         return Var(type="string")
     elif hasattr(x, "__origin__") and hasattr(x, "__args__"):
         if trace:
-            logger.debug("t2")
+            logger.info("t2")
         if x.__origin__ == list:
             if trace:
-                logger.debug("t2.1")
+                logger.info("t2.1")
             return Var(
                 type="array",
-                items=[pyannotation_to_json_schema(x=x.__args__[0], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)],
+                items=[
+                    pyannotation_to_json_schema(
+                        x=x.__args__[0],
+                        allow_any=allow_any,
+                        allow_exc=allow_exc,
+                        allow_none=allow_none,
+                        trace=trace,
+                    )
+                ],
             )
         elif x.__origin__ == dict:
             if len(x.__args__) == 2 and x.__args__[0] == str:
                 if trace:
-                    logger.debug("t2.2")
+                    logger.info("t2.2")
                 return Var(
                     type="object",
                     additionalProperties=pyannotation_to_json_schema(
-                        x=x.__args__[1], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none
+                        x=x.__args__[1],
+                        allow_any=allow_any,
+                        allow_exc=allow_exc,
+                        allow_none=allow_none,
+                        trace=trace,
                     ),
                 )
             else:
                 raise ValueError(f"i2: Unsupported type: {x}")
         elif x.__origin__ == tuple:
             if trace:
-                logger.debug("t2.3")
+                logger.info("t2.3")
             return Var(
                 type="array",
                 items=[
-                    pyannotation_to_json_schema(x=arg, allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)
+                    pyannotation_to_json_schema(
+                        x=arg,
+                        allow_any=allow_any,
+                        allow_exc=allow_exc,
+                        allow_none=allow_none,
+                        trace=trace,
+                    )
                     for arg in x.__args__
                 ],
             )
@@ -255,40 +293,59 @@ def pyannotation_to_json_schema(
             types = [arg for arg in x.__args__ if arg is not None]
             if len(types) == 1:
                 if trace:
-                    logger.debug("t2.4")
-                return pyannotation_to_json_schema(x=types[0], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none)
+                    logger.info("t2.4")
+                return pyannotation_to_json_schema(
+                    x=types[0],
+                    allow_any=allow_any,
+                    allow_exc=allow_exc,
+                    allow_none=allow_none,
+                    trace=trace,
+                )
             else:
                 if trace:
-                    logger.debug("t2.5")
+                    logger.info("t2.5")
                 return Var(
                     type=[
-                        pyannotation_to_json_schema(x=typ, allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none) for typ in types
+                        pyannotation_to_json_schema(
+                            x=typ,
+                            allow_any=allow_any,
+                            allow_exc=allow_exc,
+                            allow_none=allow_none,
+                            trace=trace,
+                        )
+                        for typ in types
                     ]
                 )
         else:
             raise ValueError(f"i3: Unsupported type: {x}")
     elif isinstance(x, tuple):
         if trace:
-            logger.debug("t4")
+            logger.info("t4")
         return Var(
             type="array",
             items=[
                 Var(type="string"),
-                pyannotation_to_json_schema(x=x[1], allow_any=allow_any, allow_exc=allow_exc, allow_none=allow_none),
+                pyannotation_to_json_schema(
+                    x=x[1],
+                    allow_any=allow_any,
+                    allow_exc=allow_exc,
+                    allow_none=allow_none,
+                    trace=trace,
+                ),
             ]
             * len(x),
         )
     elif x == Any and allow_any:
         if trace:
-            logger.debug("t5")
+            logger.info("t5")
         return Var(type="string")
     else:
         if trace:
-            logger.debug("t6")
+            logger.info("t6")
         raise ValueError(f"i4: Unsupported type: {x}")
 
 
-def func_to_vars(func: object) -> List[Var]:
+def func_to_vars(func: object, log_trace: bool = False) -> List[Var]:
     """
     Extracts the signature of a function and converts it to an array of Var objects.
 
@@ -301,10 +358,18 @@ def func_to_vars(func: object) -> List[Var]:
     signature = inspect.signature(func)  # type: ignore
     fields = []
     for param in signature.parameters.values():
-        schema = pyannotation_to_json_schema(param.annotation, allow_any=False, allow_exc=False, allow_none=False)
+        schema = pyannotation_to_json_schema(
+            param.annotation,
+            allow_any=False,
+            allow_exc=False,
+            allow_none=False,
+            trace=log_trace,
+        )
         schema.required = param.default is inspect.Parameter.empty
         schema.name = param.name
-        schema.placeholder = str(param.default) if param.default is not inspect.Parameter.empty else ""
+        schema.placeholder = (
+            str(param.default) if param.default is not inspect.Parameter.empty else ""
+        )
         if not schema.name.startswith("_"):
             schema.show = True
         fields.append(schema)
@@ -336,14 +401,19 @@ def func_to_return_vars(func, returns: Dict[str, Tuple[int]]) -> List[Var]:
         and type(schema.items[1].type) == list
         and any(x.type == "exception" for x in schema.items[1].type)
     ):
-        raise ValueError("Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable")
+        raise ValueError(
+            "Interface requires return type Tuple[..., Optional[Exception]] where ... is JSON serializable"
+        )
 
     # take the names provided in returns and populate the returning field
     logger.debug(f"RETURNS: {returns}")
     ret = schema.items[0]
     logger.debug(f"RET: {ret}")
     if ret.type == "array":
-        assert len(returns) in [1, len(ret.items)], f"For array outputs, returns should either be 1 or {len(ret.items)}, got {len(returns)}"
+        assert len(returns) in [
+            1,
+            len(ret.items),
+        ], f"For array outputs, returns should either be 1 or {len(ret.items)}, got {len(returns)}"
         if len(returns) == 1:
             ret.items[0].name = next(iter(returns))
             ret.items[0].loc = returns[next(iter(returns))]
@@ -352,7 +422,9 @@ def func_to_return_vars(func, returns: Dict[str, Tuple[int]]) -> List[Var]:
             i.loc = returns[n]
         ret = ret.items
     else:
-        assert len(returns) == 1, "Items that are not arrays can have only 1 returning var. This can also be a bug"
+        assert (
+            len(returns) == 1
+        ), "Items that are not arrays can have only 1 returning var. This can also be a bug"
         ret.name = next(iter(returns))
         ret.loc = returns[next(iter(returns))]
         ret = [
@@ -428,7 +500,11 @@ def jtype_to_vars(prompt: str) -> List[Var]:
     return fields
 
 
-def extract_jinja_indices(data: Union[str, List, Dict[str, Any]], current_index=(), indices=None) -> List:
+def extract_jinja_indices(
+    data: Union[str, List, Dict[str, Any]],
+    current_index=(),
+    indices=None,
+) -> List[Tuple[Tuple[str, ...], List[Var]]]:
     """
     This takes in a nested object and returns all the locations where jinja template was detected.
 
@@ -512,9 +588,14 @@ def get_value_by_keys(obj, keys, *, _first_sentinal: bool = False) -> Any:
 
         # If the key is "*", apply the subsequent keys to all elements in the current list or dictionary.
         if isinstance(obj, list):
-            return [get_value_by_keys(elem, keys[1:], _first_sentinal=True) for elem in obj]
+            return [
+                get_value_by_keys(elem, keys[1:], _first_sentinal=True) for elem in obj
+            ]
         elif isinstance(obj, dict):
-            return {k: get_value_by_keys(v, keys[1:], _first_sentinal=True) for k, v in obj.items()}
+            return {
+                k: get_value_by_keys(v, keys[1:], _first_sentinal=True)
+                for k, v in obj.items()
+            }
 
     if isinstance(obj, dict):
         return get_value_by_keys(obj.get(key), keys[1:], _first_sentinal=True)
@@ -572,35 +653,49 @@ class Model:
     TYPE_NAME = "model"
     """constant for the type name"""
 
+    MODE_CHAT = "chat"
+    """constant to inform model to use chat method when called"""
+
+    MODE_COMPLETION = "completion"
+    """constant to inform model to use completion method when called"""
+
     def __init__(
         self,
-        collection_name: str,
         id: str,
-        fn: object,
         description: str = "",
+        default_mode: Optional[str] = "chat",
+        fn: Optional[object] = None,
         usage: List[Union[str, int]] = [],
         tags=[],
+        log_trace: bool = False,
     ):
         """Defines a single callable model.
 
         Args:
-            collection_name (str): The name of the collection.
             id (str): The id of the model.
-            fn (Callable): The callable to wrap.
             description (str): The description of the model.
+            default_mode (Optional[str], optional): The default mode of the model, if None ``fn`` must be passed. Defaults to "chat".
+            fn (Callable): The callable to wrap.
             usage (List[Union[str, int]], optional): The location that tells usage for a call. Defaults to [].
             tags (List[str], optional): The tags for the model. Defaults to [].
+            log_trace (bool, optional): When passed as True, will log the variables building trace in for ``fn``. Requires ``fn`` to be passed. Defaults to False.
         """
-        self.collection_name = collection_name
         self.id = id
-        self.fn = fn
         self.description = description
+        self.default_mode = default_mode
+        self.fn = fn
         self.usage = usage
-        self.vars = func_to_vars(fn)
+        if fn is not None:
+            self.vars = func_to_vars(
+                func=fn,
+                log_trace=log_trace,
+            )
+        else:
+            self.vars = []
         self.tags = tags
 
     def __repr__(self) -> str:
-        return f"Model('{self.collection_name}', '{self.id}')"
+        return f"Model('{self.id}')"
 
     def to_dict(self, no_vars: bool = False) -> Dict[str, Any]:
         """Converts the model to a dictionary.
@@ -612,7 +707,6 @@ class Model:
             Dict[str, Any]: The dictionary representation of the model.
         """
         return {
-            "collection_name": self.collection_name,
             "id": self.id,
             "description": self.description,
             "usage": self.usage,
@@ -629,11 +723,31 @@ class Model:
         Returns:
             Tuple[Any, Optional[Exception]]: The result of the model and the exception if any.
         """
+        if self.default_mode == Model.MODE_CHAT:
+            fn = self.chat
+        elif self.default_mode == Model.MODE_COMPLETION:
+            fn = self.completion
+        else:
+            logger.error(
+                f"Model {self.id} has no default mode. During initialisation pass a callable function as Model(fn = ...)"
+            )
+            assert self.fn is not None, f"Model {self.id} has no default mode"
+
         try:
-            out = self.fn(**model_data)  # type: ignore
+            out = fn(**model_data)
             return out, None
         except Exception as e:
             return traceback.format_exc(), e
+
+    def completion(self, prompt: str, **kwargs):
+        """Subclass and implement your own text completion API"""
+        return NotImplementedError(
+            f"completion method is not implemented for {self.id}"
+        )
+
+    def chat(self, chat: chat.Chat, **kwargs):
+        """Subclass and implement your own chat API"""
+        raise NotImplementedError("chat method is not implemented for this model")
 
 
 #
@@ -678,7 +792,9 @@ class Node:
             tags (List[str], optional): The tags for the node. Defaults to [].
         """
         # some basic checks
-        _valid_types = [getattr(NodeType, x) for x in dir(NodeType) if not x.startswith("__")]
+        _valid_types = [
+            getattr(NodeType, x) for x in dir(NodeType) if not x.startswith("__")
+        ]
         if type not in _valid_types:
             raise ValueError(f"Invalid node type: {type}, {_valid_types}")
         for name, cnt in Counter([x.name for x in outputs]).most_common():
@@ -694,6 +810,7 @@ class Node:
         self.fn = fn
         self.tags = tags
         self.allow_callback = allow_callback
+        self.templates = []
 
     def __repr__(self) -> str:
         out = f"FuryNode{{ ('{self.id}', '{self.type}') ["
@@ -717,13 +834,15 @@ class Node:
         """
         return any([x.name == field for x in self.fields])
 
+    # ser / deser
+
     def to_dict(self) -> Dict[str, Any]:
         """Converts the node to a dictionary.
 
         Returns:
             Dict[str, Any]: The dictionary representation of the node.
         """
-        from chainfury.agent import AIAction, Memory
+        from chainfury.core import AIAction, Memory
 
         fn = {}
         name = self.id
@@ -768,7 +887,7 @@ class Node:
         if not fn:
             raise ValueError(f"Invalid fn: {fn}")
 
-        from chainfury.agent import AIAction, Memory
+        from chainfury.core import AIAction, Memory
 
         node_type = data["type"]
         if node_type == NodeType.AI:
@@ -811,7 +930,9 @@ class Node:
         """
         return cls.from_dict(json.loads(data))
 
-    def __call__(self, data: Dict[str, Any], print_thoughts: bool = False) -> Tuple[Any, Optional[Exception]]:
+    def __call__(
+        self, data: Dict[str, Any], print_thoughts: bool = False
+    ) -> Tuple[Any, Optional[Exception]]:
         """Calls the node with the given data.
 
         Args:
@@ -825,7 +946,9 @@ class Node:
         template_keys = set([x.name for x in self.fields])
         try:
             if not data_keys.issubset(template_keys):
-                raise ValueError(f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}")
+                raise ValueError(
+                    f"Invalid keys passed to node '{self.id}': {data_keys - template_keys}"
+                )
             if print_thoughts:
                 print(f"Node: {self.id}")
                 print("Inputs:\n------")
@@ -853,6 +976,46 @@ class Node:
         except Exception as e:
             tb = traceback.format_exc()
             return tb, e
+
+    @classmethod
+    def from_chat(
+        cls,
+        chat: chat.Chat,
+        node_id: str,
+        model: Model,
+        description: Optional[str] = None,
+    ) -> "Node":
+        chat_dict = chat.to_dict()
+        # print(variables)
+        fields = []
+        templates = []
+        fields_with_locations = extract_jinja_indices(chat_dict)
+        for field in fields_with_locations:
+            fields.extend(field[1])
+            obj = get_value_by_keys(chat_dict, field[0])
+            if not obj:
+                raise ValueError(
+                    f"Field {field[0]} not found in {chat}, but was extraced. There is a bug in get_value_by_keys function"
+                )
+            templates.append((obj, jinja2.Template(obj), field[0]))
+
+        def fn(**data: Dict[str, Any]):
+            fn_out = copy.deepcopy(chat_dict)
+            for raw, t, keys in templates:
+                value = t.render(data)
+                put_value_by_keys(fn_out, keys, value)
+            # print(fn_out)
+            return model(fn_out)
+
+        self = cls(
+            id=node_id,
+            type=NodeType.AI,
+            fn=fn,
+            fields=fields,
+            outputs=[Var(type="string", name=node_id)],
+            description=description or "",
+        )
+        return self
 
 
 #
@@ -887,6 +1050,8 @@ class Edge:
     def __repr__(self) -> str:
         out = f"FuryEdge('{self.src_node_id}/{self.src_node_var}' => '{self.trg_node_id}/{self.trg_node_var}')"
         return out
+
+    # ser / deser
 
     def to_dict(self) -> Dict[str, Any]:
         """Serializes the edge to a dictionary.
@@ -925,7 +1090,7 @@ class Edge:
 
 
 class Chain:
-    """A chain is a full flow of nodes and edges.
+    """A chain is a DAG with nodes and edges.
 
     Args:
         nodes (List[Node], optional): The list of nodes in the chain. Defaults to [].
@@ -937,13 +1102,24 @@ class Chain:
 
     def __init__(
         self,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        default_model: Optional[Model] = None,
         nodes: List[Node] = [],
         edges: List[Edge] = [],
-        *,
         sample: Dict[str, Any] = {},
         main_in: str = "",
         main_out: str = "",
     ):
+        # assign variables
+        self.name = name
+        self.description = description
+        self.default_model = default_model
+        self.chain_id: Optional[str] = None
+
+        # perform checks and validations
+        if not nodes and not edges:
+            self.is_empty = True
         self.nodes: Dict[str, Node] = {node.id: node for node in nodes}
         self.edges = edges
 
@@ -954,19 +1130,32 @@ class Chain:
             self.topo_order = topological_sort(self.edges)
         self.sample = sample
         self.main_in = main_in
+        self.main_out = main_out
+
+        if self.is_empty:
+            # there is nothing to do here
+            return
 
         if "/" not in main_out:
             if len(edges) > 0:
-                edges_with_main_out_key = list(filter(lambda edge: edge.trg_node_var == main_out, edges))
+                edges_with_main_out_key = list(
+                    filter(lambda edge: edge.trg_node_var == main_out, edges)
+                )
                 if len(edges_with_main_out_key) == 0:
-                    raise ValueError(f"c0: pass full main_out like xxx/yyy, could not find '{main_out}'")
+                    raise ValueError(
+                        f"c0: pass full main_out like xxx/yyy, could not find '{main_out}'"
+                    )
                 elif len(edges_with_main_out_key) > 1:
-                    raise ValueError(f"c1: pass full main_out like xxx/yyy, found multiple '{main_out}'")
+                    raise ValueError(
+                        f"c1: pass full main_out like xxx/yyy, found multiple '{main_out}'"
+                    )
                 else:
                     main_out = edges_with_main_out_key[0].target
             else:
                 node = next(iter(self.nodes.values()))
-                outputs_with_op_name = list(filter(lambda output: output.name == main_out, node.outputs))
+                outputs_with_op_name = list(
+                    filter(lambda output: output.name == main_out, node.outputs)
+                )
                 if len(outputs_with_op_name) == 0:
                     raise ValueError(f"c2: Could not find output variable '{main_out}'")
                 else:
@@ -980,7 +1169,7 @@ class Chain:
         self.to_dict()
 
     def __repr__(self) -> str:
-        out = "FuryDag(\n  nodes: ["
+        out = "Chain(\n  nodes: ["
         for n in self.nodes:
             out += f"\n    {n},"
         out += "\n  ],\n  edges: ["
@@ -989,7 +1178,57 @@ class Chain:
         out += f"\n  ]\n  main_in: {self.main_in}\n  main_out: {self.main_out}\n)"
         return out
 
-    def to_dict(self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}) -> Dict[str, Any]:
+    # building of chain
+
+    def add_thread(
+        self,
+        node_id: str,
+        chat: chat.Chat,
+        model: Optional[Model] = None,
+        description: str = "",
+    ) -> "Chain":
+        if self.default_model is None and model is None:
+            logger.error(
+                "Chain has no default model set. Either pass one in add_thread(model = ...) function or Chain(default_model = ...)"
+            )
+            raise ValueError("default model not set")
+
+        # build the node
+        node = Node.from_chat(
+            chat,
+            node_id=node_id,
+            model=model or self.default_model,  # type: ignore
+            description=description,
+        )
+
+        # add edges as required
+        for var in node.fields:
+            if var.name in self.nodes:
+                self.edges.append(
+                    Edge(
+                        src_node_id=var.name,
+                        src_node_var=var.name,
+                        trg_node_id=node_id,
+                        trg_node_var=self.nodes[var.name].outputs[0].name,
+                    )
+                )
+
+        # assign the node
+        self.nodes[node.id] = node
+
+        # topo sort
+        if len(self.nodes) == 1:
+            assert len(self.edges) == 0, "Cannot have edges with only 1 node"
+            self.topo_order = [next(iter(self.nodes))]
+        else:
+            self.topo_order = topological_sort(self.edges)
+        return self
+
+    # ser/deser
+
+    def to_dict(
+        self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}
+    ) -> Dict[str, Any]:
         """Serializes the chain to a dictionary.
 
         Args:
@@ -1008,8 +1247,7 @@ class Chain:
         # assert main_in in sample, f"Invalid key: {main_in}"
 
         if not (main_in or main_out or sample):
-            logger.warning("No main_in, main_out or sample provided, using defaults")
-            raise ValueError("No main_in, main_out or sample provided, using defaults")
+            raise ValueError("No main_in, main_out or sample provided")
         return {
             "nodes": [node.to_dict() for node in self.nodes.values()],
             "edges": [edge.to_dict() for edge in self.edges],
@@ -1031,7 +1269,13 @@ class Chain:
         """
         nodes = [Node.from_dict(data=x, verbose=verbose) for x in data["nodes"]]
         edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
-        return cls(nodes=nodes, edges=edges, sample=data["sample"], main_in=data["main_in"], main_out=data["main_out"])
+        return cls(
+            nodes=nodes,
+            edges=edges,
+            sample=data["sample"],
+            main_in=data["main_in"],
+            main_out=data["main_out"],
+        )
 
     def to_json(self, indent=None) -> str:
         """Serializes the chain to a JSON string.
@@ -1122,7 +1366,7 @@ class Chain:
         Args:
             dag (T.Dag): The dag object to load from
         """
-        from chainfury.agent import programatic_actions_registry, ai_actions_registry
+        from chainfury.core import programatic_actions_registry, ai_actions_registry
 
         # convert to dag and checks
         nodes = []
@@ -1133,9 +1377,13 @@ class Chain:
         actions_map = {}  # this is the map between the cf_id and the node object
         for node in dag_nodes:
             if not node.cf_id and not node.cf_data:
-                raise ValueError(f"Action {node.id} has no cf_id or cf_data, pass atleast one")
+                raise ValueError(
+                    f"Action {node.id} has no cf_id or cf_data, pass atleast one"
+                )
             elif node.cf_id and node.cf_data:
-                ValueError(f"Action {node.id} has both cf_id and cf_data, pass only one")
+                ValueError(
+                    f"Action {node.id} has both cf_id and cf_data, pass only one"
+                )
             if node.cf_data:
                 # programmatic ones should always be picked from the registry also FE will always send this
                 # so server should always check for programatic ones via registry
@@ -1151,9 +1399,13 @@ class Chain:
 
             # check if this action is in the registry
             if not cf_action:
-                cf_action = ai_actions_registry.get(node.cf_id)  # check if present in the AI registry
+                cf_action = ai_actions_registry.get(
+                    node.cf_id
+                )  # check if present in the AI registry
             if not cf_action:
-                cf_action = programatic_actions_registry.get(node.cf_id)  # check if present in the programatic registry
+                cf_action = programatic_actions_registry.get(
+                    node.cf_id
+                )  # check if present in the programatic registry
             if check_server and not cf_action:
                 # check available on the API
                 from chainfury.client import get_client
@@ -1176,7 +1428,9 @@ class Chain:
         # now create all the edges
         dag_edges = dag.edges
         for edge in dag_edges:
-            if not (edge.source and edge.target and edge.sourceHandle and edge.targetHandle):
+            if not (
+                edge.source and edge.target and edge.sourceHandle and edge.targetHandle
+            ):
                 raise ValueError(f"Invalid edge {edge}")
             edges.append(Edge.from_dict(edge.dict()))
 
@@ -1211,7 +1465,69 @@ class Chain:
         chain = T.ApiChain(**chain)
         if chain.dag is None:
             raise ValueError(f"Chain {id} has no dag")
-        return cls.from_dag(chain.dag)
+        self = cls.from_dag(chain.dag)
+        self.chain_id = id
+        return self
+
+    def to_id(
+        self,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        new: bool = False,
+    ) -> T.ApiChain:
+        """Saves the chain to the server, and tries to recreate it locally. NOTE: this requires server connection.
+
+        Example:
+            >>> chain = Chain(...)
+            >>> chain.to_id("My Chain", "This is a test chain")
+
+        Args:
+            name (Optional[str], optional): The name of the chain. Defaults to None.
+            description (Optional[str], optional): The description of the chain. Defaults to None.
+            new (bool, optional): Whether to create a new chain. Defaults to False.
+
+        Returns:
+            T.ApiChain: The API chain object
+        """
+        from chainfury.client import get_client
+
+        stub = get_client()
+
+        if self.chain_id is None:
+            # this is a new chain aka a PUT call
+            logger.warning("self.chain_id is not set, this will create a new chain.")
+            if not new:
+                raise ValueError("If you want to create a new chain then set new=True.")
+            req = T.ApiChain(
+                name=name or self.name,  # type: ignore # let it fail and user fix it
+                description=description or self.description,
+                dag=self.to_dag(),
+            )
+            chain_data, err = stub.api.chains("put", json=req.dict())
+            if err:
+                raise ValueError(f"Could not create chain, error: {chain_data}")
+        else:
+            # this is an update aka PATCH call
+            update_keys = ["dag"]
+            if name is not None:
+                update_keys.append("name")
+            if description is not None:
+                update_keys.append("description")
+            req = T.ApiChain(
+                name=name or "",
+                description=description or "",
+                dag=self.to_dag(),
+                update_keys=update_keys,
+            )
+            chain_data, err = stub.api.chains.u(self.chain_id)("patch", json=req.dict())
+            if err:
+                raise ValueError(f"Could not update chain, error: {chain_data}")
+
+        # create the Chain object of the API and return
+        chain = T.ApiChain(**chain_data)
+        return chain
+
+    # execution of the DAG
 
     def step(
         self,
@@ -1234,7 +1550,9 @@ class Chain:
             Tuple[Dict[str, Any], Dict[str, Any]]: The currrent output and updated thoughts ir buffer.
         """
         node = self.nodes[node_id]
-        incoming_edges = list(filter(lambda edge: edge.trg_node_id == node_id, self.edges))
+        incoming_edges = list(
+            filter(lambda edge: edge.trg_node_id == node_id, self.edges)
+        )
 
         # clear out all the nodes that this thing needs into a separate rep
         logger.debug(f">>> Processing node: {node_id}")
@@ -1245,9 +1563,13 @@ class Chain:
         all_keys = list(pre_data.keys())
         for k in all_keys:
             if node.has_field(k):
-                _data[k] = pre_data[k]  # don't pop this, some things are shared between actions eg. openai_api_key
+                _data[k] = pre_data[
+                    k
+                ]  # don't pop this, some things are shared between actions eg. openai_api_key
             elif k.startswith(node.id):
-                _data[k.split("/", 1)[1]] = pre_data.pop(k)  # pop this, it is not needed anymore
+                _data[k.split("/", 1)[1]] = pre_data.pop(
+                    k
+                )  # pop this, it is not needed anymore
 
         # then merge from the ir buffer
         for edge in incoming_edges:
@@ -1255,7 +1577,9 @@ class Chain:
             req_key = f"{edge.src_node_id}/{edge.src_node_var}"
             logger.debug(f"Looking for key: {req_key}")
             # need to check if this information is available in the IR buffer, if it is not then this is an error
-            ir_value = pre_data.get(req_key, None) or full_ir.get(req_key, {}).get("value", None)
+            ir_value = pre_data.get(req_key, None) or full_ir.get(req_key, {}).get(
+                "value", None
+            )
             if ir_value is None:
                 raise ValueError(f"Missing value for {req_key}")
             _data[edge.trg_node_var] = ir_value
@@ -1334,9 +1658,12 @@ class Chain:
         data = _data
 
         if print_thoughts:
-            print(terminal_top_with_text("Chain Starts"))
-            print("Inputs:\n------")
-            print(pformat(data))
+            logger.info(
+                f"{terminal_top_with_text('Chain Starts')}\n"
+                f"Inputs:\n"
+                f"------\n"
+                f"{pformat(data)}"
+            )
 
         full_ir = {}
         out = None
@@ -1353,10 +1680,13 @@ class Chain:
             out = full_ir.get(self.main_out)["value"]  # type: ignore
 
         if print_thoughts:
-            print(terminal_top_with_text("Chain Last"))
-            print("Outputs:\n------")
-            print(pformat(out))
-            print(terminal_top_with_text("Chain Ends"))
+            logger.info(
+                f"{terminal_top_with_text('Chain Last')}\n"
+                f"Outputs ({'main: ' + self.main_out if self.main_out else ''}):\n"
+                f"------\n"
+                f"{pformat(out)}\n"
+                f"{terminal_top_with_text('Chain Ends')}"
+            )
 
         return out, full_ir  # type: ignore
 
@@ -1411,9 +1741,12 @@ class Chain:
         data = _data
 
         if print_thoughts:
-            print(terminal_top_with_text("Chain Starts"))
-            print("Inputs:\n------")
-            print(pformat(data))
+            logger.info(
+                f"{terminal_top_with_text('Chain Starts')}\n"
+                f"Inputs:\n"
+                f"------\n"
+                f"{pformat(data)}"
+            )
 
         full_ir = {}
         out = None
@@ -1426,15 +1759,18 @@ class Chain:
                 thoughts_callback=thoughts_callback,
             )
             yield yield_dict, False
-
-        if print_thoughts:
-            print(terminal_top_with_text("Chain Last"))
-            print("Outputs:\n------")
-            print(pformat(out))
-            print(terminal_top_with_text("Chain Ends"))
-
         if self.main_out:
             out = full_ir.get(self.main_out)["value"]  # type: ignore
+
+        if print_thoughts:
+            logger.info(
+                f"{terminal_top_with_text('Chain Last')}\n"
+                f"Outputs ({'main: ' + self.main_out if self.main_out else ''}):\n"
+                f"------\n"
+                f"{pformat(out)}\n"
+                f"{terminal_top_with_text('Chain Ends')}"
+            )
+
         yield out, True
 
 
@@ -1462,7 +1798,9 @@ def adjacency_list_to_edge_map(adjacency_list) -> List[Edge]:
     edges = []
     for src, dsts in adjacency_list.items():
         for dst in dsts:
-            edges.append(Edge(src_node_id=src, src_node_var="", trg_node_id=dst, trg_node_var=""))
+            edges.append(
+                Edge(src_node_id=src, src_node_var="", trg_node_id=dst, trg_node_var="")
+            )
     return edges
 
 

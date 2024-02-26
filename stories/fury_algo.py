@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 # what are some interesting algorithms that we can build using fury?
 
 import re
@@ -175,29 +177,29 @@ In this story is there a mention of any ['Franklin', 'Trevor', 'Micheal'] from t
 
 class Chains:
     story = Chain(
-        [Actions.sensational_story],
+        nodes = [Actions.sensational_story],
         sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story.id}/story",
     )  # type: ignore
 
     story_nbx = Chain(
-        [Actions.sensational_story_nbx],
+        nodes = [Actions.sensational_story_nbx],
         sample={"scene": ""},
         main_in="scene",
         main_out=f"{Actions.sensational_story_nbx.id}/story",
     )  # type: ignore
 
     feedback = Chain(
-        [Actions.people_feedback],
+        nodes = [Actions.people_feedback],
         sample={"story": ""},
         main_in="story",
         main_out=f"{Actions.people_feedback.id}/story_accepted",
     )  # type: ignore
 
     news = Chain(
-        [Actions.sensational_story, Actions.catchy_headline],
-        [
+        nodes = [Actions.sensational_story, Actions.catchy_headline],
+        edges = [
             Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
         sample={"scene": ""},
@@ -206,8 +208,8 @@ class Chains:
     )
 
     topic_to_story = Chain(
-        [Actions.topic_to_synopsis, Actions.sensational_story, Actions.catchy_headline],
-        [
+        nodes = [Actions.topic_to_synopsis, Actions.sensational_story, Actions.catchy_headline],
+        edges = [
             Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story.id, "scene"),
             Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
         ],
@@ -217,13 +219,13 @@ class Chains:
     )
 
     more_variants = Chain(
-        [
+        nodes = [
             Actions.topic_to_synopsis,
             Actions.sensational_story,
             Actions.catchy_headline,
             Actions.sensational_story_generator,
         ],
-        [
+        edges = [
             Edge(Actions.topic_to_synopsis.id, "synopsis", Actions.sensational_story.id, "scene"),
             Edge(Actions.sensational_story.id, "story", Actions.catchy_headline.id, "story"),
             Edge(Actions.catchy_headline.id, "headline", Actions.sensational_story_generator.id, "headline"),
@@ -235,7 +237,7 @@ class Chains:
     )
 
     good_story = Chain(
-        [Actions.sensational_story, Actions.corrupt_editor_check],
+        nodes = [Actions.sensational_story, Actions.corrupt_editor_check],
         [Edge(Actions.sensational_story.id, "story", Actions.corrupt_editor_check.id, "story")],  # type: ignore
         sample={"scene": ""},
         main_in="scene",

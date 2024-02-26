@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import sys
 import json
@@ -6,7 +8,7 @@ from fire import Fire
 from chainfury import Chain
 from chainfury.version import __version__
 from chainfury.components import all_items
-from chainfury.agent import model_registry, programatic_actions_registry, memory_registry
+from chainfury.core import model_registry, programatic_actions_registry, memory_registry
 
 
 def help():
@@ -59,7 +61,9 @@ def run(
             try:
                 inp = json.loads(inp)
             except Exception as e:
-                raise ValueError("Input must be a valid json string or a json file path")
+                raise ValueError(
+                    "Input must be a valid json string or a json file path"
+                )
     assert isinstance(inp, dict), "Input must be a dict"
 
     # create chain
@@ -103,6 +107,7 @@ def main():
                 "model": {
                     "list": list(model_registry.get_models()),
                     "all": model_registry.get_models(),
+                    "get": model_registry.get,
                 },
                 "prog": {
                     "list": list(programatic_actions_registry.get_nodes()),

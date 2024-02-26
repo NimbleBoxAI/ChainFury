@@ -1,9 +1,17 @@
+# Copyright © 2023- Frello Technology Private Limited
+
+import os
+import dotenv
 import fire, uvicorn
 from typing import List
 import importlib
 
+_dotenv_fp = os.getenv("CFS_DOTENV", ".env")
+if os.path.exists(_dotenv_fp):
+    dotenv.load_dotenv(_dotenv_fp)
 
-def _main(
+
+def main(
     host: str = "0.0.0.0",
     port: int = 8000,
     pre: List[str] = [],
@@ -38,9 +46,5 @@ def _main(
     uvicorn.run(app, host=host, port=int(port))
 
 
-def main():
-    fire.Fire(_main)
-
-
 if __name__ == "__main__":
-    main()
+    fire.Fire(main)

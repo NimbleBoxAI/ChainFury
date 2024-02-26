@@ -81,20 +81,20 @@ sh stories/build_and_copy.sh
 Once the static files are copied we can now proceed to install dependecies:
 
 ```bash
-pip install setuptools
 pip install -e .          # editable install the chainfury
-cd server
-pip install -e .          # editable install the chainfury_server
-```
-
-To start you can now do:
-
-```bash
-cd chainfury_server
-python3 server.py
+pip install -e server/.   # editable install the chainfury_server
+python3 -m chainfury_server
 ```
 
 You can now visit [localhost:8000](http://localhost:8000/ui/) to see the GUI.
+
+### Tests
+
+There are a few test cases for super hard problems like `get_kv` which checks the `chainfury.base.get_value_by_keys` function.
+
+```bash
+python3 tests/get_kv.py -v
+```
 
 # Contibutions
 
