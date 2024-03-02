@@ -1,8 +1,15 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import json
 import requests
 from typing import Dict, Tuple, Optional, List
 
-from chainfury import programatic_actions_registry, exponential_backoff, Secret, UnAuthException
+from chainfury import (
+    programatic_actions_registry,
+    exponential_backoff,
+    Secret,
+    UnAuthException,
+)
 from chainfury.components.const import Env
 
 
@@ -165,7 +172,9 @@ def serper_api(
     if not serper_api_key:
         serper_api_key = Secret(Env.SERPER_API_KEY("")).value
     if not serper_api_key:
-        raise Exception("Serper API key not found. Please set SERPER_API_KEY environment variable or pass it as an argument.")
+        raise Exception(
+            "Serper API key not found. Please set SERPER_API_KEY environment variable or pass it as an argument."
+        )
 
     def _fn():
         r = requests.post(
@@ -189,12 +198,16 @@ def serper_api(
         elif r.status_code == 403:
             raise Exception("Serper API key is invalid.")
         elif r.status_code != 200:
-            raise Exception(f"Serper API returned status code {r.status_code}: {r.text}")
+            raise Exception(
+                f"Serper API returned status code {r.status_code}: {r.text}"
+            )
 
         return r.json(), r.status_code
 
     try:
-        api_resp, status_code = exponential_backoff(foo=_fn, max_retries=retry_count, retry_delay=retry_delay)
+        api_resp, status_code = exponential_backoff(
+            foo=_fn, max_retries=retry_count, retry_delay=retry_delay
+        )
         return (api_resp, status_code), None  # type: ignore
     except Exception as e:
         return (None, None), e  # type: ignore

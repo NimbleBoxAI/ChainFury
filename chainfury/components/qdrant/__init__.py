@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 from uuid import uuid4
 from functools import lru_cache
 from typing import List, Dict, Tuple, Optional, Union
@@ -22,7 +24,9 @@ from chainfury.components.const import Env, ComponentMissingError
 
 
 @lru_cache(maxsize=1)
-def _get_qdrant_client(qdrant_url: Secret = Secret(), qdrant_api_key: Secret = Secret()):
+def _get_qdrant_client(
+    qdrant_url: Secret = Secret(), qdrant_api_key: Secret = Secret()
+):
     """Create a qdrant client and cache it
 
     Args:
@@ -35,9 +39,13 @@ def _get_qdrant_client(qdrant_url: Secret = Secret(), qdrant_api_key: Secret = S
     qdrant_url = Secret(Env.QDRANT_API_URL(qdrant_url.value)).value  # type: ignore
     qdrant_api_key = Secret(Env.QDRANT_API_KEY(qdrant_api_key.value)).value  # type: ignore
     if not qdrant_url:
-        raise Exception("Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`")
+        raise Exception(
+            "Qdrant URL is not set. Please pass `qdrant_url` or  env var `QDRANT_API_URL=<your_url>`"
+        )
     if not qdrant_api_key:
-        raise Exception("Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`")
+        raise Exception(
+            "Qdrant API KEY is not set. Please pass `qdrant_api_key` or  env var `QDRANT_API_KEY=<your_url>`"
+        )
     logger.info("Creating Qdrant client")
     return QdrantClient(url=qdrant_url, api_key=qdrant_api_key)  # type: ignore
 
@@ -90,7 +98,9 @@ def qdrant_write(
     """
     # client check
     if not QDRANT_CLIENT_INSTALLED:
-        raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
+        raise ComponentMissingError(
+            "Qdrant client is not installed. Please install it with `pip install qdrant-client`"
+        )
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -201,7 +211,9 @@ def qdrant_read(
     """
     # client check
     if not QDRANT_CLIENT_INSTALLED:
-        raise ComponentMissingError("Qdrant client is not installed. Please install it with `pip install qdrant-client`")
+        raise ComponentMissingError(
+            "Qdrant client is not installed. Please install it with `pip install qdrant-client`"
+        )
 
     # checks
     if not (len(embeddings) and len(embeddings[0]) and type(embeddings[0][0]) == float):
@@ -209,7 +221,9 @@ def qdrant_read(
     if batch_search:
         raise NotImplementedError("Batch search is not implemented yet")
     if not batch_search and len(embeddings) > 1:
-        raise Exception("Batch search is not enabled, but multiple embeddings are passed")
+        raise Exception(
+            "Batch search is not enabled, but multiple embeddings are passed"
+        )
     if not top and not limit:
         raise Exception("Either top or limit should be set")
 
@@ -223,7 +237,12 @@ def qdrant_read(
 
     if batch_search:
         # this is not implemented, this fails when we try to pass a list of vectors
-        search_queries = [models.SearchRequest(vector=x, limit=limit, offset=offset, params=search_params) for x in embeddings]
+        search_queries = [
+            models.SearchRequest(
+                vector=x, limit=limit, offset=offset, params=search_params
+            )
+            for x in embeddings
+        ]
         out = client.search_batch(
             collection_name=collection_name,
             requests=search_queries,

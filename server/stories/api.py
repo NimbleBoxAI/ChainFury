@@ -1,3 +1,6 @@
+# Copyright © 2023- Frello Technology Private Limited
+
+
 import os
 import fire
 import json
@@ -24,7 +27,13 @@ sess.headers.update({"token": TOKEN})
 
 
 class AuthAPI:
-    def signup(self, username: str, password: str = "admin", email: str = "foo@bar.com", v: bool = False):
+    def signup(
+        self,
+        username: str,
+        password: str = "admin",
+        email: str = "foo@bar.com",
+        v: bool = False,
+    ):
         r = sess.post(
             f"{URL}/signup",
             json={
@@ -64,11 +73,29 @@ class ChatbotAPI:
         if dag:
             update_req["dag"] = {
                 "nodes": [
-                    {"id": "unq-1", "position": {"x": 0, "y": 0}, "type": "FuryEngineNode", "width": 128, "height": 128},
-                    {"id": "unq-2", "position": {"x": 0, "y": 0}, "type": "FuryEngineNode", "width": 128, "height": 128},
+                    {
+                        "id": "unq-1",
+                        "position": {"x": 0, "y": 0},
+                        "type": "FuryEngineNode",
+                        "width": 128,
+                        "height": 128,
+                    },
+                    {
+                        "id": "unq-2",
+                        "position": {"x": 0, "y": 0},
+                        "type": "FuryEngineNode",
+                        "width": 128,
+                        "height": 128,
+                    },
                 ],
                 "edges": [
-                    {"source": "unq-1", "sourceHandle": "t", "target": "unq-2", "targetHandle": "o", "id": "<IDK>"},
+                    {
+                        "source": "unq-1",
+                        "sourceHandle": "t",
+                        "target": "unq-2",
+                        "targetHandle": "o",
+                        "id": "<IDK>",
+                    },
                 ],
             }
             update_req["update_keys"].append("dag")
@@ -122,7 +149,13 @@ class FuryAPI:
         return out.json()
 
     # fury actions API
-    def create(self, name: str = "Catchy headline", description: str = "created by stories file", bad: bool = False, v: bool = False):
+    def create(
+        self,
+        name: str = "Catchy headline",
+        description: str = "created by stories file",
+        bad: bool = False,
+        v: bool = False,
+    ):
         action_req = {
             "name": name,
             "description": description,
@@ -134,13 +167,22 @@ class FuryAPI:
                 # this JSON is put into the API as is, taken from the text box
                 "fn": {
                     "messages": [
-                        {"role": "user", "content": "Convert this news story into a funny headline with less than 6 words:\n\n{{ story }}"}
+                        {
+                            "role": "user",
+                            "content": "Convert this news story into a funny headline with less than 6 words:\n\n{{ story }}",
+                        }
                     ]
                 },
             },
             # for now FE can hardcode the type and loc for developer convinience, this cannot be sent by the backend
             # I'll need to provide Vikrant with a list of these values
-            "outputs": [{"type": "string", "name": "headline", "loc": ["choices", 0, "message", "content"]}],
+            "outputs": [
+                {
+                    "type": "string",
+                    "name": "headline",
+                    "loc": ["choices", 0, "message", "content"],
+                }
+            ],
         }
         if bad:
             del action_req["fn"]["model_id"]
@@ -163,9 +205,19 @@ class FuryAPI:
         return out
 
     def update(
-        self, id: str, name: str, fn: bool = False, bad: bool = False, description: str = "Description now changed", v: bool = False
+        self,
+        id: str,
+        name: str,
+        fn: bool = False,
+        bad: bool = False,
+        description: str = "Description now changed",
+        v: bool = False,
     ):
-        action_update_req = {"name": name, "description": description, "update_fields": ["name", "description"]}
+        action_update_req = {
+            "name": name,
+            "description": description,
+            "update_fields": ["name", "description"],
+        }
         if fn:
             action_update_req["fn"] = {
                 "model_id": "openai-chat",  # taken from the /components/models API
@@ -186,7 +238,13 @@ class FuryAPI:
 
             # for now FE can hardcode the type and loc for developer convinience, this cannot be sent by the backend
             # I'll need to provide Vikrant with a list of these values
-            action_update_req["outputs"] = [{"type": "string", "name": "headline", "loc": ["choices", 0, "message", "content"]}]
+            action_update_req["outputs"] = [
+                {
+                    "type": "string",
+                    "name": "headline",
+                    "loc": ["choices", 0, "message", "content"],
+                }
+            ]
             if bad:
                 del action_update_req["outputs"]
 

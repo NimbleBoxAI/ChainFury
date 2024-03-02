@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import jwt
 from fastapi import HTTPException
 from passlib.hash import sha256_crypt
@@ -33,7 +35,9 @@ def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
     if user is not None:
         email_exists = True
     if user_exists and email_exists:
-        raise HTTPException(status_code=400, detail="Username and email already registered")
+        raise HTTPException(
+            status_code=400, detail="Username and email already registered"
+        )
     elif user_exists:
         raise HTTPException(status_code=400, detail="Username is taken")
     elif email_exists:

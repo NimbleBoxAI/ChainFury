@@ -1,6 +1,7 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import jwt
-import json
 import random, string
 from datetime import datetime
 from enum import Enum as EnumType
@@ -13,9 +14,20 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker
-from sqlalchemy import Column, ForeignKey, Integer, String, JSON, Text, Float, DateTime, Enum, create_engine
+from sqlalchemy import (
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    JSON,
+    Text,
+    Float,
+    DateTime,
+    Enum,
+    create_engine,
+)
 
-from chainfury_server.utils import logger, Env, folder, joinp
+from chainfury_server.utils import logger, Env
 
 ########
 #
@@ -27,8 +39,8 @@ Base = declarative_base()
 
 ID_LENGTH = 8
 
-db = Env.CFS_DATABASE("")
-if not db:
+db = Env.CFS_DATABASE()
+if db is None:
     # create a sqlite in the chainfury directory
     cf_folder = os.path.expanduser("~/cf")
     os.makedirs(cf_folder, exist_ok=True)
@@ -96,7 +108,7 @@ def fastapi_db_session():
         db.close()
 
 
-def unique_string(table, row_reference, length=ID_LENGTH):
+def unique_string(table, row_reference, length):
     """
     Gets Random Unique String for Primary key and makes sure its unique for the table.
     """
@@ -108,7 +120,7 @@ def unique_string(table, row_reference, length=ID_LENGTH):
     return random_string
 
 
-def unique_number(Table, row_reference, length=ID_LENGTH):
+def unique_number(Table, row_reference, length):
     """
     Gets Random Unique Number for Primary key and makes sure its unique for the table.
     """
@@ -121,45 +133,22 @@ def unique_number(Table, row_reference, length=ID_LENGTH):
 
 
 def add_default_user():
-    admin_password = sha256_crypt.hash("admin")
     db = db_session()
     try:
-        db.add(User(username="admin", password=admin_password, email="admin@admin.com", meta=""))  # type: ignore
+        db.add(
+            User(
+                username="admin",
+                password=sha256_crypt.hash("admin"),
+                email="admin@admin.com",
+                meta="",
+            ),  # type: ignore
+        )
         db.commit()
+        logger.info(
+            "Added default username, recommend you change it.\nusername: admin\npassword: admin\nemail:a@b.c"
+        )
     except IntegrityError as e:
         logger.info("Not adding default user")
-
-
-def add_default_templates():
-    db = db_session()
-    try:
-        ex_folder = joinp(folder(__file__), "examples")
-        # with open("./examples/index.json") as f:
-        with open(joinp(ex_folder, "index.json")) as f:
-            data = json.load(f)
-        for template_data in data:
-            template = db.query(Template).filter_by(id=template_data["id"]).first()
-            if template:
-                template.name = template_data["name"]
-                template.description = template_data["description"]
-                # with open("./examples/" + template_data["dag"]) as f:
-                with open(joinp(ex_folder, template_data["dag"])) as f:
-                    dag = json.load(f)
-                template.dag = dag
-            else:
-                # with open("./examples/" + template_data["dag"]) as f:
-                with open(joinp(ex_folder, template_data["dag"])) as f:
-                    dag = json.load(f)
-                template = Template(
-                    id=template_data["id"],
-                    name=template_data["name"],
-                    description=template_data["description"],
-                    dag=dag,
-                )  # type: ignore
-                db.add(template)
-        db.commit()
-    except IntegrityError as e:
-        logger.info("Not adding default templates")
 
 
 ########
@@ -172,7 +161,11 @@ def add_default_templates():
 class User(Base):
     __tablename__ = "user"
 
-    id: str = Column(String(8), default=lambda: unique_string(User, User.id), primary_key=True)
+    id: str = Column(
+        String(ID_LENGTH),
+        default=lambda: unique_string(User, User.id, ID_LENGTH),
+        primary_key=True,
+    )
     email: str = Column(String(80), unique=True, nullable=False)
     username: str = Column(String(80), unique=True, nullable=False)
     password: str = Column(String(80), nullable=False)
@@ -182,20 +175,12 @@ class User(Base):
         return f"User(id={self.id}, username={self.username}, meta={self.meta})"
 
 
-class ChatBotTypes:
-    LANGFLOW = "langflow"
-    FURY = "fury"
-
-    def all():  # type: ignore
-        return [getattr(ChatBotTypes, attr) for attr in dir(ChatBotTypes) if not attr.startswith("__")]
-
-
 class ChatBot(Base):
     __tablename__ = "chatbot"
 
     id: str = Column(
-        String(8),
-        default=lambda: unique_string(ChatBot, ChatBot.id),
+        String(ID_LENGTH),
+        default=lambda: unique_string(ChatBot, ChatBot.id, ID_LENGTH),
         primary_key=True,
     )
     name: str = Column(String(80), unique=False)
@@ -203,10 +188,12 @@ class ChatBot(Base):
     created_by: str = Column(String(8), ForeignKey("user.id"), nullable=False)
     dag: Dict[str, Any] = Column(JSON)
     meta: Dict[str, Any] = Column(JSON)
-    engine: str = Column(String(80), nullable=False)
     tag_id: str = Column(String(80), nullable=True)
     created_at: datetime = Column(DateTime, nullable=False)
     deleted_at: datetime = Column(DateTime, nullable=True)
+
+    # deprecate
+    engine: str = Column(String(80), nullable=False, default="engine")
 
     def to_dict(self):
         return {
@@ -216,7 +203,6 @@ class ChatBot(Base):
             "created_by": self.created_by,
             "dag": self.dag,
             "meta": self.meta,
-            "engine": self.engine,
             "tag_id": self.tag_id,
             "created_at": self.created_at,
             "deleted_at": self.deleted_at,
@@ -240,7 +226,7 @@ class Prompt(Base):
 
     id: int = Column(
         Integer,
-        default=lambda: unique_number(Prompt, Prompt.id),
+        default=lambda: unique_number(Prompt, Prompt.id, ID_LENGTH),
         primary_key=True,
     )
     chatbot_id: str = Column(String(8), ForeignKey("chatbot.id"), nullable=False)
@@ -280,8 +266,8 @@ class ChainLog(Base):
     )
     created_at: datetime = Column(DateTime, nullable=False)
     prompt_id: int = Column(Integer, ForeignKey("prompt.id"), nullable=False)
-    node_id: str = Column(String(Env.CFS_MAX_NODE_ID_LEN()), nullable=False)
-    worker_id: str = Column(String(Env.CF_MAX_WORKER_ID_LEN()), nullable=False)
+    node_id: str = Column(String(Env.CFS_MAXLEN_CF_NDOE()), nullable=False)
+    worker_id: str = Column(String(Env.CFS_MAXLEN_WORKER()), nullable=False)
     message: str = Column(Text, nullable=False)
     data: Dict[str, Any] = Column(JSON, nullable=True)
 
@@ -291,7 +277,7 @@ class Template(Base):
 
     id: int = Column(
         Integer,
-        default=lambda: unique_number(Template, Template.id),
+        default=lambda: unique_number(Template, Template.id, ID_LENGTH),
         primary_key=True,
     )
     name: str = Column(Text, nullable=False)
@@ -332,7 +318,8 @@ def get_user_from_jwt(token, db: Session) -> User:
         payload = jwt.decode(token, key=Env.JWT_SECRET(), algorithms=["HS256"])
         payload = JWTPayload(
             username=payload.get("username", ""),
-            user_id=payload.get("user_id", "") or payload.get("userid", ""),  # grandfather 'userid'
+            user_id=payload.get("user_id", "")
+            or payload.get("userid", ""),  # grandfather 'userid'
         )
     except Exception as e:
         logger.error("Could not decode JWT token")

@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "ChainFury"
 copyright = "2023, NimbleBox Engineering"
 author = "NimbleBox Engineering"
-release = "1.6.4"
+release = "1.7.0a1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

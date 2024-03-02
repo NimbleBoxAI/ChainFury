@@ -36,4 +36,4 @@ COPY --from=builder /app/dist/. /app/chainfury_server/static/.
 
 WORKDIR /app/chainfury_server
 EXPOSE 8000
-CMD ["python3", "server.py", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "-m", "chainfury_server", "--host", "0.0.0.0", "--port", "8000"]

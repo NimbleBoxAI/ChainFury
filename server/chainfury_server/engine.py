@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import time
 import json
 import traceback
@@ -12,14 +14,9 @@ from chainfury.utils import SimplerTimes
 
 import chainfury_server.database as DB
 from chainfury_server.utils import logger
-from chainfury_server.engines.registry import EngineInterface, engine_registry
 
 
-class FuryEngine(EngineInterface):
-    @property
-    def engine_name(self) -> str:
-        return "fury"
-
+class FuryEngine:
     def run(
         self,
         chatbot: DB.ChatBot,
@@ -30,7 +27,9 @@ class FuryEngine(EngineInterface):
         store_io: bool,
     ) -> T.CFPromptResult:
         if prompt.new_message and prompt.data:
-            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
+            raise HTTPException(
+                status_code=400, detail="prompt cannot have both new_message and data"
+            )
         try:
             logger.debug("Adding prompt to database")
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
@@ -49,12 +48,17 @@ class FuryEngine(EngineInterface):
                 print_thoughts=False,
             )
             result = T.CFPromptResult(
-                result=json.dumps(mainline_out) if type(mainline_out) != str else mainline_out,
+                result=(
+                    json.dumps(mainline_out)
+                    if type(mainline_out) != str
+                    else mainline_out
+                ),
                 prompt_id=prompt_row.id,  # type: ignore
             )
 
             # commit the prompt to DB
             if store_io:
+                prompt_row.input_prompt = prompt.new_message  # type: ignore
                 prompt_row.response = result.result  # type: ignore
             prompt_row.time_taken = float(time.time() - start)  # type: ignore
             db.commit()
@@ -77,7 +81,9 @@ class FuryEngine(EngineInterface):
         store_io: bool,
     ) -> Generator[Tuple[Union[T.CFPromptResult, Dict[str, Any]], bool], None, None]:
         if prompt.new_message and prompt.data:
-            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
+            raise HTTPException(
+                status_code=400, detail="prompt cannot have both new_message and data"
+            )
         try:
             logger.debug("Adding prompt to database")
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
@@ -134,7 +140,9 @@ class FuryEngine(EngineInterface):
         store_io: bool,
     ) -> T.CFPromptResult:
         if prompt.new_message and prompt.data:
-            raise HTTPException(status_code=400, detail="prompt cannot have both new_message and data")
+            raise HTTPException(
+                status_code=400, detail="prompt cannot have both new_message and data"
+            )
         try:
             logger.debug("Adding prompt to database")
             prompt_row = create_prompt(db, chatbot.id, prompt.new_message if store_io else "", prompt.session_id)  # type: ignore
@@ -165,7 +173,7 @@ class FuryEngine(EngineInterface):
             raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-engine_registry.register(FuryEngine())
+# engine_registry.register(FuryEngine())
 
 # helpers
 
@@ -206,7 +214,9 @@ class FuryThoughts:
 #     return db_prompt
 
 
-def create_prompt(db: Session, chatbot_id: str, input_prompt: str, session_id: str) -> DB.Prompt:
+def create_prompt(
+    db: Session, chatbot_id: str, input_prompt: str, session_id: str
+) -> DB.Prompt:
     db_prompt = DB.Prompt(
         chatbot_id=chatbot_id,
         input_prompt=input_prompt,
