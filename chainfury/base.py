@@ -1118,8 +1118,7 @@ class Chain:
         self.chain_id: Optional[str] = None
 
         # perform checks and validations
-        if not nodes and not edges:
-            self.is_empty = True
+        self.is_empty = not nodes and not edges
         self.nodes: Dict[str, Node] = {node.id: node for node in nodes}
         self.edges = edges
 
@@ -1151,7 +1150,7 @@ class Chain:
                     )
                 else:
                     main_out = edges_with_main_out_key[0].target
-            else:
+            elif main_out:
                 node = next(iter(self.nodes.values()))
                 outputs_with_op_name = list(
                     filter(lambda output: output.name == main_out, node.outputs)
@@ -1160,6 +1159,8 @@ class Chain:
                     raise ValueError(f"c2: Could not find output variable '{main_out}'")
                 else:
                     main_out = f"{node.id}/{main_out}"
+            else:
+                raise ValueError("c3: main_out is required")
         self.main_out = main_out
 
         for node_id in self.topo_order:
@@ -1227,7 +1228,11 @@ class Chain:
     # ser/deser
 
     def to_dict(
-        self, main_in: str = "", main_out: str = "", sample: Dict[str, Any] = {}
+        self,
+        main_in: str = "",
+        main_out: str = "",
+        sample: Dict[str, Any] = {},
+        api: bool = False,
     ) -> Dict[str, Any]:
         """Serializes the chain to a dictionary.
 
@@ -1239,23 +1244,35 @@ class Chain:
         Returns:
             Dict[str, Any]: The dictionary representation of the chain.
         """
-        main_in = main_in or self.main_in
-        main_out = main_out or self.main_out
-        sample = sample or self.sample
-        if main_in not in sample:
-            logger.warning(f"Key should be present in 'sample': {main_in}")
-        # assert main_in in sample, f"Invalid key: {main_in}"
+        if api:
+            if not self.name:
+                logger.error(
+                    "Chain name is required for converting to APIChain. Pass it during chain creation like Chain(name = ...)"
+                )
+                raise ValueError("name is required")
+            return T.ApiChain(
+                name=self.name,
+                description=self.description,
+                dag=self.to_dag(),
+            ).model_dump()
+        else:
+            main_in = main_in or self.main_in
+            main_out = main_out or self.main_out
+            sample = sample or self.sample
+            if main_in not in sample:
+                logger.warning(f"Key should be present in 'sample': {main_in}")
+            # assert main_in in sample, f"Invalid key: {main_in}"
 
-        if not (main_in or main_out or sample):
-            raise ValueError("No main_in, main_out or sample provided")
-        return {
-            "nodes": [node.to_dict() for node in self.nodes.values()],
-            "edges": [edge.to_dict() for edge in self.edges],
-            "topo_order": self.topo_order,
-            "sample": sample,
-            "main_in": main_in,
-            "main_out": main_out,
-        }
+            if not (main_in or main_out or sample):
+                raise ValueError("No main_in, main_out or sample provided")
+            return {
+                "nodes": [node.to_dict() for node in self.nodes.values()],
+                "edges": [edge.to_dict() for edge in self.edges],
+                "topo_order": self.topo_order,
+                "sample": sample,
+                "main_in": main_in,
+                "main_out": main_out,
+            }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any], verbose: bool = False) -> "Chain":
@@ -1267,23 +1284,34 @@ class Chain:
         Returns:
             Chain: The chain created from the dictionary.
         """
-        nodes = [Node.from_dict(data=x, verbose=verbose) for x in data["nodes"]]
-        edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
-        return cls(
-            nodes=nodes,
-            edges=edges,
-            sample=data["sample"],
-            main_in=data["main_in"],
-            main_out=data["main_out"],
-        )
+        if "dag" in data:
+            # this was created with .to_dict(api = True)
+            chain = T.ApiChain(**data)
+            if chain.dag is None:
+                raise ValueError("Invalid data, missing dag")
+            self = cls.from_dag(chain.dag)
+            self.name = chain.name
+            self.description = chain.description
+            return self
+        else:
+            # this was created with .to_dict(api = False)
+            nodes = [Node.from_dict(data=x, verbose=verbose) for x in data["nodes"]]
+            edges = [Edge.from_dict(data=x, verbose=verbose) for x in data["edges"]]
+            return cls(
+                nodes=nodes,
+                edges=edges,
+                sample=data["sample"],
+                main_in=data["main_in"],
+                main_out=data["main_out"],
+            )
 
-    def to_json(self, indent=None) -> str:
+    def to_json(self, indent=None, api: bool = False) -> str:
         """Serializes the chain to a JSON string.
 
         Returns:
             str: The JSON string representation of the chain.
         """
-        return json.dumps(self.to_dict(), indent=indent)
+        return json.dumps(self.to_dict(api=api), indent=indent)
 
     @classmethod
     def from_json(cls, data: str):
@@ -1432,7 +1460,7 @@ class Chain:
                 edge.source and edge.target and edge.sourceHandle and edge.targetHandle
             ):
                 raise ValueError(f"Invalid edge {edge}")
-            edges.append(Edge.from_dict(edge.dict()))
+            edges.append(Edge.from_dict(edge.model_dump()))
 
         return cls(
             nodes=nodes,
@@ -1462,10 +1490,11 @@ class Chain:
         chain, err = stub.chains.u(id)(_verbose=True)
         if err:
             raise ValueError(f"Could not get chain with id '{id}', error: {chain}")
-        chain = T.ApiChain(**chain)
-        if chain.dag is None:
-            raise ValueError(f"Chain {id} has no dag")
-        self = cls.from_dag(chain.dag)
+        self = cls.from_dict(chain)
+        # chain = T.ApiChain(**chain)
+        # if chain.dag is None:
+        #     raise ValueError(f"Chain {id} has no dag")
+        # self = cls.from_dag(chain.dag)
         self.chain_id = id
         return self
 
@@ -1503,7 +1532,7 @@ class Chain:
                 description=description or self.description,
                 dag=self.to_dag(),
             )
-            chain_data, err = stub.api.chains("put", json=req.dict())
+            chain_data, err = stub.api.chains("put", json=req.model_dump())
             if err:
                 raise ValueError(f"Could not create chain, error: {chain_data}")
         else:
@@ -1519,7 +1548,9 @@ class Chain:
                 dag=self.to_dag(),
                 update_keys=update_keys,
             )
-            chain_data, err = stub.api.chains.u(self.chain_id)("patch", json=req.dict())
+            chain_data, err = stub.api.chains.u(self.chain_id)(
+                "patch", json=req.model_dump()
+            )
             if err:
                 raise ValueError(f"Could not update chain, error: {chain_data}")
 

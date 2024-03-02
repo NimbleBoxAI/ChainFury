@@ -133,10 +133,16 @@ def unique_number(Table, row_reference, length):
 
 
 def add_default_user():
-    admin_password = sha256_crypt.hash("admin")
     db = db_session()
     try:
-        db.add(User(username="admin", password=admin_password, email="a@b.c", meta=""))  # type: ignore
+        db.add(
+            User(
+                username="admin",
+                password=sha256_crypt.hash("admin"),
+                email="admin@admin.com",
+                meta="",
+            ),  # type: ignore
+        )
         db.commit()
         logger.info(
             "Added default username, recommend you change it.\nusername: admin\npassword: admin\nemail:a@b.c"

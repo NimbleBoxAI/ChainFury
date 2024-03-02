@@ -13,18 +13,34 @@ from chainfury.core import model_registry, programatic_actions_registry, memory_
 
 def help():
     print(
-        """
+        f"""
+  ___ _         _       ___
+ / __| |_  __ _(_)_ _  | __|  _ _ _ _  _ 
+| (__| ' \/ _` | | ' \ | _| || | '_| || |
+ \___|_||_\__,_|_|_||_||_| \_,_|_|  \_, |
+                                     |__/
+e0 a4 b8 e0 a4 a4 e0 a5 8d e0 a4 af e0 a4
+ae e0 a5 87 e0 a4 b5 20 e0 a4 9c e0 a4 af
+            e0 a4 a4 e0 a5 87
+
 🦋 Welcome to ChainFury Engine!
+
+cf_version: {__version__}
+
+The chaining engine behind chat.tune.app
 
 A powerful way to program for the "Software 2.0" era. Read more:
 
 - https://blog.nimblebox.ai/new-flow-engine-from-scratch
 - https://blog.nimblebox.ai/fury-actions
 - https://gist.github.com/yashbonde/002c527853e04869bfaa04646f3e0974
+- https://tunehq.ai
+- https://chat.tune.app
+- https://studio.tune.app
 
 🌟 us on https://github.com/NimbleBoxAI/ChainFury
 
-Build with ♥️  by NimbleBox.ai
+Build with ♥️  by Tune AI
 
 🌊 Chennai, India
 """

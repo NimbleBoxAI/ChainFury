@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "chainfury_server"
-version = "2.1.0"
+version = "2.1.1"
 description = "ChainFury Server is the server for running ChainFury Engine!"
 authors = ["Tune AI <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
@@ -13,7 +13,6 @@ include = ["chainfury_server/static/*", "chainfury_server/static/*/*"]
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"
 black = "23.3.0"
-chainfury = "*"
 fastapi = "^0.109.2"
 fire = "0.5.0"
 passlib = "1.7.4"
@@ -26,8 +25,7 @@ urllib3 = ">=1.26.18"
 "cryptography" = ">=41.0.6"
 
 [tool.poetry.scripts]
-chainfury_server = "chainfury_server.server:main"
-cf_server = "chainfury_server.server:main"
+chainfury_server = "chainfury_server"
 
 [build-system]
 requires = ["poetry-core"]

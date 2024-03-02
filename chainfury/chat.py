@@ -3,14 +3,11 @@
 import os
 import json
 import random
-import numpy as np
-import datasets as dst
 from functools import partial
-from tabulate import tabulate
 from collections.abc import Iterable
 from typing import Dict, List, Any, Tuple, Optional, Generator
 
-from chainfury.utils import to_json, get_random_string
+from chainfury.utils import to_json, get_random_string, logger
 
 
 class Message:
@@ -20,17 +17,6 @@ class Message:
     VALUE = "value"
     FUNCTION = "function"
     FUNCTION_RESPONSE = "function-response"
-
-    @staticmethod
-    def get_llamaMap():
-        return {
-            Message.SYSTEM: "system",
-            Message.HUMAN: "user",
-            Message.GPT: "assistant",
-            Message.VALUE: "value",
-            Message.FUNCTION: "function",
-            Message.FUNCTION_RESPONSE: "function-response",
-        }
 
     # start initialization here
     def __init__(self, value: str | float, role: str):
@@ -153,6 +139,8 @@ class Chat:
             return self.meta[__name]
         raise AttributeError(f"Attribute {__name} not found")
 
+    # ser/deser
+
     def to_dict(self, full: bool = False):
         if full:
             return {
@@ -192,6 +180,22 @@ class Chat:
             ft_dict["last"] = self.chats[-1].to_dict(ft=True)
         return ft_dict, self.meta
 
+    # modifications
+
+    def copy(self) -> "Chat":
+        return Chat(
+            chats=[x for x in self.chats],
+            jl=self.jl,
+            model=self.model,
+            **self.meta,
+        )
+
+    def add(self, message: Message):
+        self.chats.append(message)
+
+
+# these are the classes that we use for tune datasets from r-stack
+
 
 class TuneChats(list):
     """This class implements some basic container methods for a list of Chat objects"""
@@ -222,6 +226,11 @@ class TuneChats(list):
         return self.items[__index]
 
     def table(self) -> str:
+        try:
+            from tabulate import tabulate
+        except ImportError:
+            raise ImportError("Install tabulate to use this method")
+
         table = []
         for k, v in self.idx_dict.items():
             table.append(
@@ -274,6 +283,11 @@ class TuneChats(list):
             self.key_to_items_idx[x.value_hash].append(i)
 
     def create_te_split(self, test_items: int | float = 0.1) -> Tuple["TuneChats", ...]:
+        try:
+            import numpy as np
+        except ImportError:
+            raise ImportError("Install numpy to use `create_te_split` method")
+
         train_ds = TuneChats()
         eval_ds = TuneChats()
         items_np_arr = np.array(self.items)
@@ -313,8 +327,8 @@ class TuneChats(list):
 
     def to_disk(self, folder: str, fmt: Optional[str] = None):
         if fmt:
-            print(
-                f"[WARN] exporting to {fmt} format, you cannot recreate the dataset from this."
+            logger.warn(
+                f"exporting to {fmt} format, you cannot recreate the dataset from this."
             )
         os.makedirs(folder)
         with open(f"{folder}/tuneds.jsonl", "w") as f:
@@ -336,7 +350,12 @@ class TuneChats(list):
                 bench_dataset.append(Chat.from_dict(item))
         return bench_dataset
 
-    def to_hf_dataset(self) -> Tuple[dst.Dataset, List]:
+    def to_hf_dataset(self) -> Tuple["datasets.Dataset", List]:  # type: ignore
+        try:
+            import datasets as dst
+        except ImportError:
+            raise ImportError("Install huggingface datasets library to use this method")
+
         _ds_list = []
         meta_list = []
         for x in self.items:
@@ -370,7 +389,12 @@ class TuneDataset:
             eval_ds.extend(item.eval_ds)
         return cls(train=train_ds, eval=eval_ds)
 
-    def to_hf_dict(self) -> Tuple[dst.DatasetDict, Dict[str, List]]:
+    def to_hf_dict(self) -> Tuple["datasets.DatasetDict", Dict[str, List]]:  # type: ignore
+        try:
+            import datasets as dst
+        except ImportError:
+            raise ImportError("Install huggingface datasets library to use this method")
+
         train_ds, train_meta = self.train_ds.to_hf_dataset()
         eval_ds, eval_meta = self.eval_ds.to_hf_dataset()
         return dst.DatasetDict(train=train_ds, eval=eval_ds), {
