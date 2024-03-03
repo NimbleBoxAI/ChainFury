@@ -12,20 +12,30 @@ import chainfury_server.database as DB
 import chainfury.types as T
 
 
-def login(auth: T.ApiAuth, db: Session = Depends(DB.fastapi_db_session)):
+def login(
+    req: Request,
+    resp: Response,
+    auth: T.ApiAuthRequest,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiLoginResponse:
     user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
     if user is not None and sha256_crypt.verify(auth.password, user.password):  # type: ignore
         token = jwt.encode(
             payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
             key=Env.JWT_SECRET(),
         )
-        response = {"msg": "success", "token": token}
+        return T.ApiLoginResponse(message="success", token=token)
     else:
-        response = {"msg": "failed"}
-    return response
+        resp.status_code = 401
+        return T.ApiLoginResponse(message="failed")
 
 
-def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
+def sign_up(
+    req: Request,
+    resp: Response,
+    auth: T.ApiSignUpRequest,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiLoginResponse:
     user_exists = False
     email_exists = False
     user: DB.User = db.query(DB.User).filter(DB.User.username == auth.username).first()  # type: ignore
@@ -36,7 +46,8 @@ def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
         email_exists = True
     if user_exists and email_exists:
         raise HTTPException(
-            status_code=400, detail="Username and email already registered"
+            status_code=400,
+            detail="Username and email already registered",
         )
     elif user_exists:
         raise HTTPException(status_code=400, detail="Username is taken")
@@ -54,17 +65,17 @@ def sign_up(auth: T.ApiSignUp, db: Session = Depends(DB.fastapi_db_session)):
             payload=DB.JWTPayload(username=auth.username, user_id=user.id).to_dict(),
             key=Env.JWT_SECRET(),
         )
-        response = {"msg": "success", "token": token}
+        return T.ApiLoginResponse(message="success", token=token)
     else:
-        response = {"msg": "failed"}
-    return response
+        resp.status_code = 400
+        return T.ApiLoginResponse(message="failed")
 
 
 def change_password(
     req: Request,
     resp: Response,
     token: Annotated[str, Header()],
-    inputs: T.ApiChangePassword,
+    inputs: T.ApiChangePasswordRequest,
     db: Session = Depends(DB.fastapi_db_session),
 ) -> T.ApiResponse:
     # validate user
@@ -78,3 +89,49 @@ def change_password(
     else:
         resp.status_code = 400
         return T.ApiResponse(message="password incorrect")
+
+
+# TODO: @tunekoro - Implement the following functions
+
+
+def create_token(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    inputs: T.ApiSaveTokenRequest,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
+    resp.status_code = 501  #
+    return T.ApiResponse(message="not implemented")
+
+
+def get_token(
+    req: Request,
+    resp: Response,
+    key: str,
+    token: Annotated[str, Header()],
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
+    resp.status_code = 501  #
+    return T.ApiResponse(message="not implemented")
+
+
+def list_tokens(
+    req: Request,
+    resp: Response,
+    token: Annotated[str, Header()],
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
+    resp.status_code = 501  #
+    return T.ApiResponse(message="not implemented")
+
+
+def delete_token(
+    req: Request,
+    resp: Response,
+    key: str,
+    token: Annotated[str, Header()],
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiResponse:
+    resp.status_code = 501  #
+    return T.ApiResponse(message="not implemented")

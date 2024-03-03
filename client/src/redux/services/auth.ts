@@ -49,7 +49,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id }) => ({
-        url: `${BASE_URL}/api/v1/prompts/${prompt_id}/feedback`,
+        url: `${BASE_URL}/api/v1/prompts/${prompt_id}/feedback/`,
         method: 'PUT',
         body: {
           score
@@ -136,7 +136,7 @@ export const authApi = createApi({
       }
     >({
       query: ({ score, prompt_id, chatbot_id }) => ({
-        url: `${BASE_URL}/api/prompts/${prompt_id}/feedback`,
+        url: `${BASE_URL}/api/prompts/${prompt_id}/feedback/`,
         method: 'PUT',
         body: {
           score

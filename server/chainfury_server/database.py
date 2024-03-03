@@ -13,7 +13,7 @@ from typing import Dict, Any
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm import Session, scoped_session, sessionmaker, relationship
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -28,6 +28,7 @@ from sqlalchemy import (
 )
 
 from chainfury_server.utils import logger, Env
+import chainfury.types as T
 
 ########
 #
@@ -170,9 +171,27 @@ class User(Base):
     username: str = Column(String(80), unique=True, nullable=False)
     password: str = Column(String(80), nullable=False)
     meta: Dict[str, Any] = Column(JSON)
+    tokens = relationship("Tokens", back_populates="user")
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, meta={self.meta})"
+
+
+class Tokens(Base):
+    __tablename__ = "tokens"
+
+    MAXLEN_KEY = 80
+    MAXLEN_VAL = 1024
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(ID_LENGTH), ForeignKey("user.id"), nullable=False)
+    key = Column(String(MAXLEN_KEY), nullable=False)
+    value = Column(String(MAXLEN_VAL), nullable=False)
+    meta = Column(JSON, nullable=True)
+    user = relationship("User", back_populates="tokens")
+
+    def __repr__(self):
+        return f"Tokens(id={self.id}, user_id={self.user_id}, key={self.key}, value={self.value[:5]}..., meta={self.meta})"
 
 
 class ChatBot(Base):
@@ -207,6 +226,9 @@ class ChatBot(Base):
             "created_at": self.created_at,
             "deleted_at": self.deleted_at,
         }
+
+    def to_ApiChain(self) -> T.ApiChain:
+        return T.ApiChain(**self.to_dict())
 
     def __repr__(self):
         return f"ChatBot(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
@@ -255,6 +277,9 @@ class Prompt(Base):
             "meta": self.meta,
         }
 
+    def to_ApiPrompt(self):
+        return T.ApiPrompt(**self.to_dict())
+
 
 class ChainLog(Base):
     __tablename__ = "chain_logs"
@@ -270,6 +295,20 @@ class ChainLog(Base):
     worker_id: str = Column(String(Env.CFS_MAXLEN_WORKER()), nullable=False)
     message: str = Column(Text, nullable=False)
     data: Dict[str, Any] = Column(JSON, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "prompt_id": self.prompt_id,
+            "node_id": self.node_id,
+            "worker_id": self.worker_id,
+            "message": self.message,
+            "data": self.data,
+        }
+
+    def to_ApiChainLog(self):
+        return T.ApiChainLog(**self.to_dict())
 
 
 class Template(Base):

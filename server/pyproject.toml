@@ -2,8 +2,8 @@
 
 [tool.poetry]
 name = "chainfury_server"
-version = "2.1.1"
-description = "ChainFury Server is the server for running ChainFury Engine!"
+version = "2.1.2a"
+description = "ChainFury Server is the DB + API server for managing the ChainFury engine in production. Used in production at chat.tune.app"
 authors = ["Tune AI <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
 readme = "README.md"
@@ -25,7 +25,7 @@ urllib3 = ">=1.26.18"
 "cryptography" = ">=41.0.6"
 
 [tool.poetry.scripts]
-chainfury_server = "chainfury_server"
+chainfury_server = "chainfury_server:__main__"
 
 [build-system]
 requires = ["poetry-core"]

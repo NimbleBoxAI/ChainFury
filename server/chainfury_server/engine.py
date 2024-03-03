@@ -47,6 +47,35 @@ class FuryEngine:
                 thoughts_callback=callback,
                 print_thoughts=False,
             )
+
+            # store the full_ir in the DB.ChainLog
+            if store_ir:
+                # group the logs by node_id
+                chain_logs_by_node = {}
+                for k, v in full_ir.items():
+                    node_id, varname = k.split("/")
+                    chain_logs_by_node.setdefault(node_id, {"outputs": []})
+                    chain_logs_by_node[node_id]["outputs"].append(
+                        {
+                            "name": varname,
+                            "data": v,
+                        }
+                    )
+
+                # iterate over node ids and create the logs
+                for k, v in chain_logs_by_node.items():
+                    db_chainlog = DB.ChainLog(
+                        prompt_id=prompt_row.id,
+                        created_at=SimplerTimes.get_now_datetime(),
+                        node_id=k,
+                        worker_id="cf_server",
+                        message="step",
+                        data=v,
+                    )  # type: ignore
+                    db.add(db_chainlog)
+                db.commit()
+
+            # create the result
             result = T.CFPromptResult(
                 result=(
                     json.dumps(mainline_out)
@@ -110,6 +139,28 @@ class FuryEngine:
                 else:
                     mainline_out = ir
                     yield ir, False
+
+                if store_ir:
+                    # in case of stream, every item is a fundamentally a step
+                    data = {
+                        "outputs": [
+                            {
+                                "name": k.split("/")[-1],
+                                "data": v,
+                            }
+                            for k, v in ir.items()
+                        ]
+                    }
+                    k = next(iter(ir))[0].split("/")[0]
+                    db_chainlog = DB.ChainLog(
+                        prompt_id=prompt_row.id,
+                        created_at=SimplerTimes.get_now_datetime(),
+                        node_id=k,
+                        worker_id="cf_server",
+                        message="step",
+                        data=data,
+                    )  # type: ignore
+                    db.add(db_chainlog)
 
             result = T.CFPromptResult(
                 result=str(mainline_out),
@@ -192,26 +243,6 @@ class FuryThoughts:
             intermediate_response = str(intermediate_response)
         # create_intermediate_steps(self.db, prompt_id=self.prompt_id, intermediate_response=intermediate_response)
         self.count += 1
-
-
-# def create_intermediate_steps(
-#     db: Session,
-#     prompt_id: int,
-#     intermediate_prompt: str = "",
-#     intermediate_response: str = "",
-#     response_json: Dict = {},
-# ) -> DB.IntermediateStep:
-#     db_prompt = DB.IntermediateStep(
-#         prompt_id=prompt_id,
-#         intermediate_prompt=intermediate_prompt,
-#         intermediate_response=intermediate_response,
-#         response_json=response_json,
-#         created_at=SimplerTimes.get_now_datetime(),
-#     )  # type: ignore
-#     db.add(db_prompt)
-#     db.commit()
-#     db.refresh(db_prompt)
-#     return db_prompt
 
 
 def create_prompt(
