@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-
 from pydantic import BaseModel, Field, ConfigDict
 
 # First is the set of types that are used in the chainfury itself
@@ -70,6 +69,11 @@ class CFPromptResult(BaseModel):
     result: str
     prompt_id: int = 0
     task_id: str = ""
+
+
+class ApiLoginResponse(BaseModel):
+    message: str
+    token: Optional[str] = None
 
 
 class ApiResponse(BaseModel):
@@ -149,18 +153,18 @@ class ApiActionUpdateRequest(BaseModel):
     update_fields: List[str] = Field(description="The fields to update.")
 
 
-class ApiAuth(BaseModel):
+class ApiAuthRequest(BaseModel):
     username: str
     password: str
 
 
-class ApiSignUp(BaseModel):
+class ApiSignUpRequest(BaseModel):
     username: str
     email: str
     password: str
 
 
-class ApiChangePassword(BaseModel):
+class ApiChangePasswordRequest(BaseModel):
     username: str
     old_password: str
     new_password: str
@@ -168,3 +172,49 @@ class ApiChangePassword(BaseModel):
 
 class ApiPromptFeedback(BaseModel):
     score: int
+
+
+class ApiPromptFeedbackResponse(BaseModel):
+    rating: int
+
+
+class ApiSaveTokenRequest(BaseModel):
+    key: str
+    token: str
+    meta: Optional[Dict[str, Any]] = {}
+
+
+class ApiListTokensResponse(BaseModel):
+    tokens: List[ApiSaveTokenRequest]
+
+
+class ApiChainLog(BaseModel):
+    id: str
+    created_at: datetime
+    prompt_id: int
+    node_id: str
+    worker_id: str
+    message: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+
+
+class ApiListChainLogsResponse(BaseModel):
+    logs: List[ApiChainLog]
+
+
+class ApiPrompt(BaseModel):
+    id: int
+    chatbot_id: str
+    input_prompt: str
+    created_at: datetime
+    session_id: str
+    meta: Optional[Dict[str, Any]] = None
+    response: Optional[str] = None
+    gpt_rating: Optional[str] = None
+    user_rating: Optional[int] = None
+    time_taken: Optional[float] = None
+    num_tokens: Optional[int] = None
+
+
+class ApiListPromptsResponse(BaseModel):
+    prompts: List[ApiPrompt]

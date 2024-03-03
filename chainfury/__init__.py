@@ -14,7 +14,14 @@ from chainfury.utils import (
     logger,
     CFEnv,
 )
-from chainfury.base import Var, Node, Secret, Chain, Model, Edge
+from chainfury.base import (
+    Var,
+    Node,
+    Secret,
+    Chain,
+    Model,
+    Edge,
+)
 from chainfury.core import (
     model_registry,
     programatic_actions_registry,

@@ -2,7 +2,7 @@
 name = "chainfury"
 version = "1.7.0a1"
 description = "ChainFury is a powerful tool that simplifies the creation and management of chains of prompts, making it easier to build complex chat applications using LLMs."
-authors = ["NimbleBox Engineering <engineering@nimblebox.ai>"]
+authors = ["Tune AI <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
 readme = "README.md"
 repository = "https://github.com/NimbleBoxAI/ChainFury"

@@ -311,7 +311,7 @@ def threaded_map(
                 results[i] = res
             except Exception as e:
                 if safe:
-                    results[i] = e
+                    results[i] = e  # type: ignore
                 else:
                     raise e
     return results
