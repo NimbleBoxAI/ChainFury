@@ -237,7 +237,7 @@ def echo(message: str) -> Tuple[Dict[str, Dict[str, str]], Optional[Exception]]:
 
 programatic_actions_registry.register(
     fn=echo,
-    outputs={"message": (0,)},  # type: ignore
+    outputs={"message": ()},  # type: ignore
     node_id="chainfury-echo",
     description="I stared into the abyss and it stared back at me. Echoes the message, used for debugging",
 )
