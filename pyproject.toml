@@ -18,7 +18,7 @@ python-dotenv = "1.0.0"
 urllib3 = ">=1.26.18"
 "cryptography" = ">=41.0.6"
 stability-sdk = { version = "0.8.3", optional = true }
-qdrant-client = { version = "1.5.4", optional = true }
+qdrant-client = { version = "1.8.0", optional = true }
 boto3 = { version = "1.29.6", optional = true }
 
 [tool.poetry.extras]
