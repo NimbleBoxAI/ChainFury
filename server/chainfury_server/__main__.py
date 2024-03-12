@@ -10,17 +10,6 @@ _dotenv_fp = os.getenv("CFS_DOTENV", ".env")
 if os.path.exists(_dotenv_fp):
     dotenv.load_dotenv(_dotenv_fp)
 
-__CF_LOGO = """
-  ___ _         _       ___
- / __| |_  __ _(_)_ _  | __|  _ _ _ _  _ 
-| (__| ' \/ _` | | ' \ | _| || | '_| || |
- \___|_||_\__,_|_|_||_||_| \_,_|_|  \_, |
-                                     |__/
-e0 a4 b8 e0 a4 a4 e0 a5 8d e0 a4 af e0 a4
-ae e0 a5 87 e0 a4 b5 20 e0 a4 9c e0 a4 af
-            e0 a4 a4 e0 a5 87
-"""
-
 
 def main(
     host: str = "0.0.0.0",
@@ -38,19 +27,18 @@ def main(
         post (List[str], optional): List of modules to load after the server is imported. Defaults to [].
     """
     # WARNING: ensure that nothing is being imported in the utils from chainfury_server
+    from chainfury.cli import CLI
     from chainfury_server.utils import logger
-    from chainfury.version import __version__ as cf_version
     from chainfury_server.version import __version__ as cfs_version
 
     logger.info(
-        f"{__CF_LOGO}\n"
+        f"{CLI.info}\n"
         f"Starting ChainFury server ...\n"
-        f"               Host: {host}\n"
-        f"               Port: {port}\n"
-        f"                Pre: {pre}\n"
-        f"               Post: {post}\n"
-        f"  chainfury version: {cf_version}\n"
-        f"  cf_server version: {cfs_version}"
+        f"       Host: {host}\n"
+        f"       Port: {port}\n"
+        f"        Pre: {pre}\n"
+        f"       Post: {post}\n"
+        f"  cf_server: {cfs_version}"
     )
 
     # load all things you need to preload the modules

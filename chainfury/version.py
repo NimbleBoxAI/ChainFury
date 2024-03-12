@@ -1,6 +1,6 @@
 # Copyright © 2023- Frello Technology Private Limited
 
-__version__ = "1.7.0a1"
+__version__ = "1.7.0a2"
 _major, _minor, _patch = __version__.split(".")
 _major = int(_major)
 _minor = int(_minor)

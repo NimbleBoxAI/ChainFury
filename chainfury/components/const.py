@@ -12,7 +12,7 @@ class Env:
     * CF_URL: ChainFury API URL
     * NBX_DEPLOY_URL: NimbleBox Deploy URL
     * NBX_DEPLOY_KEY: NimbleBox Deploy API key
-    * TUNECHAT_KEY: ChatNBX API key, see chat.nbox.ai
+    * TUNEAPI_TOKEN: ChatNBX API key, see chat.nbox.ai
     * OPENAI_TOKEN: OpenAI API token, see platform.openai.com
     * SERPER_API_KEY: Serper API key, see serper.dev/
     * STABILITY_KEY: Stability API key, see dreamstudio.ai
@@ -29,7 +29,7 @@ class Env:
     NBX_DEPLOY_KEY = lambda x: x or os.getenv("NBX_DEPLOY_KEY", "")
 
     ## different keys for different 3rd party APIs
-    TUNECHAT_KEY = lambda x: x or os.getenv("TUNECHAT_KEY", "")
+    TUNEAPI_TOKEN = lambda x: x or os.getenv("TUNEAPI_TOKEN", "")
     OPENAI_TOKEN = lambda x: x or os.getenv("OPENAI_TOKEN", "")
     SERPER_API_KEY = lambda x: x or os.getenv("SERPER_API_KEY", "")
 

@@ -25,7 +25,7 @@ class FuryEngine:
         start: float,
         store_ir: bool,
         store_io: bool,
-    ) -> T.CFPromptResult:
+    ) -> T.ChainResult:
         if prompt.new_message and prompt.data:
             raise HTTPException(
                 status_code=400, detail="prompt cannot have both new_message and data"
@@ -37,7 +37,7 @@ class FuryEngine:
             # Create a Fury chain then run the chain while logging all the intermediate steps
             dag = T.Dag(**chatbot.dag)  # type: ignore
             chain = Chain.from_dag(dag, check_server=False)
-            callback = FuryThoughts(db, prompt_row.id)
+            callback = FuryThoughtsCallback(db, prompt_row.id)
             if prompt.new_message:
                 prompt.data = {chain.main_in: prompt.new_message}
 
@@ -76,7 +76,7 @@ class FuryEngine:
                 db.commit()
 
             # create the result
-            result = T.CFPromptResult(
+            result = T.ChainResult(
                 result=(
                     json.dumps(mainline_out)
                     if type(mainline_out) != str
@@ -108,7 +108,7 @@ class FuryEngine:
         start: float,
         store_ir: bool,
         store_io: bool,
-    ) -> Generator[Tuple[Union[T.CFPromptResult, Dict[str, Any]], bool], None, None]:
+    ) -> Generator[Tuple[Union[T.ChainResult, Dict[str, Any]], bool], None, None]:
         if prompt.new_message and prompt.data:
             raise HTTPException(
                 status_code=400, detail="prompt cannot have both new_message and data"
@@ -120,7 +120,7 @@ class FuryEngine:
             # Create a Fury chain then run the chain while logging all the intermediate steps
             dag = T.Dag(**chatbot.dag)  # type: ignore
             chain = Chain.from_dag(dag, check_server=False)
-            callback = FuryThoughts(db, prompt_row.id)
+            callback = FuryThoughtsCallback(db, prompt_row.id)
             if prompt.new_message:
                 prompt.data = {chain.main_in: prompt.new_message}
 
@@ -162,7 +162,7 @@ class FuryEngine:
                     )  # type: ignore
                     db.add(db_chainlog)
 
-            result = T.CFPromptResult(
+            result = T.ChainResult(
                 result=str(mainline_out),
                 prompt_id=prompt_row.id,  # type: ignore
             )
@@ -189,7 +189,7 @@ class FuryEngine:
         start: float,
         store_ir: bool,
         store_io: bool,
-    ) -> T.CFPromptResult:
+    ) -> T.ChainResult:
         if prompt.new_message and prompt.data:
             raise HTTPException(
                 status_code=400, detail="prompt cannot have both new_message and data"
@@ -206,7 +206,7 @@ class FuryEngine:
 
             # call the chain
             task_id: str = str(uuid4())
-            result = T.CFPromptResult(
+            result = T.ChainResult(
                 result=f"Task '{task_id}' scheduled",
                 prompt_id=prompt_row.id,
                 task_id=task_id,
@@ -224,12 +224,10 @@ class FuryEngine:
             raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-# engine_registry.register(FuryEngine())
-
 # helpers
 
 
-class FuryThoughts:
+class FuryThoughtsCallback:
     def __init__(self, db, prompt_id):
         self.db = db
         self.prompt_id = prompt_id

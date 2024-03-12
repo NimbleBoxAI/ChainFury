@@ -2,7 +2,7 @@
 
 [tool.poetry]
 name = "chainfury_server"
-version = "2.1.2a"
+version = "2.1.3a0"
 description = "ChainFury Server is the DB + API server for managing the ChainFury engine in production. Used in production at chat.tune.app"
 authors = ["Tune AI <engineering@nimblebox.ai>"]
 license = "Apache 2.0"
@@ -22,7 +22,8 @@ SQLAlchemy = "1.4.47"
 uvicorn = "0.27.1"
 PyMySQL = "1.0.3"
 urllib3 = ">=1.26.18"
-"cryptography" = ">=41.0.6"
+cryptography = ">=41.0.6"
+snowflake_id = "1.0.1"
 
 [tool.poetry.scripts]
 chainfury_server = "chainfury_server:__main__"

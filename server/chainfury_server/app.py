@@ -46,10 +46,10 @@ app.add_api_route("/api/v1/chatbot/{id}/prompt", api_chains.run_chain, methods=[
 app.add_api_route(methods=["POST"], path="/user/login/", endpoint=api_user.login, tags=["user"])  # type: ignore
 app.add_api_route(methods=["POST"], path="/user/signup/", endpoint=api_user.sign_up, tags=["user"])  # type: ignore
 app.add_api_route(methods=["POST"], path="/user/change_password/", endpoint=api_user.change_password, tags=["user"])  # type: ignore
-app.add_api_route(methods=["PUT"], path="/user/token/", endpoint=api_user.create_token, tags=["user"])  # type: ignore
-app.add_api_route(methods=["GET"], path="/user/token/", endpoint=api_user.get_token, tags=["user"])  # type: ignore
-app.add_api_route(methods=["DELETE"], path="/user/token/", endpoint=api_user.delete_token, tags=["user"])  # type: ignore
-app.add_api_route(methods=["GET"], path="/user/tokens/list/", endpoint=api_user.list_tokens, tags=["user"])  # type: ignore
+app.add_api_route(methods=["PUT"], path="/user/secret/", endpoint=api_user.create_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/user/secret/", endpoint=api_user.get_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["DELETE"], path="/user/secret/", endpoint=api_user.delete_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/user/secret/list/", endpoint=api_user.list_secret, tags=["user"])  # type: ignore
 
 # chains
 app.add_api_route(methods=["GET"], path="/api/chains/", endpoint=api_chains.list_chains, tags=["chains"])  # type: ignore

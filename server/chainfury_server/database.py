@@ -182,6 +182,7 @@ class Tokens(Base):
 
     MAXLEN_KEY = 80
     MAXLEN_VAL = 1024
+    MAXLEN_TOKEN = 703  # 703 long string can create 1016 long token
 
     id = Column(Integer, primary_key=True)
     user_id = Column(String(ID_LENGTH), ForeignKey("user.id"), nullable=False)
@@ -189,9 +190,17 @@ class Tokens(Base):
     value = Column(String(MAXLEN_VAL), nullable=False)
     meta = Column(JSON, nullable=True)
     user = relationship("User", back_populates="tokens")
+    # (user_id, key) is a unique constraint
 
     def __repr__(self):
         return f"Tokens(id={self.id}, user_id={self.user_id}, key={self.key}, value={self.value[:5]}..., meta={self.meta})"
+
+    def to_ApiToken(self) -> T.ApiToken:
+        return T.ApiToken(
+            key=self.key,
+            token=self.value,
+            meta=self.meta,
+        )
 
 
 class ChatBot(Base):
@@ -261,6 +270,9 @@ class Prompt(Base):
     created_at: datetime = Column(DateTime, nullable=False)
     session_id: Dict[str, Any] = Column(String(80), nullable=False)
     meta: Dict[str, Any] = Column(JSON)
+
+    # migrate to snowflake ID
+    sf_id = Column(String(19), nullable=True)
 
     def to_dict(self):
         return {

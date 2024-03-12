@@ -200,12 +200,14 @@ def run_chain(
     store_ir: bool = False,
     store_io: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
+) -> Union[StreamingResponse, T.ChainResult, T.ApiResponse]:
     """
     This is the master function to run any chain over the API. This can behave in a bunch of different formats like:
     - (default) this will wait for the entire chain to execute and return the response
     - if ``stream`` is passed it will give a streaming response with line by line JSON and last response containing ``"done"`` key
     - if ``as_task`` is passed then a task ID is received and you can poll for the results at ``/chains/{id}/results`` this supercedes the ``stream``.
+
+    ``as_task`` is not implemented.
     """
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
@@ -243,15 +245,16 @@ def run_chain(
 
     if as_task:
         # when run as a task this will return a task ID that will be submitted
-        result = engine.submit(
-            chatbot=chatbot,
-            prompt=prompt,
-            db=db,
-            start=time.time(),
-            store_ir=store_ir,
-            store_io=store_io,
-        )
-        return result
+        raise HTTPException(501, detail="Not implemented yet")
+        # result = engine.submit(
+        #     chatbot=chatbot,
+        #     prompt=prompt,
+        #     db=db,
+        #     start=time.time(),
+        #     store_ir=store_ir,
+        #     store_io=store_io,
+        # )
+        # return result
     elif stream:
 
         def _get_streaming_response(result):
