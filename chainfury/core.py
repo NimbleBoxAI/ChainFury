@@ -1,114 +1,30 @@
-"""
-Agent
-=====
+# Copyright © 2023- Frello Technology Private Limited
 
-We follow registry pattern for models and actions.
+"""
+Actions
+=======
+
+All actions that the AI can do.
 """
 
 import copy
+import random
 from uuid import uuid4
 from typing import Any, List, Optional, Dict, Tuple
 
 import jinja2
 
-from chainfury.utils import logger
 from chainfury.base import (
-    func_to_vars,
+    Node,
     func_to_return_vars,
+    func_to_vars,
+    Model,
+    Var,
     extract_jinja_indices,
     get_value_by_keys,
     put_value_by_keys,
-    Node,
-    Model,
-    Var,
-    Chain,
 )
-
-# Models
-# ------
-# All the things below are for the models that are registered in the model registry, so that they can be used as inputs
-# in the chain. There can be several models that can put as inputs in a single chatbot.
-
-
-class ModelRegistry:
-    """Model registry contains metadata for all the models that are provided in the components"""
-
-    def __init__(self):
-        self.models: Dict[str, Model] = {}
-        self.counter: Dict[str, int] = {}
-        self.tags_to_models: Dict[str, List[str]] = {}
-
-    def has(self, id: str):
-        """A helper function to check if a model is registered or not"""
-        return id in self.models
-
-    def register(self, model: Model):
-        """Register a model in the registry
-
-        Args:
-            model (Model): Model to register
-        """
-        id = f"{model.id}"
-        logger.debug(f"Registering model {id} at {id}")
-        if id in self.models:
-            raise Exception(f"Model {id} already registered")
-        self.models[id] = model
-        for tag in model.tags:
-            self.tags_to_models[tag] = self.tags_to_models.get(tag, []) + [id]
-
-    def get_tags(self) -> List[str]:
-        """Get all the tags that are registered in the registry
-
-        Returns:
-            List[str]: List of tags
-        """
-        return list(self.tags_to_models.keys())
-
-    def get_models(self, tag: str = "") -> Dict[str, Dict[str, Any]]:
-        """Get all the models that are registered in the registry
-
-        Args:
-            tag (str, optional): Filter models by tag. Defaults to "".
-
-        Returns:
-            Dict[str, Dict[str, Any]]: Dictionary of models
-        """
-        items = {k: v.to_dict() for k, v in self.models.items()}
-        if tag:
-            items = {k: v for k, v in items.items() if tag in v.get("tags", [])}
-        return items
-
-    def get(self, id: str) -> Model:
-        """Get a model from the registry
-
-        Args:
-            id (str): Id of the model
-
-        Returns:
-            Model: Model
-        """
-        self.counter[id] = self.counter.get(id, 0) + 1
-        out = self.models.get(id, None)
-        if out is None:
-            raise ValueError(f"Model {id} not found")
-        return out
-
-    def get_count_for_model(self, id: str) -> int:
-        """Get the number of times a model is used
-
-        Args:
-            id (str): Id of the model
-
-        Returns:
-            int: Number of times the model is used
-        """
-        return self.counter.get(id, 0)
-
-
-model_registry = ModelRegistry()
-"""
-`model_registry` is a global variable that is used to register models. It is an instance of ModelRegistry class.
-"""
+from chainfury.utils import logger
 
 
 # Programtic Actions Registry
@@ -239,13 +155,6 @@ class ProgramaticActionsRegistry:
         return self.counter.get(node_id, 0)
 
 
-programatic_actions_registry = ProgramaticActionsRegistry()
-"""
-`programatic_actions_registry` is a global variable that is used to register programatic nodes. It is an instance of
-ProgramaticActionsRegistry class.
-"""
-
-
 # AI Actions Registry
 # -------------------
 # For everything that cannot be done by we have the AI powered actions Registry. This registry
@@ -263,6 +172,8 @@ class AIAction:
         fn (object): The function that is used for this action
     """
 
+    FNTYPE = "cf_aifn_type"
+
     # do not remove these from here it is used in base.py if you do then put in a third file
     JTYPE = "jinja-template"
     """constant for Jinja template type"""
@@ -270,33 +181,48 @@ class AIAction:
     FUNC = "python-function"
     """constant for Python function type"""
 
-    def __init__(self, node_id: str, model: Model, model_params: Dict[str, Any], fn: object, action_name: str):
+    def __init__(
+        self,
+        node_id: str,
+        model: Model,
+        model_params: Dict[str, Any],
+        fn: object,
+        action_name: str,
+    ):
         # do some basic checks that we can do before anything else like checking if model_params
         # is a subset of the model.vars
-        fields = set(x.name for x in model.vars)
-        mp_set = set(model_params.keys())
-        if not mp_set.issubset(fields):
-            raise Exception(f"Model params {mp_set} not a subset of {fields}")
+        model_vars = set(x.name for x in model.vars)
+        model_params_set = set(model_params.keys())
+        if not model_params_set.issubset(model_vars):
+            raise Exception(
+                f"Model params {model_params_set} not a subset of {model_vars}"
+            )
 
         self.templates = []
 
         # since this is the AI action this is responsible for validating the function
         if type(fn) == dict:
             action_source = AIAction.JTYPE
-            fields = []  # fields required for self.fields
-            templates = []  # list of all the templates to be render with its position in fn
+            fields: List[Var] = []  # fields required for self.fields
+            templates = (
+                []
+            )  # list of all the templates to be render with its position in fn
             fields_with_locations = extract_jinja_indices(fn)
             for field in fields_with_locations:
                 fields.extend(field[1])
                 obj = get_value_by_keys(fn, field[0])
                 if not obj:
-                    raise ValueError(f"Field {field[0]} not found in {fn}, but was extraced. There is a bug in get_value_by_keys function")
+                    raise ValueError(
+                        f"Field {field[0]} not found in {fn}, but was extraced. There is a bug in get_value_by_keys function"
+                    )
                 templates.append((obj, jinja2.Template(obj), field[0]))
 
             # set values
             self.templates = templates
         else:
-            assert type(fn) == type(func_to_return_vars), "`fn` can either be a function or a string"
+            assert type(fn) == type(
+                func_to_return_vars
+            ), "`fn` can either be a function or a string"
             action_source = AIAction.FUNC
             fields = func_to_vars(fn)
 
@@ -346,7 +272,9 @@ class AIAction:
         _data = {}
         for f in self.fields:
             if f.required and f.name not in data:
-                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
+                raise Exception(
+                    f"Field '{f.name}' is required in {self.node_id} but not present"
+                )
             if f.name in data:
                 _data[f.name] = data.pop(f.name)
 
@@ -354,7 +282,9 @@ class AIAction:
             try:
                 fn_out = self.fn(**_data)  # type: ignore
                 if self.action_source == AIAction.FUNC and not type(fn_out) == dict:
-                    raise Exception(f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}")
+                    raise Exception(
+                        f"AI Action preprocessor for {self.node_id} did not return a dict but {type(fn_out)}"
+                    )
             except Exception as e:
                 return "", e
         elif self.action_source == AIAction.JTYPE:
@@ -368,6 +298,7 @@ class AIAction:
         model_final_params = {**self.model_params}
         model_final_params.update(data)
         model_final_params.update(fn_out)  # type: ignore
+        print("--->>> model_final_params:", model_final_params)
         out, err = self.model(model_final_params)
         if err != None:
             return "", err
@@ -377,8 +308,6 @@ class AIAction:
 
 class AIActionsRegistry:
     """This class is a registry for all the AI actions."""
-
-    DB_REGISTER = "db"
 
     def __init__(self):
         self.nodes: Dict[str, Node] = {}
@@ -425,9 +354,13 @@ class AIActionsRegistry:
             action_name=action_name,
         )
         if not outputs:
-            output_field = func_to_return_vars(func=ai_action.__call__, returns={"model_output": (0,)})
+            output_field = func_to_return_vars(
+                func=ai_action.__call__, returns={"model_output": (0,)}
+            )
         else:
-            output_field = [Var(type="string", name=k, loc=loc) for k, loc in outputs.items()]
+            output_field = [
+                Var(type="string", name=k, loc=loc) for k, loc in outputs.items()
+            ]
         node = Node(
             id=node_id,
             fn=ai_action,
@@ -469,7 +402,7 @@ class AIActionsRegistry:
             tags (List[str], optional): The tags for this action. Defaults to [].
         """
         logger.debug(f"Registering ai-node '{node_id}'")
-        if node_id != AIActionsRegistry.DB_REGISTER and node_id in self.nodes:
+        if node_id in self.nodes:
             raise ValueError(f"ai-node '{node_id}' already exists")
         node = self.to_action(
             action_name=action_name or node_id,
@@ -481,15 +414,10 @@ class AIActionsRegistry:
             description=description,
         )
 
-        # this node can be registered in DB
-        if node_id == AIActionsRegistry.DB_REGISTER:
-            pass
-
         # this is just the server instance register
-        else:
-            self.nodes[node_id] = node
-            for tag in tags:
-                self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
+        self.nodes[node_id] = node
+        for tag in tags:
+            self.tags_to_nodes[tag] = self.tags_to_nodes.get(tag, []) + [node_id]
         return node
 
     def register_node(self, node: Node) -> Node:
@@ -570,23 +498,10 @@ class AIActionsRegistry:
         return self.counter.get(node_id, 0)
 
 
-ai_actions_registry = AIActionsRegistry()
-"""
-`ai_actions_registry` is a global instance of `AIActionsRegistry` class. This is used to register and unregister
-`AIAction` instances. This is used by the server to serve the registered actions.
-"""
-
-DEFAULT_MEMORY_CONSTANTS = {
-    "openai-embedding": {
-        "embedding_model_key": "input_strings",
-        "embedding_model_params": {
-            "model": "text-embedding-ada-002",
-        },
-        "translation_layer": {
-            "embeddings": ["data", "*", "embedding"],
-        },
-    }
-}
+# Memory Registry
+# ---------------------------
+# All the components that have to do with storage and retreival of data from the DB. This sections is supppsed to act
+# like the memory in an Von Neumann architecture.
 
 
 class Memory:
@@ -600,15 +515,29 @@ class Memory:
     """
 
     fields_model = [
-        Var(name="items", type=[Var(type="string"), Var(type="array", items=[Var(type="string")])], required=True),
+        Var(
+            name="items",
+            type=[Var(type="string"), Var(type="array", items=[Var(type="string")])],
+            required=True,
+        ),
         Var(name="embedding_model", type="string", required=True),
-        Var(name="embedding_model_params", type="object", additionalProperties=Var(type="string")),
+        Var(
+            name="embedding_model_params",
+            type="object",
+            additionalProperties=Var(type="string"),
+        ),
         Var(name="embedding_model_key", type="string"),
-        Var(name="translation_layer", type="object", additionalProperties=Var(type="string")),
+        Var(
+            name="translation_layer",
+            type="object",
+            additionalProperties=Var(type="string"),
+        ),
     ]
     """These are the fields that are used to map the input items to the embedding model, do not use directly"""
 
-    def __init__(self, node_id: str, fn: object, vector_key: str, read_mode: bool = False):
+    def __init__(
+        self, node_id: str, fn: object, vector_key: str, read_mode: bool = False
+    ):
         self.node_id = node_id
         self.fn = fn
         self.vector_key = vector_key
@@ -649,25 +578,49 @@ class Memory:
         model_fields: Dict[str, Any] = {}
         for f in self.fields_model:
             if f.required and f.name not in data:
-                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
+                raise Exception(
+                    f"Field '{f.name}' is required in {self.node_id} but not present"
+                )
             if f.name in data:
                 model_fields[f.name] = data.pop(f.name)
 
         model_data = {**model_fields.get("embedding_model_params", {})}
         model_id = model_fields.pop("embedding_model")
-        embedding_model_default_config = DEFAULT_MEMORY_CONSTANTS.get(model_id, {})
-        if embedding_model_default_config:
-            model_data = {**embedding_model_default_config.get("embedding_model_params", {}), **model_data}
-            model_key = embedding_model_default_config.get("embedding_model_key", "items") or model_data.get("embedding_model_key")
-            model_fields["translation_layer"] = model_fields.get("translation_layer") or embedding_model_default_config.get(
-                "translation_layer"
-            )
-        else:
-            req_keys = [x.name for x in self.fields_model[2:]]
-            if not all([x in model_fields for x in req_keys]):
-                raise Exception(f"Model {model_id} requires {req_keys} to be passed")
-            model_key = model_fields.get("embedding_model_key")
-            model_data = {**model_fields.get("embedding_model_params", {}), **model_data}
+
+        # TODO: @yashbonde - clean this mess up
+        # DEFAULT_MEMORY_CONSTANTS = {
+        #     "openai-embedding": {
+        #         "embedding_model_key": "input_strings",
+        #         "embedding_model_params": {
+        #             "model": "text-embedding-ada-002",
+        #         },
+        #         "translation_layer": {
+        #             "embeddings": ["data", "*", "embedding"],
+        #         },
+        #     }
+        # }
+        # embedding_model_default_config = DEFAULT_MEMORY_CONSTANTS.get(model_id, {})
+        # if embedding_model_default_config:
+        #     model_data = {
+        #         **embedding_model_default_config.get("embedding_model_params", {}),
+        #         **model_data,
+        #     }
+        #     model_key = embedding_model_default_config.get(
+        #         "embedding_model_key", "items"
+        #     ) or model_data.get("embedding_model_key")
+        #     model_fields["translation_layer"] = model_fields.get(
+        #         "translation_layer"
+        #     ) or embedding_model_default_config.get("translation_layer")
+        # else:
+
+        req_keys = [x.name for x in self.fields_model[2:]]
+        if not all([x in model_fields for x in req_keys]):
+            raise Exception(f"Model {model_id} requires {req_keys} to be passed")
+        model_key = model_fields.get("embedding_model_key")
+        model_data = {
+            **model_fields.get("embedding_model_params", {}),
+            **model_data,
+        }
         model_data[model_key] = model_fields.pop("items")  # type: ignore
         model = model_registry.get(model_id)
         embeddings, err = model(model_data=model_data)
@@ -685,7 +638,9 @@ class Memory:
         db_data = {}
         for f in self.fields_fn:
             if f.required and not (f.name in data or f.name in translated_data):
-                raise Exception(f"Field '{f.name}' is required in {self.node_id} but not present")
+                raise Exception(
+                    f"Field '{f.name}' is required in {self.node_id} but not present"
+                )
             if f.name in data:
                 db_data[f.name] = data.pop(f.name)
             if f.name in translated_data:
@@ -762,8 +717,113 @@ class MemoryRegistry:
         return {k: v.to_dict() for k, v in self._memories.items()}
 
 
+# Models Registry
+# ---------------
+# All the things below are for the models that are registered in the model registry, so that they can be used as inputs
+# in the chain. There can be several models that can put as inputs in a single chatbot.
+
+
+class ModelRegistry:
+    """Model registry contains metadata for all the models that are provided in the components"""
+
+    def __init__(self):
+        self.models: Dict[str, Model] = {}
+        self.counter: Dict[str, int] = {}
+        self.tags_to_models: Dict[str, List[str]] = {}
+
+    def has(self, id: str):
+        """A helper function to check if a model is registered or not"""
+        return id in self.models
+
+    def register(self, model: Model):
+        """Register a model in the registry
+
+        Args:
+            model (Model): Model to register
+        """
+        id = model.id
+        logger.debug(f"Registering model {id} at {id}")
+        if id in self.models:
+            raise Exception(f"Model {id} already registered")
+        self.models[id] = model
+        for tag in model.tags:
+            self.tags_to_models[tag] = self.tags_to_models.get(tag, []) + [id]
+        return model
+
+    def get_tags(self) -> List[str]:
+        """Get all the tags that are registered in the registry
+
+        Returns:
+            List[str]: List of tags
+        """
+        return list(self.tags_to_models.keys())
+
+    def get_models(self, tag: str = "") -> Dict[str, Dict[str, Any]]:
+        """Get all the models that are registered in the registry
+
+        Args:
+            tag (str, optional): Filter models by tag. Defaults to "".
+
+        Returns:
+            Dict[str, Dict[str, Any]]: Dictionary of models
+        """
+        items = {k: v.to_dict() for k, v in self.models.items()}
+        if tag:
+            items = {k: v for k, v in items.items() if tag in v.get("tags", [])}
+        return items
+
+    def get(self, id: str) -> Model:
+        """Get a model from the registry
+
+        Args:
+            id (str): Id of the model
+
+        Returns:
+            Model: Model
+        """
+        self.counter[id] = self.counter.get(id, 0) + 1
+        out = self.models.get(id, None)
+        if out is None:
+            raise ValueError(f"Model {id} not found")
+        return out
+
+    def get_count_for_model(self, id: str) -> int:
+        """Get the number of times a model is used
+
+        Args:
+            id (str): Id of the model
+
+        Returns:
+            int: Number of times the model is used
+        """
+        return self.counter.get(id, 0)
+
+    def get_any_model(self) -> Model:
+        return random.choice(list(self.models.values()))
+
+
+# Initialise Registries
+# ---------------------
+
+programatic_actions_registry = ProgramaticActionsRegistry()
+"""
+`programatic_actions_registry` is a global variable that is used to register programatic nodes. It is an instance of
+ProgramaticActionsRegistry class.
+"""
+
+ai_actions_registry = AIActionsRegistry()
+"""
+`ai_actions_registry` is a global instance of `AIActionsRegistry` class. This is used to register and unregister
+`AIAction` instances. This is used by the server to serve the registered actions.
+"""
+
 memory_registry = MemoryRegistry()
 """
 `memory_registry` is a global instance of MemoryRegistry class. This is used to register and unregister Memory instances.
 This is what the user should use when they want to use the memory elements in their chain.
+"""
+
+model_registry = ModelRegistry()
+"""
+`model_registry` is a global variable that is used to register models. It is an instance of ModelRegistry class.
 """

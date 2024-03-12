@@ -7,7 +7,18 @@
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NimbleBoxAI.svg?style=social&label=Follow%20%40NimbleBoxAI)](https://twitter.com/NimbleBoxAI)
 [![](https://dcbadge.vercel.app/api/server/KhF38hrAJ2?compact=true&style=flat)](https://discord.com/invite/KhF38hrAJ2)
 
-🦋 Build complex chat apps using LLMs in 4 clicks ⚡️ [Try it out here](https://chainfury.nbox.ai/). Used in production by [chat.nbox.ai](https://chat.nbox.ai).
+```
+  ___ _         _       ___
+ / __| |_  __ _(_)_ _  | __|  _ _ _ _  _ 
+| (__| ' \/ _` | | ' \ | _| || | '_| || |
+ \___|_||_\__,_|_|_||_||_| \_,_|_|  \_, |
+                                     |__/
+e0 a4 b8 e0 a4 a4 e0 a5 8d e0 a4 af e0 a4
+ae e0 a5 87 e0 a4 b5 20 e0 a4 9c e0 a4 af
+            e0 a4 a4 e0 a5 87
+```
+
+🦋 The open source chaining engine behind [Tune Chat](https://chat.tune.app) and [Tune Studio](https://studio.tune.app).
 
 # Read the [Docs](https://nimbleboxai.github.io/ChainFury/index.html)
 
@@ -81,37 +92,25 @@ sh stories/build_and_copy.sh
 Once the static files are copied we can now proceed to install dependecies:
 
 ```bash
-pip install setuptools
 pip install -e .          # editable install the chainfury
-cd server
-pip install -e .          # editable install the chainfury_server
+pip install -e server/.   # editable install the chainfury_server
+python3 -m chainfury_server
 ```
 
-To start you can now do:
+You can now visit [localhost:8000](http://localhost:8000/ui/) to see the GUI and sign in with the default username password `admin:admin`.
+
+### Tests
+
+There are a few test cases for super hard problems like `get_kv` which checks the `chainfury.base.get_value_by_keys` function.
 
 ```bash
-cd chainfury_server
-python3 server.py
+python3 -m tests -v
 ```
-
-You can now visit [localhost:8000](http://localhost:8000/ui/) to see the GUI.
 
 # Contibutions
 
 ChainFury is an open-source project used in production. We are open to contributions to the project in the form of features,
 infrastructure or documentation.
 
-- Our [issues](https://github.com/NimbleBoxAI/ChainFury/issues) page is kept up to date with bugs, improvements, and feature requests.
-
-- If you're looking for help with your code, hop onto [GitHub Discussions board](https://github.com/NimbleBoxAI/ChainFury/discussions) or
-[Discord](https://discord.com/invite/KhF38hrAJ2), so that more people can benefit from it.
-
-- **Describing your issue:** Try to provide as many details as possible. What exactly goes wrong? How is it failing?
-Is there an error? "XY doesn't work" usually isn't that helpful for tracking down problems. Always remember to include
-the code you ran and if possible, extract only the relevant parts and don't just dump your entire script. This will make
-it easier for us to reproduce the error.
-
-- **Sharing long blocks of code or logs:** If you need to include long code, logs or tracebacks, you can wrap them in
-`<details>` and `</details>`. This [collapses the content](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details)
-so it only becomes visible on click, making the issue easier to read and follow.
-
+- If you're looking for help with your code, hop onto [Discord](https://discord.com/invite/KhF38hrAJ2), so that community can help you get to answer faster.
+- We would appreciate help towareds writing more tests, see what we have in [tests folder](./tests/)

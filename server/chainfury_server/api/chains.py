@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import json
 import time
 from datetime import datetime, timedelta
@@ -8,9 +10,9 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi import Depends, Header, Request, Response, HTTPException
 
 import chainfury.types as T
-
 import chainfury_server.database as DB
-from chainfury_server.engines import engine_registry
+from chainfury_server.utils import Env
+from chainfury_server.engine import FuryEngine
 
 
 def create_chain(
@@ -27,22 +29,20 @@ def create_chain(
     if not chatbot_data.name:
         resp.status_code = 400
         return T.ApiResponse(message="Name not specified")
-
-    if not chatbot_data.engine:
-        resp.status_code = 400
-        return T.ApiResponse(message="Engine not specified")
-
-    if chatbot_data.engine not in DB.ChatBotTypes.all():
-        resp.status_code = 400
-        return T.ApiResponse(message=f"Invalid engine should be one of {DB.ChatBotTypes.all()}")
+    if chatbot_data.dag:
+        for n in chatbot_data.dag.nodes:
+            if len(n.id) > Env.CFS_MAXLEN_CF_NDOE():
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Node ID length cannot be more than {Env.CFS_MAXLEN_CF_NDOE()}",
+                )
 
     # DB call
-    dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
+    dag = chatbot_data.dag.model_dump() if chatbot_data.dag else {}
     chatbot = DB.ChatBot(
         name=chatbot_data.name,
         created_by=user.id,
         dag=dag,
-        engine=chatbot_data.engine,
         created_at=datetime.now(),
         description=chatbot_data.description,
     )  # type: ignore
@@ -51,8 +51,7 @@ def create_chain(
     db.refresh(chatbot)
 
     # return
-    response = T.ApiChain(**chatbot.to_dict())
-    return response
+    return chatbot.to_ApiChain()
 
 
 def get_chain(
@@ -74,13 +73,13 @@ def get_chain(
     ]
     if tag_id:
         filters.append(DB.ChatBot.tag_id == tag_id)
-    chatbot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
+    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return T.ApiResponse(message="ChatBot not found")
 
     # return
-    return T.ApiChain(**chatbot.to_dict())
+    return chatbot.to_ApiChain()
 
 
 def update_chain(
@@ -130,7 +129,7 @@ def update_chain(
     db.refresh(chatbot)
 
     # return
-    return T.ApiChain(**chatbot.to_dict())
+    return chatbot.to_ApiChain()
 
 
 def delete_chain(
@@ -186,7 +185,7 @@ def list_chains(
 
     # return
     return T.ApiListChainsResponse(
-        chatbots=[T.ApiChain(**chatbot.to_dict()) for chatbot in chatbots],
+        chatbots=[chatbot.to_ApiChain() for chatbot in chatbots],
     )
 
 
@@ -201,12 +200,14 @@ def run_chain(
     store_ir: bool = False,
     store_io: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
+) -> Union[StreamingResponse, T.ChainResult, T.ApiResponse]:
     """
     This is the master function to run any chain over the API. This can behave in a bunch of different formats like:
     - (default) this will wait for the entire chain to execute and return the response
-    - if ``stream`` is passed it will give a streaming response with line by line JSON and last response containing ``"done":true``
+    - if ``stream`` is passed it will give a streaming response with line by line JSON and last response containing ``"done"`` key
     - if ``as_task`` is passed then a task ID is received and you can poll for the results at ``/chains/{id}/results`` this supercedes the ``stream``.
+
+    ``as_task`` is not implemented.
     """
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
@@ -217,9 +218,13 @@ def run_chain(
     if prompt.chat_history:
         raise HTTPException(status_code=400, detail="chat history is not supported yet")
     if prompt.new_message and prompt.data:
-        raise HTTPException(status_code=400, detail="new_message and data cannot be passed together")
+        raise HTTPException(
+            status_code=400, detail="new_message and data cannot be passed together"
+        )
     elif not prompt.new_message and not prompt.data:
-        raise HTTPException(status_code=400, detail="new_message or data must be passed")
+        raise HTTPException(
+            status_code=400, detail="new_message or data must be passed"
+        )
 
     # DB call
     filters = [
@@ -233,21 +238,23 @@ def run_chain(
         return T.ApiResponse(message="ChatBot not found")
 
     # call the engine
-    engine = engine_registry.get(chatbot.engine)
+    engine = FuryEngine()
+
     if engine is None:
         raise HTTPException(status_code=400, detail=f"Invalid engine {chatbot.engine}")
 
     if as_task:
         # when run as a task this will return a task ID that will be submitted
-        result = engine.submit(
-            chatbot=chatbot,
-            prompt=prompt,
-            db=db,
-            start=time.time(),
-            store_ir=store_ir,
-            store_io=store_io,
-        )
-        return result
+        raise HTTPException(501, detail="Not implemented yet")
+        # result = engine.submit(
+        #     chatbot=chatbot,
+        #     prompt=prompt,
+        #     db=db,
+        #     start=time.time(),
+        #     store_ir=store_ir,
+        #     store_io=store_io,
+        # )
+        # return result
     elif stream:
 
         def _get_streaming_response(result):
@@ -257,8 +264,7 @@ def run_chain(
                     result = {**ir, "done": done}
                 else:
                     if type(ir) == str:
-                        ir = {"main_out": ir}
-                    result = {**ir, "done": done}
+                        result = {"main_out": ir}
                 yield json.dumps(result) + "\n"
 
         streaming_result = engine.stream(

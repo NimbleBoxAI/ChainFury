@@ -1,8 +1,12 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 import re
 import json
 import time
 import time
+import random
+import string
 import logging
 from uuid import uuid4
 from urllib.parse import quote
@@ -28,13 +32,13 @@ class CFEnv:
 
     CF_LOG_LEVEL = lambda: os.getenv("CF_LOG_LEVEL", "info")
     CF_FOLDER = lambda: os.path.expanduser(os.getenv("CF_FOLDER", "~/cf"))
+    CF_URL = lambda: os.getenv("CF_URL", "")
+    CF_TOKEN = lambda: os.getenv("CF_TOKEN", "")
     CF_BLOB_STORAGE = lambda: os.path.join(CFEnv.CF_FOLDER(), "blob")
     CF_BLOB_ENGINE = lambda: os.getenv("CF_BLOB_ENGINE", "local")
     CF_BLOB_BUCKET = lambda: os.getenv("CF_BLOB_BUCKET", "")
     CF_BLOB_PREFIX = lambda: os.getenv("CF_BLOB_PREFIX", "")
     CF_BLOB_AWS_CLOUD_FRONT = lambda: os.getenv("CF_BLOB_AWS_CLOUD_FRONT", "")
-    CF_URL = lambda: os.getenv("CF_URL", "")
-    CF_TOKEN = lambda: os.getenv("CF_TOKEN", "")
 
 
 def store_blob(key: str, value: bytes, engine: str = "", bucket: str = "") -> str:
@@ -307,7 +311,7 @@ def threaded_map(
                 results[i] = res
             except Exception as e:
                 if safe:
-                    results[i] = e
+                    results[i] = e  # type: ignore
                 else:
                     raise e
     return results
@@ -429,3 +433,9 @@ class SimplerTimes:
     def get_now_human() -> str:  # type: ignore
         """Get the current datetime in UTC timezone as a human readable string"""
         return SimplerTimes.get_now_datetime().strftime("%A %d %B, %Y at %I:%M %p")
+
+
+def get_random_string(length: int) -> str:
+    return "".join(
+        (random.choice(string.ascii_letters + string.digits) for _ in range(length))
+    )

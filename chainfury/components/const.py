@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 import os
 
 
@@ -10,7 +12,7 @@ class Env:
     * CF_URL: ChainFury API URL
     * NBX_DEPLOY_URL: NimbleBox Deploy URL
     * NBX_DEPLOY_KEY: NimbleBox Deploy API key
-    * CHATNBX_KEY: ChatNBX API key, see chat.nbox.ai
+    * TUNEAPI_TOKEN: ChatNBX API key, see chat.nbox.ai
     * OPENAI_TOKEN: OpenAI API token, see platform.openai.com
     * SERPER_API_KEY: Serper API key, see serper.dev/
     * STABILITY_KEY: Stability API key, see dreamstudio.ai
@@ -27,14 +29,9 @@ class Env:
     NBX_DEPLOY_KEY = lambda x: x or os.getenv("NBX_DEPLOY_KEY", "")
 
     ## different keys for different 3rd party APIs
-    CHATNBX_KEY = lambda x: x or os.getenv("CHATNBX_KEY", "")
+    TUNEAPI_TOKEN = lambda x: x or os.getenv("TUNEAPI_TOKEN", "")
     OPENAI_TOKEN = lambda x: x or os.getenv("OPENAI_TOKEN", "")
     SERPER_API_KEY = lambda x: x or os.getenv("SERPER_API_KEY", "")
-    STABILITY_KEY = lambda x: x or os.getenv("STABILITY_KEY", "")
-
-    # pinecone
-    PINECONE_API_KEY = lambda x: x or os.getenv("PINECONE_API_KEY", "")
-    PINECONE_ENV = lambda x: x or os.getenv("PINECONE_ENVIRONMENT", "")
 
     # qdrant
     QDRANT_API_URL = lambda x: x or os.getenv("QDRANT_API_URL", "")

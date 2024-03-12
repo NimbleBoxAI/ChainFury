@@ -1,4 +1,5 @@
-import os
+# Copyright © 2023- Frello Technology Private Limited
+
 import requests
 from functools import lru_cache
 from typing import Dict, Any, Tuple
@@ -136,7 +137,9 @@ class Subway:
 
 
 @lru_cache(maxsize=1)
-def get_client(prefix: str = "/api/", url="", token: str = "", trailing: str = "/") -> Subway:
+def get_client(
+    prefix: str = "/api/", url="", token: str = "", trailing: str = "/"
+) -> Subway:
     """This function returns a Subway object that can be used to interact with the API.
 
     Example:
@@ -162,10 +165,14 @@ def get_client(prefix: str = "/api/", url="", token: str = "", trailing: str = "
     """
     url = url or CFEnv.CF_URL()
     if not url:
-        raise ValueError("No url provided, please set CF_URL environment variable or pass url as argument")
+        raise ValueError(
+            "No url provided, please set CF_URL environment variable or pass url as argument"
+        )
     token = token or CFEnv.CF_TOKEN()
     if not token:
-        raise ValueError("No token provided, please set CF_TOKEN environment variable or pass token as argument")
+        raise ValueError(
+            "No token provided, please set CF_TOKEN environment variable or pass token as argument"
+        )
 
     session = requests.Session()
     session.headers.update({"token": token})

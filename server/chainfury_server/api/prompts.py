@@ -1,7 +1,9 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 from fastapi import Depends, Header, HTTPException
 from fastapi.requests import Request
 from fastapi.responses import Response
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 
 import chainfury_server.database as DB
@@ -15,7 +17,7 @@ def list_prompts(
     limit: int = 100,
     offset: int = 0,
     db: Session = Depends(DB.fastapi_db_session),
-):
+) -> T.ApiListPromptsResponse:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -23,7 +25,7 @@ def list_prompts(
     if limit < 1 or limit > 100:
         limit = 100
     offset = offset if offset > 0 else 0
-    prompts = (
+    prompts: List[DB.Prompt] = (
         db.query(DB.Prompt)  # type: ignore
         .filter(DB.Prompt.chatbot_id == chain_id)
         .order_by(DB.Prompt.created_at.desc())  # type: ignore
@@ -31,14 +33,14 @@ def list_prompts(
         .offset(offset)
         .all()
     )
-    return {"prompts": [p.to_dict() for p in prompts]}
+    return T.ApiListPromptsResponse(prompts=[p.to_ApiPrompt() for p in prompts])
 
 
 def get_prompt(
     prompt_id: int,
     token: Annotated[str, Header()],
     db: Session = Depends(DB.fastapi_db_session),
-):
+) -> T.ApiPrompt:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -47,14 +49,15 @@ def get_prompt(
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
 
-    return {"prompt": prompt.to_dict()}
+    # return {"prompt": prompt.to_dict()}  # before
+    return prompt.to_ApiPrompt()
 
 
 def delete_prompt(
     prompt_id: int,
     token: Annotated[str, Header()],
     db: Session = Depends(DB.fastapi_db_session),
-):
+) -> T.ApiResponse:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -65,7 +68,7 @@ def delete_prompt(
     db.delete(prompt)
 
     db.commit()
-    return {"msg": f"Prompt: '{prompt_id}' deleted"}
+    return T.ApiResponse(message=f"Prompt '{prompt.id}' deleted")
 
 
 def prompt_feedback(
@@ -73,7 +76,7 @@ def prompt_feedback(
     inputs: T.ApiPromptFeedback,
     prompt_id: int,
     db: Session = Depends(DB.fastapi_db_session),
-):
+) -> T.ApiPromptFeedbackResponse:
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
 
@@ -92,4 +95,26 @@ def prompt_feedback(
             status_code=404,
             detail=f"Unable to find the prompt",
         )
-    return {"rating": prompt.user_rating}
+    return T.ApiPromptFeedbackResponse(rating=prompt.user_rating)  # type: ignore
+
+
+def get_chain_logs(
+    token: Annotated[str, Header()],
+    prompt_id: int,
+    limit: int = 100,
+    offset: int = 0,
+    db: Session = Depends(DB.fastapi_db_session),
+) -> T.ApiListChainLogsResponse:
+    # validate user
+    user = DB.get_user_from_jwt(token=token, db=db)
+
+    # query the DB
+    chainlogs: List[DB.ChainLog] = (
+        db.query(DB.ChainLog)  # type: ignore
+        .filter(DB.ChainLog.prompt_id == prompt_id)
+        .order_by(DB.ChainLog.created_at.desc())  # type: ignore
+        .limit(limit)
+        .offset(offset)
+        .all()
+    )
+    return T.ApiListChainLogsResponse(logs=[c.to_ApiChainLog() for c in chainlogs])

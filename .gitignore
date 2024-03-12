@@ -142,7 +142,7 @@ langflow
 dunmp.rdb
 *.ipynb
 server/chainfury_server/stories/fury.json
-notebooks/*
+notebooks
 stories/fury.json
 workers/
 private.sh
@@ -152,3 +152,5 @@ cf
 demo/
 logs.py
 chunker/
+chainfury/chains/
+gosrc/

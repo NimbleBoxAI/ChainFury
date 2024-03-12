@@ -1,3 +1,5 @@
+# Copyright © 2023- Frello Technology Private Limited
+
 """
 Functional components are the programatic components that are available to the fury
 system. These are mostly for demo examples, we expect the user to register their
@@ -11,6 +13,7 @@ from typing import Any, List, Dict, Tuple, Optional, Union
 
 from chainfury import programatic_actions_registry, exponential_backoff
 from chainfury.base import get_value_by_keys
+from chainfury import types as T
 
 # Call API: very basic always helpful
 
@@ -69,7 +72,9 @@ def call_api_requests(
             )
         return out.text, out.status_code
 
-    text, status_code = exponential_backoff(foo=_fn, max_retries=max_retries, retry_delay=retry_delay)
+    text, status_code = exponential_backoff(
+        foo=_fn, max_retries=max_retries, retry_delay=retry_delay
+    )
     return (text, status_code), None  # type: ignore
 
 
@@ -115,7 +120,9 @@ programatic_actions_registry.register(
 )
 
 
-def regex_substitute(pattern: str, repl: str, text: str) -> Tuple[str, Optional[Exception]]:
+def regex_substitute(
+    pattern: str, repl: str, text: str
+) -> Tuple[str, Optional[Exception]]:
     """
     Perform a regex substitution on the text and get the result
 
@@ -221,4 +228,16 @@ programatic_actions_registry.register(
     },
     node_id="json_translator",
     description="Extract a value from a JSON object using a list of keys",
+)
+
+
+def echo(message: str) -> Tuple[Dict[str, Dict[str, str]], Optional[Exception]]:
+    return {"data": {"type": "text", "data": message}}, None
+
+
+programatic_actions_registry.register(
+    fn=echo,
+    outputs={"message": ()},  # type: ignore
+    node_id="chainfury-echo",
+    description="I stared into the abyss and it stared back at me. Echoes the message, used for debugging",
 )
