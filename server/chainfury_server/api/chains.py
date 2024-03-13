@@ -31,10 +31,10 @@ def create_chain(
         return T.ApiResponse(message="Name not specified")
     if chatbot_data.dag:
         for n in chatbot_data.dag.nodes:
-            if len(n.id) > Env.CFS_MAXLEN_CF_NDOE():
+            if len(n.id) > Env.CFS_MAXLEN_CF_NODE():
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Node ID length cannot be more than {Env.CFS_MAXLEN_CF_NDOE()}",
+                    detail=f"Node ID length cannot be more than {Env.CFS_MAXLEN_CF_NODE()}",
                 )
 
     # DB call
@@ -245,16 +245,16 @@ def run_chain(
 
     if as_task:
         # when run as a task this will return a task ID that will be submitted
-        raise HTTPException(501, detail="Not implemented yet")
-        # result = engine.submit(
-        #     chatbot=chatbot,
-        #     prompt=prompt,
-        #     db=db,
-        #     start=time.time(),
-        #     store_ir=store_ir,
-        #     store_io=store_io,
-        # )
-        # return result
+        # raise HTTPException(501, detail="Not implemented yet")
+        result = engine.submit(
+            chatbot=chatbot,
+            prompt=prompt,
+            db=db,
+            start=time.time(),
+            store_ir=store_ir,
+            store_io=store_io,
+        )
+        return result
     elif stream:
 
         def _get_streaming_response(result):

@@ -24,6 +24,14 @@ ae e0 a5 87 e0 a4 b5 20 e0 a4 9c e0 a4 af
 
 The documentation page contains all the information on using `chainfury` and `chainfury_server`.
 
+#### `chainfury`
+
+<img src="https://d2e931syjhr5o9.cloudfront.net/tune-research/assets/cf_arch.png" align="center"/>
+
+#### `chainfury_server`
+
+<img src="https://d2e931syjhr5o9.cloudfront.net/tune-research/assets/cfs_arch.png" align="center"/>
+
 # Looking for Inspirations?
 
 Here's a few example to get your journey started on Software 2.0:
@@ -86,7 +94,7 @@ source venv/bin/activate
 You will need to have `yarn` installed to build the frontend and move it to the correct location on the server
 
 ```bash
-sh stories/build_and_copy.sh
+sh build_ui.sh
 ```
 
 Once the static files are copied we can now proceed to install dependecies:
@@ -104,7 +112,7 @@ You can now visit [localhost:8000](http://localhost:8000/ui/) to see the GUI and
 There are a few test cases for super hard problems like `get_kv` which checks the `chainfury.base.get_value_by_keys` function.
 
 ```bash
-python3 -m tests -v
+python3 tests/main.py
 ```
 
 # Contibutions

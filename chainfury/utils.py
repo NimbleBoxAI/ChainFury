@@ -418,6 +418,10 @@ class SimplerTimes:
         """Get the current datetime in UTC timezone as a float"""
         return SimplerTimes.get_now_datetime().timestamp()
 
+    def get_now_fp64() -> float:  # type: ignore
+        """Get the current datetime in UTC timezone as a float"""
+        return SimplerTimes.get_now_datetime().timestamp()
+
     def get_now_i64() -> int:  # type: ignore
         """Get the current datetime in UTC timezone as a int"""
         return int(SimplerTimes.get_now_datetime().timestamp())

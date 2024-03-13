@@ -14,9 +14,6 @@ cd client
 yarn install
 yarn build
 
-# Go back to the root directory
-cd ..
-
 # copy the dist folder to the server
 # Go into the server folder, remove the old static folder and copy the new dist folder, copy index.html to templates
 echo "Copying the generated files to the server"
