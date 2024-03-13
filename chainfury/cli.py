@@ -12,9 +12,8 @@ from typing import Optional
 
 from chainfury import Chain
 from chainfury.version import __version__
-from chainfury.components import all_items
-from chainfury.core import model_registry, programatic_actions_registry, memory_registry
-from chainfury.chat import Chat, Message
+from chainfury.core import model_registry
+from chainfury.types import Thread, Message
 
 
 class CLI:
@@ -115,7 +114,7 @@ cf_version: {__version__}
             cf_model.set_api_token(token)
 
         # loop for user input through command line
-        chat = Chat()
+        thread = Thread()
         usr_cntr = 0
         while True:
             try:
@@ -126,21 +125,21 @@ cf_version: {__version__}
                 break
             if user_input == "exit" or user_input == "quit" or user_input == "":
                 break
-            chat.add(Message(user_input, Message.HUMAN))
+            thread.add(Message(user_input, Message.HUMAN))
 
             print(f"\033[1m\033[34m ASSISTANT \033[39m:\033[0m ", end="", flush=True)
             if stream:
                 response = ""
-                for str_token in cf_model.stream_chat(chat, model=model):
+                for str_token in cf_model.stream_chat(thread, model=model):
                     response += str_token
                     print(str_token, end="", flush=True)
                 print()  # new line
-                chat.add(Message(response, Message.GPT))
+                thread.add(Message(response, Message.GPT))
             else:
-                response = cf_model.chat(chat, model=model)
+                response = cf_model.chat(thread, model=model)
                 print(response)
 
-            chat.add(Message(response, Message.GPT))
+            thread.add(Message(response, Message.GPT))
             usr_cntr += 1
 
 

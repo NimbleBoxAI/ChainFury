@@ -21,10 +21,12 @@ class Env:
     JWT_SECRET = lambda: os.getenv("JWT_SECRET", "hajime-shimamoto")
     CFS_SECRETS_PASSWORD = lambda: os.getenv("CFS_SECRETS_PASSWORDs")
 
+    # not once a lifetime but require DB changes, might as well not change these
+    CFS_MAXLEN_CF_NODE = lambda: int(os.getenv("CFS_MAXLEN_CF_NODE", 80))
+    CFS_MAXLEN_WORKER = lambda: int(os.getenv("CFS_MAXLEN_WORKER", 16))
+
     # when you want to use chainfury as a client you need to set the following vars
     CFS_DATABASE = lambda: os.getenv("CFS_DATABASE", None)
-    CFS_MAXLEN_CF_NDOE = lambda: int(os.getenv("CFS_MAXLEN_CF_NDOE", 80))
-    CFS_MAXLEN_WORKER = lambda: int(os.getenv("CFS_MAXLEN_WORKER", 16))
     CFS_ALLOW_CORS_ORIGINS = lambda: [
         x.strip() for x in os.getenv("CFS_ALLOW_CORS_ORIGINS", "*").split(",")
     ]

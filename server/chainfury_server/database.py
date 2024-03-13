@@ -10,7 +10,7 @@ from passlib.hash import sha256_crypt
 from dataclasses import dataclass, asdict
 from typing import Dict, Any
 
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, scoped_session, sessionmaker, relationship
@@ -55,6 +55,8 @@ if db is None:
     )
 else:
     logger.info(f"Using via database URL")
+    # https://stackoverflow.com/a/73764136
+    #
     engine = create_engine(
         db,
         poolclass=QueuePool,
@@ -84,7 +86,7 @@ def get_random_number(length) -> int:
     return random_numbers
 
 
-def get_local_session() -> sessionmaker:
+def get_local_session(engine) -> sessionmaker:
     logger.debug("Database opened successfully")
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal
@@ -101,7 +103,7 @@ def db_session() -> Session:  # type: ignore
 
 
 def fastapi_db_session():
-    sess_cls = get_local_session()
+    sess_cls = get_local_session(engine)
     db = sess_cls()
     try:
         yield db
@@ -272,7 +274,7 @@ class Prompt(Base):
     meta: Dict[str, Any] = Column(JSON)
 
     # migrate to snowflake ID
-    sf_id = Column(String(19), nullable=True)
+    # sf_id = Column(String(19), nullable=True)
 
     def to_dict(self):
         return {
@@ -303,7 +305,7 @@ class ChainLog(Base):
     )
     created_at: datetime = Column(DateTime, nullable=False)
     prompt_id: int = Column(Integer, ForeignKey("prompt.id"), nullable=False)
-    node_id: str = Column(String(Env.CFS_MAXLEN_CF_NDOE()), nullable=False)
+    node_id: str = Column(String(Env.CFS_MAXLEN_CF_NODE()), nullable=False)
     worker_id: str = Column(String(Env.CFS_MAXLEN_WORKER()), nullable=False)
     message: str = Column(Text, nullable=False)
     data: Dict[str, Any] = Column(JSON, nullable=True)
