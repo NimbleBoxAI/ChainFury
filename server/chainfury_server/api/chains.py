@@ -16,8 +16,6 @@ from chainfury_server.engine import FuryEngine
 
 
 def create_chain(
-    req: Request,
-    resp: Response,
     token: Annotated[str, Header()],
     chatbot_data: T.ApiCreateChainRequest,
     db: Session = Depends(DB.fastapi_db_session),
@@ -27,8 +25,7 @@ def create_chain(
 
     # validate chatbot
     if not chatbot_data.name:
-        resp.status_code = 400
-        return T.ApiResponse(message="Name not specified")
+        raise HTTPException(status_code=400, detail="Name not specified")
     if chatbot_data.dag:
         for n in chatbot_data.dag.nodes:
             if len(n.id) > Env.CFS_MAXLEN_CF_NODE():
@@ -55,8 +52,6 @@ def create_chain(
 
 
 def get_chain(
-    req: Request,
-    resp: Response,
     token: Annotated[str, Header()],
     id: str,
     tag_id: str = "",
@@ -75,16 +70,13 @@ def get_chain(
         filters.append(DB.ChatBot.tag_id == tag_id)
     chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
-        resp.status_code = 404
-        return T.ApiResponse(message="ChatBot not found")
+        raise HTTPException(status_code=404, detail="Chain not found")
 
     # return
     return chatbot.to_ApiChain()
 
 
 def update_chain(
-    req: Request,
-    resp: Response,
     token: Annotated[str, Header()],
     id: str,
     chatbot_data: T.ApiChain,
@@ -96,14 +88,14 @@ def update_chain(
 
     # validate chatbot update
     if not len(chatbot_data.update_keys):
-        resp.status_code = 400
-        return T.ApiResponse(message="No keys to update")
+        raise HTTPException(status_code=400, detail="No keys to update")
 
     unq_keys = set(chatbot_data.update_keys)
     valid_keys = {"name", "description", "dag"}
     if not unq_keys.issubset(valid_keys):
-        resp.status_code = 400
-        return T.ApiResponse(message=f"Invalid keys {unq_keys.difference(valid_keys)}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid keys {unq_keys.difference(valid_keys)}"
+        )
 
     # DB Call
     filters = [
@@ -115,8 +107,7 @@ def update_chain(
         filters.append(DB.ChatBot.tag_id == tag_id)
     chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
-        resp.status_code = 404
-        return T.ApiResponse(message="ChatBot not found")
+        raise HTTPException(status_code=404, detail="Chain not found")
 
     for field in unq_keys:
         if field == "name":
@@ -133,8 +124,6 @@ def update_chain(
 
 
 def delete_chain(
-    req: Request,
-    resp: Response,
     token: Annotated[str, Header()],
     id: str,
     tag_id: str = "",
@@ -153,8 +142,7 @@ def delete_chain(
         filters.append(DB.ChatBot.tag_id == tag_id)
     chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
-        resp.status_code = 404
-        return T.ApiResponse(message="ChatBot not found")
+        raise HTTPException(status_code=404, detail="Chain not found")
     chatbot.deleted_at = datetime.now()
     db.commit()
 
@@ -163,8 +151,6 @@ def delete_chain(
 
 
 def list_chains(
-    req: Request,
-    resp: Response,
     token: Annotated[str, Header()],
     skip: int = 0,
     limit: int = 10,
@@ -190,8 +176,6 @@ def list_chains(
 
 
 def run_chain(
-    req: Request,
-    resp: Response,
     id: str,
     token: Annotated[str, Header()],
     prompt: T.ApiPromptBody,
@@ -234,8 +218,7 @@ def run_chain(
     ]
     chatbot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
-        resp.status_code = 404
-        return T.ApiResponse(message="ChatBot not found")
+        raise HTTPException(status_code=404, detail="Chain not found")
 
     # call the engine
     engine = FuryEngine()
@@ -292,8 +275,6 @@ def run_chain(
 
 
 def get_chain_metrics(
-    req: Request,
-    resp: Response,
     id: str,
     token: Annotated[str, Header()],
     db: Session = Depends(DB.fastapi_db_session),
