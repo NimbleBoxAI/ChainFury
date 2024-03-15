@@ -33,7 +33,7 @@ class TuneModel(Model):
         temperature: float = 1,
         *,
         token: Secret = Secret(""),
-    ) -> Dict[str, Any]:
+    ) -> str:
         """
         Chat with the Tune Studio APIs, see more at https://studio.tune.app/
 
