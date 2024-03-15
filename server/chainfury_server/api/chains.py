@@ -245,7 +245,10 @@ def run_chain(
 
     if as_task:
         # when run as a task this will return a task ID that will be submitted
-        # raise HTTPException(501, detail="Not implemented yet")
+        if not Env.CFS_ENABLE_CELERY():
+            raise HTTPException(
+                400, "Celery is not enabled on this server, cannot run as task"
+            )
         result = engine.submit(
             chatbot=chatbot,
             prompt=prompt,
