@@ -53,6 +53,19 @@ pip install chainfury_server
 python3 -m chainfury_server
 ```
 
+You can also start the server with worker mode for long running chains:
+```bash
+# in different tab
+redis-server
+
+# in different tab
+celery --app chainfury_server.engine.app worker --queues cfs 
+
+# set env variable to enable this
+export CFS_ENABLE_CELERY=1
+python3 -m chainfury_server
+```
+
 ### Run Docker
 
 Easiest way to run the server is to use docker. You can use the following command to run ChainFury:

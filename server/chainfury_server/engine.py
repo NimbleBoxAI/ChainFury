@@ -13,117 +13,117 @@ from chainfury import Chain
 from chainfury.utils import SimplerTimes
 
 import chainfury_server.database as DB
-from chainfury_server.utils import logger
+from chainfury_server.utils import logger, Env
 
-from celery import Celery
 
 from sqlalchemy.pool import NullPool
 from sqlalchemy import create_engine
 
+if Env.CFS_ENABLE_CELERY():
+    from celery import Celery
 
-app = Celery()
+    app = Celery()
 
+    @app.task(name="chainfury_server.engine.run_chain")
+    def run_chain(
+        chatbot_id: str,
+        prompt_id: str,
+        prompt_data: Dict,
+        store_ir: bool,
+        store_io: bool,
+        worker_id: str,
+    ):
+        start = SimplerTimes.get_now_fp64()
 
-@app.task(name="chainfury_server.engine.run_chain")
-def run_chain(
-    chatbot_id: str,
-    prompt_id: str,
-    prompt_data: Dict,
-    store_ir: bool,
-    store_io: bool,
-    worker_id: str,
-):
-    start = SimplerTimes.get_now_fp64()
-
-    # create the DB session
-    sess = DB.get_local_session(
-        create_engine(
-            DB.db,
-            poolclass=NullPool,
+        # create the DB session
+        sess = DB.get_local_session(
+            create_engine(
+                DB.db,
+                poolclass=NullPool,
+            )
         )
-    )
-    db = sess()
+        db = sess()
 
-    # get the db object
-    chatbot = db.query(DB.ChatBot).filter(DB.ChatBot.id == chatbot_id).first()  # type: ignore
-    prompt_row: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
-    if prompt_row is None:
-        time.sleep(2)
-        prompt_row = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
+        # get the db object
+        chatbot = db.query(DB.ChatBot).filter(DB.ChatBot.id == chatbot_id).first()  # type: ignore
+        prompt_row: DB.Prompt = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
         if prompt_row is None:
-            raise RuntimeError(f"Prompt {prompt_id} not found")
+            time.sleep(2)
+            prompt_row = db.query(DB.Prompt).filter(DB.Prompt.id == prompt_id).first()  # type: ignore
+            if prompt_row is None:
+                raise RuntimeError(f"Prompt {prompt_id} not found")
 
-    # Create a Fury chain then run the chain while logging all the intermediate steps
-    dag = T.Dag(**chatbot.dag)  # type: ignore
-    chain = Chain.from_dag(dag, check_server=False)
-    callback = FuryThoughtsCallback(db, prompt_row.id)
+        # Create a Fury chain then run the chain while logging all the intermediate steps
+        dag = T.Dag(**chatbot.dag)  # type: ignore
+        chain = Chain.from_dag(dag, check_server=False)
+        callback = FuryThoughtsCallback(db, prompt_row.id)
 
-    # print(
-    #     f"starting chain execution: [{prompt_row.meta.get('task_id')=}] [{worker_id=}]"
-    # )
-    iterator = chain.stream(
-        data=prompt_data,
-        thoughts_callback=callback,
-        print_thoughts=False,
-    )
-    mainline_out = "<placeholder>"
-    last_db = 0
-    for ir, done in iterator:
-        if done:
-            mainline_out = ir
-            break
+        # print(
+        #     f"starting chain execution: [{prompt_row.meta.get('task_id')=}] [{worker_id=}]"
+        # )
+        iterator = chain.stream(
+            data=prompt_data,
+            thoughts_callback=callback,
+            print_thoughts=False,
+        )
+        mainline_out = "<placeholder>"
+        last_db = 0
+        for ir, done in iterator:
+            if done:
+                mainline_out = ir
+                break
 
-        if store_ir:
-            # in case of stream, every item is a fundamentally a step
-            data = {
-                "outputs": [
-                    {
-                        "name": k.split("/")[-1],
-                        "data": v,
-                    }
-                    for k, v in ir.items()
-                ]
-            }
-            k = next(iter(ir)).split("/")[0]
-            db_chainlog = DB.ChainLog(
-                prompt_id=prompt_row.id,
-                created_at=SimplerTimes.get_now_datetime(),
-                node_id=k,
-                worker_id=worker_id,
-                message="step",
-                data=data,
-            )  # type: ignore
-            db.add(db_chainlog)
+            if store_ir:
+                # in case of stream, every item is a fundamentally a step
+                data = {
+                    "outputs": [
+                        {
+                            "name": k.split("/")[-1],
+                            "data": v,
+                        }
+                        for k, v in ir.items()
+                    ]
+                }
+                k = next(iter(ir)).split("/")[0]
+                db_chainlog = DB.ChainLog(
+                    prompt_id=prompt_row.id,
+                    created_at=SimplerTimes.get_now_datetime(),
+                    node_id=k,
+                    worker_id=worker_id,
+                    message="step",
+                    data=data,
+                )  # type: ignore
+                db.add(db_chainlog)
 
-            # update the DB every 5 seconds
-            if time.time() - last_db > 5:
-                db.commit()
-                last_db = time.time()
+                # update the DB every 5 seconds
+                if time.time() - last_db > 5:
+                    db.commit()
+                    last_db = time.time()
 
-    result = T.ChainResult(
-        result=str(mainline_out),
-        prompt_id=prompt_row.id,  # type: ignore
-    )
+        result = T.ChainResult(
+            result=str(mainline_out),
+            prompt_id=prompt_row.id,  # type: ignore
+        )
 
-    db_chainlog = DB.ChainLog(
-        prompt_id=prompt_row.id,
-        created_at=SimplerTimes.get_now_datetime(),
-        node_id="end",
-        worker_id=worker_id,
-        message="completed",
-    )  # type: ignore
-    db.add(db_chainlog)
+        db_chainlog = DB.ChainLog(
+            prompt_id=prompt_row.id,
+            created_at=SimplerTimes.get_now_datetime(),
+            node_id="end",
+            worker_id=worker_id,
+            message="completed",
+        )  # type: ignore
+        db.add(db_chainlog)
 
-    # commit the prompt to DB
-    if store_io:
-        prompt_row.response = result.result  # type: ignore
-    prompt_row.time_taken = float(time.time() - start)  # type: ignore
+        # commit the prompt to DB
+        if store_io:
+            prompt_row.response = result.result  # type: ignore
+        prompt_row.time_taken = float(time.time() - start)  # type: ignore
 
-    # update the DB after sleeping a bit
-    st = time.time() - last_db
-    if st < 2:
-        time.sleep(2 - st)  # be nice to the db
-    db.commit()
+        # update the DB after sleeping a bit
+        st = time.time() - last_db
+        if st < 2:
+            time.sleep(2 - st)  # be nice to the db
+        db.commit()
 
 
 class FuryEngine:
@@ -303,6 +303,11 @@ class FuryEngine:
         if prompt.new_message and prompt.data:
             raise HTTPException(
                 status_code=400, detail="prompt cannot have both new_message and data"
+            )
+        if not Env.CFS_ENABLE_CELERY():
+            raise HTTPException(
+                status_code=400,
+                detail="submit is only available when using celery. Set CFS_ENABLE_CELERY=1 in the environment",
             )
         try:
             logger.debug("Adding prompt to database")

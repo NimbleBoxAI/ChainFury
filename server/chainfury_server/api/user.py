@@ -85,8 +85,8 @@ def change_password(
 
 
 def create_secret(
-    token: Annotated[str, Header()],
     inputs: T.ApiToken,
+    token: Annotated[str, Header()],
     db: Session = Depends(DB.fastapi_db_session),
 ) -> T.ApiResponse:
     # validate user
