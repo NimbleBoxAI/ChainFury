@@ -2,13 +2,25 @@
 
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-
 from pydantic import BaseModel, Field, ConfigDict
+
+# some types that are copied from the tuneapi types
+
+from tuneapi.types.chats import (
+    Message,
+    Thread,
+    ThreadsList,
+    Dataset,
+    human,
+    system,
+    assistant,
+)
+
 
 # First is the set of types that are used in the chainfury itself
 
 
-class FENode(BaseModel):
+class UINode(BaseModel):
     """FENode is the node as required by the UI to render the node in the graph. If you do not care about the UI, you can
     populate either the ``cf_id`` or ``cf_data``."""
 
@@ -57,19 +69,27 @@ class Edge(BaseModel):
 class Dag(BaseModel):
     """This is visual representation of the chain. JSON of this is stored in the DB."""
 
-    nodes: List[FENode]
+    nodes: List[UINode]
     edges: List[Edge]
     sample: Dict[str, Any] = Field(default_factory=dict)
     main_in: str = ""
     main_out: str = ""
 
 
-class CFPromptResult(BaseModel):
+class ChainResult(BaseModel):
     """This is a structured result of the prompt by the Chain. This is more useful for providing types on the server."""
 
     result: str
     prompt_id: int = 0
     task_id: str = ""
+
+
+# Then a set of types that are used in the API (client mode)
+
+
+class ApiLoginResponse(BaseModel):
+    message: str
+    token: Optional[str] = None
 
 
 class ApiResponse(BaseModel):
@@ -149,18 +169,18 @@ class ApiActionUpdateRequest(BaseModel):
     update_fields: List[str] = Field(description="The fields to update.")
 
 
-class ApiAuth(BaseModel):
+class ApiAuthRequest(BaseModel):
     username: str
     password: str
 
 
-class ApiSignUp(BaseModel):
+class ApiSignUpRequest(BaseModel):
     username: str
     email: str
     password: str
 
 
-class ApiChangePassword(BaseModel):
+class ApiChangePasswordRequest(BaseModel):
     username: str
     old_password: str
     new_password: str
@@ -168,3 +188,49 @@ class ApiChangePassword(BaseModel):
 
 class ApiPromptFeedback(BaseModel):
     score: int
+
+
+class ApiPromptFeedbackResponse(BaseModel):
+    rating: int
+
+
+class ApiToken(BaseModel):
+    key: str
+    token: str
+    meta: Optional[Dict[str, Any]] = {}
+
+
+class ApiListTokensResponse(BaseModel):
+    tokens: List[ApiToken]
+
+
+class ApiChainLog(BaseModel):
+    id: str
+    created_at: datetime
+    prompt_id: int
+    node_id: str
+    worker_id: str
+    message: Optional[str] = None
+    data: Optional[Dict[str, Any]] = None
+
+
+class ApiListChainLogsResponse(BaseModel):
+    logs: List[ApiChainLog]
+
+
+class ApiPrompt(BaseModel):
+    id: int
+    chatbot_id: str
+    input_prompt: str
+    created_at: datetime
+    session_id: str
+    meta: Optional[Dict[str, Any]] = None
+    response: Optional[str] = None
+    gpt_rating: Optional[str] = None
+    user_rating: Optional[int] = None
+    time_taken: Optional[float] = None
+    num_tokens: Optional[int] = None
+
+
+class ApiListPromptsResponse(BaseModel):
+    prompts: List[ApiPrompt]

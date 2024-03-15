@@ -31,14 +31,14 @@ def create_chain(
         return T.ApiResponse(message="Name not specified")
     if chatbot_data.dag:
         for n in chatbot_data.dag.nodes:
-            if len(n.id) > Env.CFS_MAXLEN_CF_NDOE():
+            if len(n.id) > Env.CFS_MAXLEN_CF_NODE():
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Node ID length cannot be more than {Env.CFS_MAXLEN_CF_NDOE()}",
+                    detail=f"Node ID length cannot be more than {Env.CFS_MAXLEN_CF_NODE()}",
                 )
 
     # DB call
-    dag = chatbot_data.dag.dict() if chatbot_data.dag else {}
+    dag = chatbot_data.dag.model_dump() if chatbot_data.dag else {}
     chatbot = DB.ChatBot(
         name=chatbot_data.name,
         created_by=user.id,
@@ -51,8 +51,7 @@ def create_chain(
     db.refresh(chatbot)
 
     # return
-    response = T.ApiChain(**chatbot.to_dict())
-    return response
+    return chatbot.to_ApiChain()
 
 
 def get_chain(
@@ -74,13 +73,13 @@ def get_chain(
     ]
     if tag_id:
         filters.append(DB.ChatBot.tag_id == tag_id)
-    chatbot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
+    chatbot: DB.ChatBot = db.query(DB.ChatBot).filter(*filters).first()  # type: ignore
     if not chatbot:
         resp.status_code = 404
         return T.ApiResponse(message="ChatBot not found")
 
     # return
-    return T.ApiChain(**chatbot.to_dict())
+    return chatbot.to_ApiChain()
 
 
 def update_chain(
@@ -130,7 +129,7 @@ def update_chain(
     db.refresh(chatbot)
 
     # return
-    return T.ApiChain(**chatbot.to_dict())
+    return chatbot.to_ApiChain()
 
 
 def delete_chain(
@@ -186,7 +185,7 @@ def list_chains(
 
     # return
     return T.ApiListChainsResponse(
-        chatbots=[T.ApiChain(**chatbot.to_dict()) for chatbot in chatbots],
+        chatbots=[chatbot.to_ApiChain() for chatbot in chatbots],
     )
 
 
@@ -201,12 +200,14 @@ def run_chain(
     store_ir: bool = False,
     store_io: bool = False,
     db: Session = Depends(DB.fastapi_db_session),
-) -> Union[StreamingResponse, T.CFPromptResult, T.ApiResponse]:
+) -> Union[StreamingResponse, T.ChainResult, T.ApiResponse]:
     """
     This is the master function to run any chain over the API. This can behave in a bunch of different formats like:
     - (default) this will wait for the entire chain to execute and return the response
     - if ``stream`` is passed it will give a streaming response with line by line JSON and last response containing ``"done"`` key
     - if ``as_task`` is passed then a task ID is received and you can poll for the results at ``/chains/{id}/results`` this supercedes the ``stream``.
+
+    ``as_task`` is not implemented.
     """
     # validate user
     user = DB.get_user_from_jwt(token=token, db=db)
@@ -244,6 +245,7 @@ def run_chain(
 
     if as_task:
         # when run as a task this will return a task ID that will be submitted
+        # raise HTTPException(501, detail="Not implemented yet")
         result = engine.submit(
             chatbot=chatbot,
             prompt=prompt,

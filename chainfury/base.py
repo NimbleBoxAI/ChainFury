@@ -1,5 +1,6 @@
 # Copyright © 2023- Frello Technology Private Limited
 
+import os
 import copy
 import json
 import jinja2
@@ -8,15 +9,17 @@ import datetime
 import importlib
 import traceback
 from pprint import pformat
+from functools import partial
 from typing import Any, Union, Optional, Dict, List, Tuple, Callable, Generator
 from collections import deque, defaultdict, Counter
 
 import jinja2schema as j2s
 from jinja2schema import model as j2sm
 
+from tuneapi.utils import load_module_from_path, to_json, from_json
+
 from chainfury.utils import logger, terminal_top_with_text
 import chainfury.types as T
-from chainfury import chat
 
 
 class Secret(str):
@@ -24,6 +27,9 @@ class Secret(str):
 
     def __init__(self, value=""):
         self.value = value
+
+    def has_value(self) -> bool:
+        return self.value != ""
 
 
 #
@@ -34,7 +40,7 @@ class Secret(str):
 class Var:
     def __init__(
         self,
-        type: Union[str, List["Var"]],
+        type: Union[str, List["Var"]] = "",
         format: str = "",
         items: List["Var"] = [],
         additionalProperties: Union[List["Var"], "Var"] = [],
@@ -44,6 +50,7 @@ class Var:
         placeholder: str = "",
         show: bool = False,
         name: str = "",
+        description: str = "",
         *,
         loc: Optional[Tuple] = (),
     ):
@@ -61,6 +68,9 @@ class Var:
             name (str, optional): The name of this field. Defaults to "".
             loc (Optional[Tuple], optional): The location of this field. Defaults to ().
         """
+        if not type:
+            raise ValueError("type cannot be empty")
+
         self.type = type
         self.format = format
         self.items = items or []
@@ -71,6 +81,7 @@ class Var:
         self.placeholder = placeholder
         self.show = show
         self.name = name
+        self.description = description
         #
         self.value = None
         self.loc = loc  # this is the location from which this value is extracted
@@ -115,6 +126,8 @@ class Var:
             d["name"] = self.name
         if self.loc:
             d["loc"] = self.loc
+        if self.description:
+            d["description"] = self.description
         return d
 
     @classmethod
@@ -137,6 +150,7 @@ class Var:
         show_val = d.get("show", False)
         name_val = d.get("name", "")
         loc_val = d.get("loc", ())
+        description_val = d.get("description", "")
 
         if isinstance(type_val, list):
             type_val = [
@@ -162,6 +176,7 @@ class Var:
             placeholder=placeholder_val,
             show=show_val,
             name=name_val,
+            description=description_val,
             loc=loc_val,
         )
         return var
@@ -739,15 +754,26 @@ class Model:
         except Exception as e:
             return traceback.format_exc(), e
 
+    def set_api_token(self, token: str) -> None:
+        raise NotImplementedError(
+            f"set_api_token method is not implemented for {self.id}"
+        )
+
     def completion(self, prompt: str, **kwargs):
         """Subclass and implement your own text completion API"""
         return NotImplementedError(
             f"completion method is not implemented for {self.id}"
         )
 
-    def chat(self, chat: chat.Chat, **kwargs):
+    def chat(self, chat: T.Thread, **kwargs):
         """Subclass and implement your own chat API"""
         raise NotImplementedError("chat method is not implemented for this model")
+
+    def stream_chat(self, chat: T.Thread, **kwargs):
+        """Subclass and implement your own chat API"""
+        raise NotImplementedError(
+            "stream_chat method is not implemented for this model"
+        )
 
 
 #
@@ -980,12 +1006,12 @@ class Node:
     @classmethod
     def from_chat(
         cls,
-        chat: chat.Chat,
+        thread: T.Thread,
         node_id: str,
         model: Model,
         description: Optional[str] = None,
     ) -> "Node":
-        chat_dict = chat.to_dict()
+        chat_dict = thread.to_dict()
         # print(variables)
         fields = []
         templates = []
@@ -995,7 +1021,7 @@ class Node:
             obj = get_value_by_keys(chat_dict, field[0])
             if not obj:
                 raise ValueError(
-                    f"Field {field[0]} not found in {chat}, but was extraced. There is a bug in get_value_by_keys function"
+                    f"Field {field[0]} not found in {thread}, but was extraced. There is a bug in get_value_by_keys function"
                 )
             templates.append((obj, jinja2.Template(obj), field[0]))
 
@@ -1123,7 +1149,11 @@ class Chain:
         self.edges = edges
 
         if len(self.nodes) == 1:
-            assert len(self.edges) == 0, "Cannot have edges with only 1 node"
+            if len(self.edges) != 0:
+                logger.error(f"Got only one node: {self.nodes.keys()=}")
+                raise ValueError(
+                    f"Cannot have edges with only 1 node. Got {self.edges}"
+                )
             self.topo_order = [next(iter(self.nodes))]
         else:
             self.topo_order = topological_sort(self.edges)
@@ -1133,6 +1163,7 @@ class Chain:
 
         if self.is_empty:
             # there is nothing to do here
+            logger.info("This is empty chain")
             return
 
         if "/" not in main_out:
@@ -1184,7 +1215,7 @@ class Chain:
     def add_thread(
         self,
         node_id: str,
-        chat: chat.Chat,
+        thread: T.Thread,
         model: Optional[Model] = None,
         description: str = "",
     ) -> "Chain":
@@ -1196,30 +1227,35 @@ class Chain:
 
         # build the node
         node = Node.from_chat(
-            chat,
+            thread,
             node_id=node_id,
             model=model or self.default_model,  # type: ignore
             description=description,
         )
 
+        logger.debug(f"Adding node (total nodes {len(self.nodes)}): {node.id=}")
+
         # add edges as required
         for var in node.fields:
             if var.name in self.nodes:
-                self.edges.append(
-                    Edge(
-                        src_node_id=var.name,
-                        src_node_var=var.name,
-                        trg_node_id=node_id,
-                        trg_node_var=self.nodes[var.name].outputs[0].name,
-                    )
+                e = Edge(
+                    src_node_id=var.name,
+                    src_node_var=var.name,
+                    trg_node_id=node_id,
+                    trg_node_var=self.nodes[var.name].outputs[0].name,
                 )
+                logger.debug(f"Adding (total edges {len(self.edges)}) {e=}")
+                self.edges.append(e)
 
         # assign the node
         self.nodes[node.id] = node
 
         # topo sort
         if len(self.nodes) == 1:
-            assert len(self.edges) == 0, "Cannot have edges with only 1 node"
+            if len(self.edges) != 0:
+                raise ValueError(
+                    f"Cannot have edges with only 1 node. Got {self.edges}"
+                )
             self.topo_order = [next(iter(self.nodes))]
         else:
             self.topo_order = topological_sort(self.edges)
@@ -1338,9 +1374,9 @@ class Chain:
         nodes = []
         for i, node in enumerate(self.nodes.values()):
             nodes.append(
-                T.FENode(
+                T.UINode(
                     id=node.id,
-                    position=T.FENode.Position(
+                    position=T.UINode.Position(
                         x=i * 100,
                         y=i * 100,
                     ),
@@ -1348,13 +1384,13 @@ class Chain:
                     width=100,
                     height=100,
                     selected=False,
-                    position_absolute=T.FENode.Position(
+                    position_absolute=T.UINode.Position(
                         x=i * 100,
                         y=i * 100,
                     ),
                     dragging=False,
                     cf_id=node.id,
-                    cf_data=T.FENode.CFData(
+                    cf_data=T.UINode.CFData(
                         id=node.id,
                         type=node.type,
                         node=node.to_dict(),
@@ -1803,6 +1839,235 @@ class Chain:
             )
 
         yield out, True
+
+
+#
+# Tools: A new abstraction for AGI
+#
+
+
+class Action:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        properties: Optional[Dict[str, Any]] = {},
+        required: Optional[List[str]] = [],
+        fn: Optional[Callable] = None,
+        fn_meta: Optional[Dict[str, Any]] = None,
+    ):
+        self.name = name
+        self.description = description
+        self.properties = properties
+        self.required = required
+
+        if (fn is None and fn_meta is None) or (fn is not None and fn_meta is not None):
+            raise ValueError("Either fn or fn_meta is required")
+        if fn_meta is not None:
+            # first validate that the line content is same in the two files, then try to load the item
+            if not os.path.exists(fn_meta["file"]):
+                raise ValueError(f"File {fn_meta['file']} does not exist")
+            with open(fn_meta["file"], "r") as f:
+                for i, l in enumerate(f):
+                    if i == fn_meta["line"] and l != fn_meta["line_val"]:
+                        raise ValueError(
+                            f"Line #{fn_meta['line']} does not match in {fn_meta['file']}\n"
+                            f"  Expected: {l}\n"
+                            f"     Found: {fn_meta['line_val']}"
+                        )
+            fn = load_module_from_path(fn_meta["name"], fn_meta["file"])
+        elif fn is not None:
+            fn_meta = {
+                "file": inspect.getfile(fn),
+                "line": inspect.getsourcelines(fn)[1] - 1,
+                "line_val": inspect.getsourcelines(fn)[0][0],
+                "name": fn.__name__,
+            }
+
+        self.fn_meta = fn_meta
+        self.fn: Callable = fn  # type: ignore
+
+    def __repr__(self) -> str:
+        return f"[Action] {self.name}: {self.description}"
+
+    # ser/deser
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes the action to a dictionary.
+
+        Returns:
+            Dict[str, Any]: The dictionary representation of the action.
+        """
+        return {
+            "name": self.name,
+            "description": self.description,
+            "required": self.required,
+            "properties": self.properties,
+            "fn_meta": self.fn_meta,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Action":
+        """Deserializes the action from a dictionary.
+
+        Args:
+            data (Dict[str, Any]): The dictionary representation of the action.
+        """
+        return cls(
+            name=data["name"],
+            description=data["description"],
+            required=data["required"],
+            properties=data["properties"],
+            fn_meta=data["fn_meta"],
+        )
+
+    def to_json(self, indent=0, tight=True) -> str:
+        """Serializes the action to a JSON string.
+
+        Returns:
+            str: The JSON string representation of the action.
+        """
+        return to_json(self.to_dict(), indent=indent, tight=tight)
+
+    @classmethod
+    def from_json(cls, data: str) -> "Action":
+        """Creates an action from a JSON string.
+
+        Args:
+            data (str): The JSON string representation of the action.
+        """
+        return cls.from_dict(json.loads(data))
+
+    def __call__(self, *args, **kwargs):
+        # validate the data is in
+        return self.fn(*args, **kwargs)
+
+    # usage
+
+    def to_fn(self) -> Dict[str, Any]:
+        data = self.to_dict()
+        data.pop("fn_meta")
+        return data
+
+
+class Tools:
+    """
+    Usage:
+
+    >>> from chainfury import Tool, Var
+    >>> my_tool = Tool("My Tool", "This is a test tool")
+    >>> @my_tool(
+    ...     description = "this is test action",
+    ...     props = {
+    ...          "a": Var("int", "number 1"),
+    ...          "b": Var("int", "number 2"),
+    ...          "secret": Var("int", secret = True, key="MY_ENV_VAR"), # to implement
+    ...     }
+    ... )
+    ... def add_two_numbers(a: int, b: int, secret: int):
+    ...     return (a + b) * secret
+    ...
+    >>> my_tool.to_json(indent = 2)
+    {
+        "name": "add_two_numbers",
+        ...
+    }
+    """
+
+    def __init__(self, name: str, description: str):
+        self.name = name
+        self.description = description
+
+        #
+        self.actions: Dict[str, Action] = {}
+
+    def __repr__(self) -> str:
+        return f"[Tool] {self.name}: {self.description}"
+
+    def _register_action(
+        self,
+        fn: Callable,
+        description: str,
+        properties: Dict[str, Var],
+        name: Optional[str] = None,
+    ) -> Action:
+        name = name or fn.__name__
+        props = {}
+        required = []
+        for k, v in properties.items():
+            props[k] = {
+                "type": v.type,
+                "description": v.description,
+            }
+            if v.required:
+                required.append(k)
+
+        self.actions[name] = Action(
+            name=name,
+            description=description,
+            properties=props,
+            required=required,
+            fn=fn,
+        )
+        return self.actions[name]
+
+    def add(self, description: str, properties: Dict[str, Var] = {}) -> Action:
+        """
+        Register the actions
+        """
+        return partial(
+            self._register_action,
+            description=description,
+            properties=properties,
+        )  # type: ignore
+
+    # ser/deser
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Register the actions
+        """
+        return {
+            "name": self.name,
+            "description": self.description,
+            "actions": {k: v.to_dict() for k, v in self.actions.items()},
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Tools":
+        """Deserializes the Tool from a dictionary.
+
+        Args:
+            data (Dict[str, Any]): The dictionary representation of the chain.
+        """
+        self = cls(
+            name=data["name"],
+            description=data["description"],
+        )
+        actions = data.get("actions", {})
+        for a in actions.values():
+            action = Action.from_dict(a)
+            self.actions[action.name] = action
+
+        return self
+
+    def to_json(self, indent=2, tight=False) -> str:
+        """Serializes the Tool to a JSON string.
+
+        Returns:
+            str: The JSON string representation of the chain.
+        """
+        return to_json(self.to_dict(), indent=indent, tight=tight)
+
+    @classmethod
+    def from_json(cls, data: str) -> "Tools":
+        """
+        Register the actions
+        """
+        return cls.from_dict(json.loads(data))
+
+    def to_fn(self) -> Dict[str, Any]:
+        return {"name": self.name, "description": self.description, "properties": {}}
 
 
 #

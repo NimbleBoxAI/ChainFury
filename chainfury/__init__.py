@@ -14,7 +14,16 @@ from chainfury.utils import (
     logger,
     CFEnv,
 )
-from chainfury.base import Var, Node, Secret, Chain, Model, Edge
+from chainfury.base import (
+    Var,
+    Node,
+    Secret,
+    Chain,
+    Model,
+    Edge,
+    Tools,
+    Action,
+)
 from chainfury.core import (
     model_registry,
     programatic_actions_registry,
@@ -24,11 +33,11 @@ from chainfury.core import (
     Memory,
 )
 from chainfury.client import get_client
-from chainfury.chat import (
+from chainfury.types import (
     Message,
-    Chat,
-    TuneChats,
-    TuneDataset,
+    Thread,
+    ThreadsList,
+    Dataset,
     human,
     system,
     assistant,

@@ -10,10 +10,10 @@ from passlib.hash import sha256_crypt
 from dataclasses import dataclass, asdict
 from typing import Dict, Any
 
-from sqlalchemy.pool import QueuePool
+from sqlalchemy.pool import QueuePool, NullPool
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import Session, scoped_session, sessionmaker
+from sqlalchemy.orm import Session, scoped_session, sessionmaker, relationship
 from sqlalchemy import (
     Column,
     ForeignKey,
@@ -28,6 +28,7 @@ from sqlalchemy import (
 )
 
 from chainfury_server.utils import logger, Env
+import chainfury.types as T
 
 ########
 #
@@ -54,6 +55,8 @@ if db is None:
     )
 else:
     logger.info(f"Using via database URL")
+    # https://stackoverflow.com/a/73764136
+    #
     engine = create_engine(
         db,
         poolclass=QueuePool,
@@ -83,7 +86,7 @@ def get_random_number(length) -> int:
     return random_numbers
 
 
-def get_local_session() -> sessionmaker:
+def get_local_session(engine) -> sessionmaker:
     logger.debug("Database opened successfully")
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal
@@ -100,7 +103,7 @@ def db_session() -> Session:  # type: ignore
 
 
 def fastapi_db_session():
-    sess_cls = get_local_session()
+    sess_cls = get_local_session(engine)
     db = sess_cls()
     try:
         yield db
@@ -170,9 +173,36 @@ class User(Base):
     username: str = Column(String(80), unique=True, nullable=False)
     password: str = Column(String(80), nullable=False)
     meta: Dict[str, Any] = Column(JSON)
+    tokens = relationship("Tokens", back_populates="user")
 
     def __repr__(self):
         return f"User(id={self.id}, username={self.username}, meta={self.meta})"
+
+
+class Tokens(Base):
+    __tablename__ = "tokens"
+
+    MAXLEN_KEY = 80
+    MAXLEN_VAL = 1024
+    MAXLEN_TOKEN = 703  # 703 long string can create 1016 long token
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(String(ID_LENGTH), ForeignKey("user.id"), nullable=False)
+    key = Column(String(MAXLEN_KEY), nullable=False)
+    value = Column(String(MAXLEN_VAL), nullable=False)
+    meta = Column(JSON, nullable=True)
+    user = relationship("User", back_populates="tokens")
+    # (user_id, key) is a unique constraint
+
+    def __repr__(self):
+        return f"Tokens(id={self.id}, user_id={self.user_id}, key={self.key}, value={self.value[:5]}..., meta={self.meta})"
+
+    def to_ApiToken(self) -> T.ApiToken:
+        return T.ApiToken(
+            key=self.key,
+            token=self.value,
+            meta=self.meta,
+        )
 
 
 class ChatBot(Base):
@@ -208,6 +238,9 @@ class ChatBot(Base):
             "deleted_at": self.deleted_at,
         }
 
+    def to_ApiChain(self) -> T.ApiChain:
+        return T.ApiChain(**self.to_dict())
+
     def __repr__(self):
         return f"ChatBot(id={self.id}, name={self.name}, created_by={self.created_by}, dag={self.dag}, meta={self.meta})"
 
@@ -240,6 +273,9 @@ class Prompt(Base):
     session_id: Dict[str, Any] = Column(String(80), nullable=False)
     meta: Dict[str, Any] = Column(JSON)
 
+    # migrate to snowflake ID
+    # sf_id = Column(String(19), nullable=True)
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -255,6 +291,9 @@ class Prompt(Base):
             "meta": self.meta,
         }
 
+    def to_ApiPrompt(self):
+        return T.ApiPrompt(**self.to_dict())
+
 
 class ChainLog(Base):
     __tablename__ = "chain_logs"
@@ -266,10 +305,24 @@ class ChainLog(Base):
     )
     created_at: datetime = Column(DateTime, nullable=False)
     prompt_id: int = Column(Integer, ForeignKey("prompt.id"), nullable=False)
-    node_id: str = Column(String(Env.CFS_MAXLEN_CF_NDOE()), nullable=False)
+    node_id: str = Column(String(Env.CFS_MAXLEN_CF_NODE()), nullable=False)
     worker_id: str = Column(String(Env.CFS_MAXLEN_WORKER()), nullable=False)
     message: str = Column(Text, nullable=False)
     data: Dict[str, Any] = Column(JSON, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "created_at": self.created_at,
+            "prompt_id": self.prompt_id,
+            "node_id": self.node_id,
+            "worker_id": self.worker_id,
+            "message": self.message,
+            "data": self.data,
+        }
+
+    def to_ApiChainLog(self):
+        return T.ApiChainLog(**self.to_dict())
 
 
 class Template(Base):

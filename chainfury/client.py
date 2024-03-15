@@ -1,6 +1,5 @@
 # Copyright © 2023- Frello Technology Private Limited
 
-import os
 import requests
 from functools import lru_cache
 from typing import Dict, Any, Tuple

@@ -20,7 +20,8 @@ app = FastAPI(
     description="""
 chainfury server is a way to deploy and run chainfury engine over APIs. `chainfury` is [Tune AI](tunehq.ai)'s FOSS project
 released under [Apache-2 License](https://choosealicense.com/licenses/apache-2.0/) so you can use this for your commercial
-projects. A version `chainfury` is used in production in [Tune.Chat](chat.tune.app) and serves thousands of users daily.
+projects. A version `chainfury` is used in production in [Tune.Chat](chat.tune.app), serves and solves thousands of user
+queries daily.
 """.strip(),
     version=__version__,
     docs_url="" if Env.CFS_DISABLE_DOCS() else "/docs",
@@ -42,24 +43,29 @@ add_default_user()
 app.add_api_route("/api/v1/chatbot/{id}/prompt", api_chains.run_chain, methods=["POST"], tags=["deprecated"], response_model=None)  # type: ignore
 
 # user
-app.add_api_route("/user/login/", api_user.login, methods=["POST"], tags=["user"])  # type: ignore
-app.add_api_route("/user/signup/", api_user.sign_up, methods=["POST"], tags=["user"])  # type: ignore
-app.add_api_route("/user/change_password/", api_user.change_password, methods=["POST"], tags=["user"])  # type: ignore
+app.add_api_route(methods=["POST"], path="/user/login/", endpoint=api_user.login, tags=["user"])  # type: ignore
+app.add_api_route(methods=["POST"], path="/user/signup/", endpoint=api_user.sign_up, tags=["user"])  # type: ignore
+app.add_api_route(methods=["POST"], path="/user/change_password/", endpoint=api_user.change_password, tags=["user"])  # type: ignore
+app.add_api_route(methods=["PUT"], path="/user/secret/", endpoint=api_user.create_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/user/secret/", endpoint=api_user.get_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["DELETE"], path="/user/secret/", endpoint=api_user.delete_secret, tags=["user"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/user/secret/list/", endpoint=api_user.list_secret, tags=["user"])  # type: ignore
 
 # chains
-app.add_api_route("/api/chains/", api_chains.list_chains, methods=["GET"], tags=["chains"])  # type: ignore
-app.add_api_route("/api/chains/", api_chains.create_chain, methods=["PUT"], tags=["chains"])  # type: ignore
-app.add_api_route("/api/chains/{id}/", api_chains.get_chain, methods=["GET"], tags=["chains"])  # type: ignore
-app.add_api_route("/api/chains/{id}/", api_chains.delete_chain, methods=["DELETE"], tags=["chains"])  # type: ignore
-app.add_api_route("/api/chains/{id}/", api_chains.update_chain, methods=["PATCH"], tags=["chains"])  # type: ignore
-app.add_api_route("/api/chains/{id}/", api_chains.run_chain, methods=["POST"], tags=["chains"], response_model=None)  # type: ignore
-app.add_api_route("/api/chains/{id}/metrics/", api_chains.get_chain_metrics, methods=["GET"], tags=["chains"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/chains/", endpoint=api_chains.list_chains, tags=["chains"])  # type: ignore
+app.add_api_route(methods=["PUT"], path="/api/chains/", endpoint=api_chains.create_chain, tags=["chains"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/chains/{id}/", endpoint=api_chains.get_chain, tags=["chains"])  # type: ignore
+app.add_api_route(methods=["DELETE"], path="/api/chains/{id}/", endpoint=api_chains.delete_chain, tags=["chains"])  # type: ignore
+app.add_api_route(methods=["PATCH"], path="/api/chains/{id}/", endpoint=api_chains.update_chain, tags=["chains"])  # type: ignore
+app.add_api_route(methods=["POST"], path="/api/chains/{id}/", endpoint=api_chains.run_chain, tags=["chains"], response_model=None)  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/chains/{id}/metrics/", endpoint=api_chains.get_chain_metrics, tags=["chains"])  # type: ignore
 
 # prompts
-app.add_api_route("/api/prompts/", api_prompts.list_prompts, methods=["GET"], tags=["prompts"])  # type: ignore
-app.add_api_route("/api/prompts/{prompt_id}/", api_prompts.get_prompt, methods=["GET"], tags=["prompts"])  # type: ignore
-app.add_api_route("/api/prompts/{prompt_id}/", api_prompts.delete_prompt, methods=["DELETE"], tags=["prompts"])  # type: ignore
-app.add_api_route("/api/prompts/{prompt_id}/feedback", api_prompts.prompt_feedback, methods=["PUT"], tags=["prompts"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/prompts/", endpoint=api_prompts.list_prompts, tags=["prompts"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/prompts/{prompt_id}/", endpoint=api_prompts.get_prompt, tags=["prompts"])  # type: ignore
+app.add_api_route(methods=["DELETE"], path="/api/prompts/{prompt_id}/", endpoint=api_prompts.delete_prompt, tags=["prompts"])  # type: ignore
+app.add_api_route(methods=["PUT"], path="/api/prompts/{prompt_id}/feedback/", endpoint=api_prompts.prompt_feedback, tags=["prompts"])  # type: ignore
+app.add_api_route(methods=["GET"], path="/api/prompts/{prompt_id}/logs/", endpoint=api_prompts.get_chain_logs, tags=["prompts"])  # type: ignore
 
 
 # UI files
